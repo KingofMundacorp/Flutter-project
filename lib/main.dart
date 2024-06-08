@@ -1,17 +1,23 @@
 import 'package:d2_touch/d2_touch.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:user_support_mobile/app_binding.dart';
+import 'package:user_support_mobile/constants/d2-repository.dart';
+import 'package:user_support_mobile/modules/module-authentication/login/login-page.dart';
+import 'package:user_support_mobile/pages/home_page.dart';
+import 'package:user_support_mobile/routes_generator.dart';
 
 import '../helpers/text_theme.dart';
 import 'main.reflectable.dart';
 
 void main() async {
   initializeReflectable();
-  D2Touch.initialize();
+  WidgetsFlutterBinding.ensureInitialized();
   
   // for development purposes
-  var loginRes = await D2Touch.logIn(
+  var loginRes = await d2repository.authModule.logIn(
     url: 'https://tland.dhis2.udsm.ac.tz',
     username: 'pt',
     password: 'Dhis.2022'
@@ -20,11 +26,11 @@ void main() async {
   print(loginRes);
 
 
-  var isAuth = await D2Touch.isAuthenticated();
+  var isAuth = await d2repository.authModule.isAuthenticated();
 
   runApp(
     MyApp(
-      isAuth: isAuth,
+      authenticated: isAuth,
     ),
   );
 }

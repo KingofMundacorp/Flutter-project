@@ -22,8 +22,7 @@ class ButtonWidget extends StatelessWidget {
         absorbing: !isButtonEnabled,
         child: OutlinedButton(
           style: OutlinedButton.styleFrom(
-            primary: Color.fromRGBO(29, 194, 95, 1),
-            minimumSize: Size.fromHeight(40),
+            foregroundColor: Color.fromRGBO(29, 194, 95, 1), minimumSize: Size.fromHeight(40),
           ),
           child: buildContent(),
           // onPressed: () => Container(),

@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 
 import '../constants/d2-repository.dart';
 import '../models/approve_model.dart';
-import '../models/org_unit_model/org_unit_model..dart';
+import '../models/org_unit_model/org_unit_model.dart';
 
 class HomeController extends GetxController {
   Future<List<ApproveModel>> fetchData() async {

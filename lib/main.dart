@@ -1,8 +1,12 @@
+import 'dart:core';
+
 import 'package:d2_touch/d2_touch.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:user_support_mobile/pages/inbox_page.dart';
+import 'package:user_support_mobile/pages/login_page.dart';
 import 'package:user_support_mobile/app_binding.dart';
 import 'package:user_support_mobile/constants/d2-repository.dart';
 import 'package:user_support_mobile/modules/module-authentication/login/login-page.dart';
@@ -53,10 +57,11 @@ class _MyAppState extends State<MyApp> {
       title: 'User support app',
       debugShowCheckedModeBanner: false,
       scaffoldMessengerKey: scaffoldMessengerKey, // add this
+      
       theme: ThemeData(
+        useMaterial3: false,
         colorScheme: const ColorScheme(
-            background: Colors.blueAccent,
-            onBackground: Colors.white,
+
             primary: Colors.blueAccent,
             onPrimary: Colors.white,
             secondary: Colors.teal,
@@ -69,7 +74,7 @@ class _MyAppState extends State<MyApp> {
         // fontFamily: 'Montserrat'
       ),
       initialRoute:
-          widget.authenticated ? HomePage.routeName : HomeLogin.routeName,
+          widget.authenticated ? InboxPage.routeName : LoginPage.routeName,
       onGenerateRoute: RoutesGenerator.generateRoute,
       initialBinding: AppBindings(),
     );

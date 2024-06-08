@@ -79,87 +79,89 @@ class _SystemPageState extends State<SystemPage> {
                                       ? value.systemMessage[index]
                                       : _searchResult[index];
                                   return Slidable(
-                                    actionPane:
-                                        const SlidableDrawerActionPane(),
-                                    actions: <Widget>[
-                                      IconSlideAction(
-                                        caption: 'Approve',
-                                        color: Colors.blue,
-                                        icon: Icons.approval,
-                                        onTap: () {},
-                                      ),
-                                    ],
-                                    secondaryActions: <Widget>[
-                                      IconSlideAction(
-                                        caption: 'Reject',
-                                        color: Colors.black45,
-                                        icon: Icons.block,
-                                        onTap: () {},
-                                      ),
-                                      IconSlideAction(
-                                        caption: 'Delete',
-                                        color: Colors.red,
-                                        icon: Icons.delete,
-                                        onTap: () {
-                                          showDialog(
-                                            context: context,
-                                            builder: (_) {
-                                              return AlertDialog(
-                                                title: Text('Are you sure?'),
-                                                content: Text(
-                                                  'Do you want to delete?',
-                                                ),
-                                                actions: <Widget>[
-                                                  ElevatedButton(
-                                                    onPressed: () {
-                                                      Navigator.of(context)
-                                                          .pop(false);
-                                                    },
-                                                    child: Text('No'),
-                                                  ),
-                                                  OutlinedButton(
-                                                    onPressed: () {
-                                                      ScaffoldMessenger.of(
-                                                              context)
-                                                          .hideCurrentSnackBar();
-                                                      ScaffoldMessenger.of(
-                                                              context)
-                                                          .showSnackBar(
-                                                        SnackBar(
-                                                          content: Text(
-                                                              'deleted message'),
-                                                          duration: Duration(
-                                                              seconds: 2),
-                                                          action:
-                                                              SnackBarAction(
-                                                            label: 'UNDO',
-                                                            onPressed: () {},
-                                                          ),
-                                                        ),
-                                                      );
-                                                      value.deleteMessage(value
-                                                          .systemMessage[index]
-                                                          .id);
+  // Replacing 'actionPane' with 'startActionPane' and 'endActionPane'
+  startActionPane: ActionPane(
+    motion: const DrawerMotion(),
+    extentRatio: 0.25,
+    children: <Widget>[
+      SlidableAction(
+        onPressed: (context) {
+          // Handle approve action
+        },
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+        icon: Icons.approval,
+        label: 'Approve',
+      ),
+    ],
+  ),
+  endActionPane: ActionPane(
+    motion: const DrawerMotion(),
+    extentRatio: 0.25,
+    children: <Widget>[
+      SlidableAction(
+        onPressed: (context) {
+          // Handle reject action
+        },
+        backgroundColor: Colors.black45,
+        foregroundColor: Colors.white,
+        icon: Icons.block,
+        label: 'Reject',
+      ),
+      SlidableAction(
+        onPressed: (context) {
+          showDialog(
+            context: context,
+            builder: (_) {
+              return AlertDialog(
+                title: Text('Are you sure?'),
+                content: Text('Do you want to delete?'),
+                actions: <Widget>[
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(false);
+                    },
+                    child: Text('No'),
+                  ),
+                  OutlinedButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('deleted message'),
+                          duration: Duration(seconds: 2),
+                          action: SnackBarAction(
+                            label: 'UNDO',
+                            onPressed: () {},
+                          ),
+                        ),
+                      );
+                      value.deleteMessage(value.systemMessage[index].id);
+                      Navigator.of(context).pop(true);
+                    },
+                    child: const Text('Yes'),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+        backgroundColor: Colors.red,
+        foregroundColor: Colors.white,
+        icon: Icons.delete,
+        label: 'Delete',
+      ),
+    ],
+  ),
+  child: MessageBox(
+    lastMessage: messageData.lastMessage,
+    subject: messageData.subject,
+    displayName: 'System',
+    read: value.systemMessage[index].read,
+    messageId: messageData.id,
+  ),
+);
 
-                                                      Navigator.of(context)
-                                                          .pop(true);
-                                                    },
-                                                    child: const Text('Yes'),
-                                                  )
-                                                ],
-                                              );
-                                            },
-                                          );
-                                        },
-                                      ),
-                                    ],
-                                    child: MessageBox(
-                                        lastMessage: messageData.lastMessage,
-                                        subject: messageData.subject,
-                                        displayName: 'System',
-                                        read: value.systemMessage[index].read,
-                                        messageId: messageData.id),
-                                  );
                                 },
                               ),
                             ],

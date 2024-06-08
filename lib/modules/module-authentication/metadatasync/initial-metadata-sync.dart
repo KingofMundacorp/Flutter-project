@@ -60,7 +60,7 @@ class _HomeMetadataSyncState extends State<HomeMetadataSync>
         return;
       }
       await d2repository.organisationUnitModule.organisationUnit
-          .includeParentChildren()
+          
           .download((p0, p1) {
         setState(() {
           // processPercent = p0.percentage / 800;

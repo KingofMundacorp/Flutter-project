@@ -11,6 +11,9 @@ import 'package:user_support_mobile/app_binding.dart';
 import 'package:user_support_mobile/constants/d2-repository.dart';
 import 'package:user_support_mobile/modules/module-authentication/login/login-page.dart';
 import 'package:user_support_mobile/pages/home_page.dart';
+import 'package:user_support_mobile/pages/splash_page.dart';
+import 'package:user_support_mobile/providers/provider.dart';
+import 'package:user_support_mobile/routes/routes.dart';
 import 'package:user_support_mobile/routes_generator.dart';
 
 import '../helpers/text_theme.dart';
@@ -19,29 +22,27 @@ import 'main.reflectable.dart';
 void main() async {
   initializeReflectable();
   WidgetsFlutterBinding.ensureInitialized();
-  
+  d2repository = await D2Touch.init();
+
   // for development purposes
-  var loginRes = await d2repository.authModule.logIn(
-    url: 'https://tland.dhis2.udsm.ac.tz',
-    username: 'pt',
-    password: 'Dhis.2022'
+  await d2repository.authModule.logIn(
+    url: 'http://41.59.227.69/tland-upgrade',
+    username: 'wgoodluck',
+    password: 'Hmis@2024'
   );
 
-  print(loginRes);
-
-
-  var isAuth = await d2repository.authModule.isAuthenticated();
+  bool isAuth = await d2repository.authModule.isAuthenticated();
 
   runApp(
     MyApp(
-      authenticated: isAuth,
+      isAuth: isAuth,
     ),
   );
 }
 
 class MyApp extends StatefulWidget {
-  final bool authenticated;
-  const MyApp({Key? key, required this.authenticated}) : super(key: key);
+  final bool isAuth;
+  const MyApp({Key? key, required this.isAuth}) : super(key: key);
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -53,30 +54,19 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      title: 'User support app',
-      debugShowCheckedModeBanner: false,
-      scaffoldMessengerKey: scaffoldMessengerKey, // add this
-      
-      theme: ThemeData(
-        useMaterial3: false,
-        colorScheme: const ColorScheme(
-
-            primary: Colors.blueAccent,
-            onPrimary: Colors.white,
-            secondary: Colors.teal,
-            onSecondary: Colors.white,
-            surface: Colors.white,
-            onSurface: Colors.teal,
-            error: Colors.red,
-            onError: Colors.white,
-            brightness: Brightness.light),
-        // fontFamily: 'Montserrat'
-      ),
-      initialRoute:
-          widget.authenticated ? InboxPage.routeName : LoginPage.routeName,
-      onGenerateRoute: RoutesGenerator.generateRoute,
-      initialBinding: AppBindings(),
+        return ChangeNotifierProvider<MessageModel>(
+      create: (_) => MessageModel(),
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'User Support App',
+        theme: ThemeData(
+          textTheme: textTheme,
+          primaryColor: const Color(0xFF1D5288),
+        ),
+        home: SplashScreen(isAuth: widget.isAuth),
+        routes: routes,
+        builder: EasyLoading.init(),
+      )
     );
   }
 }

@@ -1,29 +1,32 @@
 import 'package:d2_touch/d2_touch.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:get/get.dart';
-import 'app_binding.dart';
-import 'constants/d2-repository.dart';
-import 'modules/module-authentication/login/login-page.dart';
-import 'pages/home_page.dart';
-import 'routes_generator.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 
+import '../helpers/text_theme.dart';
 import 'main.reflectable.dart';
 
 void main() async {
   initializeReflectable();
-  WidgetsFlutterBinding.ensureInitialized();
-  d2repository = await D2Touch.init();
-  await d2repository.authModule.logOut();
-  bool isAuth = await d2repository.authModule.isAuthenticated();
-  RenderErrorBox.backgroundColor = Colors.white;
-  ErrorWidget.builder = (FlutterErrorDetails details) => const Scaffold(
-        body: Center(child: Text('There is an error')),
-      );
+  D2Touch.initialize();
+  
+  // for development purposes
+  var loginRes = await D2Touch.logIn(
+    url: 'https://tland.dhis2.udsm.ac.tz',
+    username: 'pt',
+    password: 'Dhis.2022'
+  );
 
-  runApp(MyApp(
-    authenticated: isAuth,
-  ));
+  print(loginRes);
+
+
+  var isAuth = await D2Touch.isAuthenticated();
+
+  runApp(
+    MyApp(
+      isAuth: isAuth,
+    ),
+  );
 }
 
 class MyApp extends StatefulWidget {

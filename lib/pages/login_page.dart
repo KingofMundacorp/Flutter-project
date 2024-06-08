@@ -1,9 +1,8 @@
 import 'package:d2_touch/d2_touch.dart';
-import 'package:d2_touch/modules/auth/models/login-response.model.dart';
+import 'package:d2_touch/modules/auth/user/models/login-response.model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../constants/d2-repository.dart';
 import '../providers/provider.dart';
 import 'data_approval_screen.dart';
 
@@ -124,7 +123,7 @@ class _LoginPageState extends State<LoginPage> {
                               print(_usernameEditingController.text.trim() +
                                   _passwordEditingController.text.trim());
                               LoginResponseStatus loginRes =
-                                  await d2repository.authModule.logIn(
+                                  await D2Touch.logIn(
                                       url: 'https://tland.dhis2.udsm.ac.tz',
                                       username: _usernameEditingController.text
                                           .trim(),

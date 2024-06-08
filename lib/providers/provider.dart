@@ -7,7 +7,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:d2_touch/shared/utilities/http_client.util.dart';
-import '../constants/d2-repository.dart';
 
 import '/constants/constants.dart';
 import '/models/message_conversation.dart';

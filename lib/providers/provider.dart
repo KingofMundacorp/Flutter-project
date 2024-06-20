@@ -47,34 +47,37 @@ class MessageModel with ChangeNotifier {
   // new codes
 
   Future<void> get fetchDataApproval async {
-    try {
+    log('this is initially called');
+    
+    // try {
       var response = [];
       var res2;
 
       final res =
           await d2repository.httpClient.get('dataStore/dhis2-user-support');
-      DataStoreQuery test = d2repository.dataStore.dataStoreQuery
-          .byNamespace('dhis2-user-support');
-      log(test.namespace.toString());
+      // DataStoreQuery test = d2repository.dataStore.dataStoreQuery
+      //     .byNamespace('dhis2-user-support');
+      // log(test.namespace.toString());
       // log(res.toString());
-      log(test.toString());
+      // log(test.toString());
       var list = res.body;
 
       for (var i = 1; i < list.length; i++) {
-        print('dataStore/dhis2-user-support/${list[i]}');
 
-        if (list[i].toString() != "configurations") {
-          res2 = await HttpClient.get(
+        if (list[i].toString().startsWith("DS")) {
+        print('dataStore/dhis2-user-support/${list[i]}');
+          res2 = await d2repository.httpClient.get(
               'dataStore/dhis2-user-support/${list[i].toString()}');
           response.add(res2.body);
         }
       }
+      // log('messages : $response');
       _dataApproval = response
           .map((x) => ApproveModel.fromMap(x as Map<String, dynamic>))
           .toList();
-    } catch (e) {
-      print("error : $e");
-    }
+    // } catch (e) {
+    //   print("error : $e");
+    // }
 
     notifyListeners();
   }
@@ -85,14 +88,14 @@ class MessageModel with ChangeNotifier {
     print(user!.username);
     _isLoading = true;
     var id = dataApproval.id!.substring(0, 15);
-    Dio dio = Dio();
+    // Dio dio = Dio();
 
     String createBasicAuthToken(username, password) {
       return 'Basic ' + base64Encode(utf8.encode('$username:$password'));
     }
 
     print(id);
-    final res = await HttpClient.get(
+    final res = await d2repository.httpClient.get(
         'messageConversations?messageType=TICKET&filter=subject:ilike:${id}');
 
     var convId = res.body['messageConversations'][0]['id'].toString();
@@ -100,17 +103,18 @@ class MessageModel with ChangeNotifier {
     if (message == null) {
       print('This is inside if statement');
       final response = await Future.wait([
-        HttpClient.post(dataApproval.url!, dataApproval.payload!.toMap()),
+        d2repository.httpClient.post(dataApproval.url!, dataApproval.payload!.toMap()),
+        
         http.delete(
             Uri.parse(
-                "https://tland.dhis2.udsm.ac.tz/api/dataStore/dhis2-user-support/${dataApproval.id}"),
+                "http://41.59.227.69/tland-upgrade/api/dataStore/dhis2-user-support/${dataApproval.id}"),
             headers: <String, String>{
               'Authorization':
                   createBasicAuthToken(user.username, user.password)
             }),
-        HttpClient.post('messageConversations/${convId}',
+        d2repository.httpClient.post('messageConversations/${convId}',
             'Ombi lako limeshughulikiwa karibu!'),
-        HttpClient.post(
+        d2repository.httpClient.post(
             'messageConversations/${convId}/status?messageConversationStatus=SOLVED',
             ''),
       ]).whenComplete(() => _isLoading = false);
@@ -120,13 +124,13 @@ class MessageModel with ChangeNotifier {
       final response = await Future.wait([
         http.delete(
             Uri.parse(
-                "https://tland.dhis2.udsm.ac.tz/api/dataStore/dhis2-user-support/${dataApproval.id}"),
+                "http://41.59.227.69/tland-upgrade/api/dataStore/dhis2-user-support/${dataApproval.id}"),
             headers: <String, String>{
               'Authorization':
                   createBasicAuthToken(user.username, user.password)
             }),
-        HttpClient.post('messageConversations/${convId}', message),
-        HttpClient.post(
+        d2repository.httpClient.post('messageConversations/${convId}', message),
+        d2repository.httpClient.post(
             'messageConversations/${convId}/status?messageConversationStatus=SOLVED',
             '')
       ]).whenComplete(() => _isLoading = false);

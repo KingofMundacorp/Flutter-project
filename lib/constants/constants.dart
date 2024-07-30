@@ -11,12 +11,16 @@ const List<Map<String, dynamic>> menuItems = [
         'icon': Icons.document_scanner_sharp,
         'route': 'dataset'
       },
-      {'name': 'User Account', 'icon': Icons.person, 'route': 'user_account'},
       {
-        'name': 'Programs',
-        'icon': Icons.add_chart_outlined,
-        'route': 'programs'
+        'name': 'User account',
+        'icon': Icons.person,
+        'route': 'user_account',
       },
+      // {
+      //   'name': 'Programs',
+      //   'icon': Icons.add_chart_outlined,
+      //   'route': 'programs'
+      // },
     ]
   }
 ];

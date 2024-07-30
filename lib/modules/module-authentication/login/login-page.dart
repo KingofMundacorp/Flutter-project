@@ -38,8 +38,8 @@ class _HomeLoginState extends State<HomeLogin> {
 
   @override
   void initState() {
-    usernameController.text = "wgoodluck";
-    passwordController.text = "Hmis@2024";
+    // usernameController.text = "wgoodluck";
+    // passwordController.text = "Hmis@2024";
     urlController.text = "http://41.59.227.69/tland-upgrade";
     // urlController.text = "https://eidsrtesting.mohz.go.tz/test";
     // urlController.text = "https://eidsr.moh.go.tz/test";

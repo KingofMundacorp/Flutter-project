@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:user_support_mobile/models/approve_model.dart';
@@ -69,11 +67,9 @@ final GoRouter router = GoRouter(
                 ),
                 GoRoute(
                   name: 'login',
-                  path: 'login/:isAuth',
+                  path: 'login',
                   builder: (BuildContext context, GoRouterState state) {
-                    print('isAuth: ${state.pathParameters}');
-                    return LoginPage(
-                        isAuth: state.pathParameters['isAuth'] == "true");
+                    return LoginPage();
                   },
                 ),
                 GoRoute(

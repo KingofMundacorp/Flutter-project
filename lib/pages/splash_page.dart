@@ -26,11 +26,11 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (isAuth) {
       Timer(const Duration(seconds: 3), () {
-        context.go('/home/login/${isAuth}');
+        context.go('/home');
       });
+    } else {
+      context.go('/home/login');
     }
-
-    return isAuth;
   }
 
   @override
@@ -51,11 +51,6 @@ class _SplashScreenState extends State<SplashScreen> {
             const SizedBox(
               height: 20,
             ),
-            // const CircularProgressIndicator(
-            //   valueColor: AlwaysStoppedAnimation<Color>(
-            //     Color(0xFF1D5288),
-            //   ),
-            // )
           ],
         ),
       ),

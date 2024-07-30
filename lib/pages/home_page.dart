@@ -1,12 +1,7 @@
-import 'dart:convert';
-
-import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
+import 'package:user_support_mobile/constants/d2-repository.dart';
 import '../constants/constants.dart';
 import 'package:flutter/material.dart';
-import '../constants/d2-repository.dart';
-
-import 'organisation_unit.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -45,9 +40,10 @@ class _HomePageState extends State<HomePage> {
                           child: Text('Cancel'),
                         ),
                         TextButton(
-                          onPressed: () {
+                          onPressed: () async {
                             // Perform logout actions
-                            Navigator.of(context).pop();
+                            await d2repository.authModule.logOut();
+                            context.pushReplacement('/home/login');
                             // Navigate to login or perform any other actions
                           },
                           child: Text('Logout'),
@@ -58,67 +54,67 @@ class _HomePageState extends State<HomePage> {
                 );
               } else if (value == 'changeLevel') {
                 // Handle change level
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    String selectedLevel = 'Facility';
-                    return AlertDialog(
-                      title: Text('Change Level'),
-                      content: DropdownButton<String>(
-                        value: selectedLevel,
-                        onChanged: (String? newValue) {
-                          if (newValue != null) {
-                            // Handle the change of level
-                            print("something has been changed");
-                            setState(() {
-                              selectedLevel = newValue;
-                            });
-                          }
-                        },
-                        items: <String>[
-                          'Facility',
-                          'District',
-                          'Regions',
-                          'National',
-                        ].map<DropdownMenuItem<String>>(
-                          (String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value),
-                            );
-                          },
-                        ).toList(),
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: Text('Cancel'),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            // Perform change level actions
-                            print('Selected Level: $selectedLevel');
-                            Navigator.of(context).pop();
-                            // Implement logic for changing level
-                          },
-                          child: Text('Change Level'),
-                        ),
-                      ],
-                    );
-                  },
-                );
+                // showDialog(
+                //   context: context,
+                //   builder: (BuildContext context) {
+                //     String selectedLevel = 'Facility';
+                //     return AlertDialog(
+                //       title: Text('Change Level'),
+                //       content: DropdownButton<String>(
+                //         value: selectedLevel,
+                //         onChanged: (String? newValue) {
+                //           if (newValue != null) {
+                //             // Handle the change of level
+                //             print("something has been changed");
+                //             setState(() {
+                //               selectedLevel = newValue;
+                //             });
+                //           }
+                //         },
+                //         items: <String>[
+                //           'Facility',
+                //           'District',
+                //           'Regions',
+                //           'National',
+                //         ].map<DropdownMenuItem<String>>(
+                //           (String value) {
+                //             return DropdownMenuItem<String>(
+                //               value: value,
+                //               child: Text(value),
+                //             );
+                //           },
+                //         ).toList(),
+                //       ),
+                //       actions: [
+                //         TextButton(
+                //           onPressed: () {
+                //             Navigator.of(context).pop();
+                //           },
+                //           child: Text('Cancel'),
+                //         ),
+                //         TextButton(
+                //           onPressed: () {
+                //             // Perform change level actions
+                //             print('Selected Level: $selectedLevel');
+                //             Navigator.of(context).pop();
+                //             // Implement logic for changing level
+                //           },
+                //           child: Text('Change Level'),
+                //         ),
+                //       ],
+                //     );
+                //   },
+                // );
               }
             },
             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-              const PopupMenuItem<String>(
-                value: 'changeLevel',
-                child: ListTile(
-                  leading: Icon(Icons.arrow_upward),
-                  title: Text('Change Level'),
-                ),
-              ),
+              // const PopupMenuItem<String>(
+              //   value: 'changeLevel',
+              //   child: ListTile(
+              //     leading: Icon(Icons.arrow_upward),
+              //     title: Text('Change Level'),
+              //   ),
+              // ),
               const PopupMenuItem<String>(
                 value: 'logout',
                 child: ListTile(
@@ -186,8 +182,9 @@ class MyWrapView extends StatelessWidget {
         items.length,
         (index) => GestureDetector(
           onTap: () {
-            print('${items[index]['name']} clicked');
-            context.go("/home/${items[index]['route']}");
+            if (items[index]['name'] == 'Form Requests') {
+              context.go("/home/${items[index]['route']}");
+            }
           },
           child: Column(
             children: [
@@ -215,26 +212,5 @@ class MyWrapView extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  getRoute(String item) {
-    if (item.contains("Organisation")) Get.to(() => OrgUnitPage());
-  }
-
-  getData() async {
-    // key from a namespace
-    final res =
-        await d2repository.httpClient.get('dataStore/dhis2-user-support');
-    print(jsonEncode(res.body));
-
-    // org unit level
-
-    // org unit
-
-    // datasets
-
-    // programs
-
-    return null;
   }
 }

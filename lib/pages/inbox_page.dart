@@ -12,7 +12,7 @@ import '../widgets/message_card.dart';
 
 class InboxPage extends StatefulWidget {
   static const routeName = '/inbox-page';
-  const InboxPage({Key? key}) : super(key: key);
+  const InboxPage({Key? key, bool isAuth = false}) : super(key: key);
 
   @override
   _InboxPageState createState() => _InboxPageState();

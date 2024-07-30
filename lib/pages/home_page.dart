@@ -1,10 +1,9 @@
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../models/request.dart';
-import '../controller/controllers.dart';
+import 'package:go_router/go_router.dart';
 import '../constants/constants.dart';
+import 'package:flutter/material.dart';
 import '../constants/d2-repository.dart';
 
 import 'organisation_unit.dart';
@@ -19,7 +18,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final HomeController homeController = Get.find();
+  // final HomeController homeController = Get.find();
 
   @override
   Widget build(BuildContext context) {
@@ -188,7 +187,7 @@ class MyWrapView extends StatelessWidget {
         (index) => GestureDetector(
           onTap: () {
             print('${items[index]['name']} clicked');
-            getRoute(items[index]['name']);
+            context.go(items[index]['route']);
           },
           child: Column(
             children: [

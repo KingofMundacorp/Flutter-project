@@ -1,19 +1,21 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
+import 'package:user_support_mobile/models/message_conversation.dart';
+import 'package:user_support_mobile/pages/data_approval_screen.dart';
+import 'package:user_support_mobile/providers/provider.dart';
+import 'package:user_support_mobile/widgets/message_card.dart';
+import 'package:user_support_mobile/widgets/show_loading.dart';
 
-import '../models/message_conversation.dart';
-import '../providers/provider.dart';
-import '../widgets/message_card.dart';
-import '../widgets/show_loading.dart';
-
-class DataApprovalScreen extends StatefulWidget {
-  const DataApprovalScreen({Key? key}) : super(key: key);
+class DatasetScreen extends StatefulWidget {
+  const DatasetScreen({Key? key}) : super(key: key);
 
   @override
-  _DataApprovalScreenState createState() => _DataApprovalScreenState();
+  State<DatasetScreen> createState() => _DatasetScreenState();
 }
 
-class _DataApprovalScreenState extends State<DataApprovalScreen> {
+class _DatasetScreenState extends State<DatasetScreen> {
   List<MessageConversation> _searchResult = [];
   @override
   Widget build(BuildContext context) {
@@ -50,7 +52,6 @@ class _DataApprovalScreenState extends State<DataApprovalScreen> {
                             final messageData = value.dataApproval[index];
                             return MessageBox(
                                 dataApproval: messageData,
-                                isDataApproval: true,
                                 lastMessage: DateTime.now().toString(),
                                 subject: messageData.message!.message!,
                                 displayName: messageData.message!.subject!

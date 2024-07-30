@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../pages/data_approval_detail.dart';
 
@@ -36,34 +37,12 @@ class MessageBox extends StatelessWidget {
         fetchedData.initialValue();
         fetchedData.fetchMessageThreadsById(messageId);
 
-        Navigator.push(context, MaterialPageRoute(
-          builder: (context) {
-            return isDataApproval == false
-                ? const AbsorpPainterPage()
-                : DataApprovalDetailPage(
-                    dataApproval: dataApproval,
-                  );
-          },
-        ));
+        context.go('/request_details', extra: dataApproval);
       },
       child: Padding(
         padding: const EdgeInsets.fromLTRB(8, 20, 10, 1),
         child: Row(
           children: [
-            if (!isDataApproval!)
-              Container(
-                width: 45,
-                height: 45,
-                child: CircleAvatar(
-                  child: Text(
-                    firstLetter(displayName),
-                    style: const TextStyle(
-                      fontSize: 29,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.only(
@@ -107,9 +86,5 @@ class MessageBox extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  String firstLetter(String s) {
-    return s.substring(0, 1);
   }
 }

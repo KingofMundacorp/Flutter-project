@@ -1,8 +1,9 @@
-import 'package:d2_touch/d2_touch.dart';
 import 'package:d2_touch/modules/auth/models/login-response.model.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:user_support_mobile/constants/d2-repository.dart';
+import 'package:user_support_mobile/pages/home_page.dart';
 
 import '../providers/provider.dart';
 import 'data_approval_screen.dart';
@@ -11,7 +12,7 @@ class LoginPage extends StatefulWidget {
   final bool? isAuth;
 
   const LoginPage({Key? key, this.isAuth}) : super(key: key);
-  static const String routeName = '/login-page32';
+  // static const String routeName = '/login-page32';
 
   @override
   _LoginPageState createState() => _LoginPageState();
@@ -27,8 +28,8 @@ class _LoginPageState extends State<LoginPage> {
     context.read<MessageModel>().fetchValidationMessages;
     Widget nextWidget = Container();
 
-    if (widget.isAuth == true) {
-      nextWidget = DataApprovalScreen();
+    if (widget.isAuth!) {
+      nextWidget = HomePage();
       return nextWidget;
     }
     return Scaffold(
@@ -140,8 +141,8 @@ class _LoginPageState extends State<LoginPage> {
                                           .OFFLINE_LOGIN_SUCCESS) {
                                 // Navigator.pushReplacementNamed(
                                 //     context, InboxPage.routeName);
-                                Navigator.pushReplacementNamed(
-                                    context, DataApprovalScreen.routeName);
+
+                                context.go('home');
 
                                 if (loginRes ==
                                     LoginResponseStatus.WRONG_CREDENTIALS) {

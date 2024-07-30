@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'data_approval_screen.dart';
@@ -198,8 +199,10 @@ class _PageContentState extends State<PageContent> {
     if (!loading) {
       EasyLoading.showSuccess(
           'Success!'); // code to show modal without masking and auto close
-      Navigator.of(context).pushNamedAndRemoveUntil(
-          DataApprovalScreen.routeName, (Route<dynamic> route) => false);
+      // Navigator.of(context).pushNamedAndRemoveUntil(
+      //     DataApprovalScreen.routeName, (Route<dynamic> route) => false);
+
+      context.pushReplacement('home');
     }
   }
 // .

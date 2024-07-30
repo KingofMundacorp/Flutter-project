@@ -1,6 +1,8 @@
+import 'package:d2_touch/modules/auth/entities/user.entity.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:user_support_mobile/models/approve_model.dart';
+import 'package:user_support_mobile/modules/module-authentication/metadatasync/initial-metadata-sync.dart';
 import 'package:user_support_mobile/pages/data_approval_detail.dart';
 import 'package:user_support_mobile/pages/dataset_screen.dart';
 import 'package:user_support_mobile/pages/home_page.dart';
@@ -24,6 +26,11 @@ final GoRouter router = GoRouter(
       },
       routes: <RouteBase>[],
     ),
+    GoRoute(path: '/sync', builder: (context, state) {
+      return HomeMetadataSync(
+      loggedInUser: state.extra as User,
+    );
+    }),
     GoRoute(
         path: '/home',
         builder: (context, state) => const HomePage(),

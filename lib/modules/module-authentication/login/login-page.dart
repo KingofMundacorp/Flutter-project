@@ -6,14 +6,12 @@ import 'package:d2_touch/modules/auth/models/login-response.model.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 import 'package:user_support_mobile/widgets/text_widgets/text_widget.dart';
 
 import '../../../constants/d2-repository.dart';
 import '../../../helpers/app_helper.dart';
-import '../../../pages/home_page.dart';
 import '../../../widgets/loaders/circular_progress_loader.dart';
-import '../metadatasync/initial-metadata-sync.dart';
 
 class HomeLogin extends StatefulWidget {
   const HomeLogin({Key? key}) : super(key: key);
@@ -40,9 +38,9 @@ class _HomeLoginState extends State<HomeLogin> {
 
   @override
   void initState() {
-    usernameController.text = "goodluckwile";
-    passwordController.text = "Hmis@2023";
-    urlController.text = "http://41.59.227.69/tland";
+    usernameController.text = "wgoodluck";
+    passwordController.text = "Hmis@2024";
+    urlController.text = "http://41.59.227.69/tland-upgrade";
     // urlController.text = "https://eidsrtesting.mohz.go.tz/test";
     // urlController.text = "https://eidsr.moh.go.tz/test";
     super.initState();
@@ -50,8 +48,8 @@ class _HomeLoginState extends State<HomeLogin> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      onPopInvoked: (var result) async {
         // ignore: todo
         //TODO : add logic to check if back will go to login page
 
@@ -62,7 +60,7 @@ class _HomeLoginState extends State<HomeLogin> {
         resizeToAvoidBottomInset: true,
         body: Container(
           decoration:
-              BoxDecoration(color: Theme.of(context).colorScheme.background),
+              BoxDecoration(color: Theme.of(context).colorScheme.primary),
           width: double.maxFinite,
           height: double.maxFinite,
           child: ListView(
@@ -73,7 +71,7 @@ class _HomeLoginState extends State<HomeLogin> {
                 child: TextWidgetBold(
                   text: 'User support',
                   size: 30,
-                  color: Theme.of(context).colorScheme.onBackground,
+                  color: Theme.of(context).colorScheme.surface,
                 ),
               ),
               Container(
@@ -252,30 +250,28 @@ class _HomeLoginState extends State<HomeLogin> {
     if (isAuthenticated) {
       User? loggedInUser =
           await d2repository.userModule.user.withAuthorities().getOne();
-      setState(() => {
-            appUser = loggedInUser,
-            authenticating = false,
-            loggedIn = false,
-            errorLoginIn = false,
-          });
+      setState(() {
+        appUser = loggedInUser;
+        authenticating = false;
+        loggedIn = false;
+        errorLoginIn = false;
+      });
 
       // ignore: todo
       // TODO: revamp metadata sync page
 
-      await Get.to(() => HomeMetadataSync(
-            loggedInUser: appUser,
-          ));
+      context.go('/sync', extra: loggedInUser);
 
-      await Get.toNamed(HomePage.routeName);
+      // await Get.toNamed(HomePage.routeName);
     } else {
       //logic to show error widget
 
-      setState(() => {
-            authenticating = false,
-            loggedIn = false,
-            errorLoginIn = true,
-            errorMessage = "error message"
-          });
+      setState(() {
+        authenticating = false;
+        loggedIn = false;
+        errorLoginIn = true;
+        errorMessage = "error message";
+      });
     }
   }
 }

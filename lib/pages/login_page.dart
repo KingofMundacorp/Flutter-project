@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:user_support_mobile/constants/d2-repository.dart';
+import 'package:user_support_mobile/modules/module-authentication/login/login-page.dart';
 import 'package:user_support_mobile/pages/home_page.dart';
 
 import '../providers/provider.dart';
@@ -24,7 +25,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
-
+    return HomeLogin();
     return Scaffold(
       backgroundColor: const Color(0xFFffffff),
       body: SingleChildScrollView(

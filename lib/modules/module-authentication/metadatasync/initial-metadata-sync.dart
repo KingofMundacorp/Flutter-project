@@ -6,7 +6,8 @@ import 'package:d2_touch/modules/auth/entities/user.entity.dart';
 import 'package:d2_touch/modules/metadata/dataset/entities/data_set.entity.dart';
 import 'package:d2_touch/modules/metadata/program/entities/program.entity.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
+// import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:user_support_mobile/constants/d2-repository.dart';
@@ -31,43 +32,27 @@ class _HomeMetadataSyncState extends State<HomeMetadataSync>
       AppHelpers.logout(dontShowMessage: true);
       return;
     }
-    List<String> programCodes = [
-      'IMMEDIATE_REPORT',
-      'CONTACT_LISTING',
-      'OUTBREAK_NOTIFICATION',
-      'EVENT_REGISTER',
-      'EVENT_B_SURVEILLANCE',
-      'CONTACT_U07.2',
-      'CONTACT_A98.4',
-      'Malaria Case Registry (MCR)',
-      'Pro-ACD Register'
-    ];
-    List<String> dataSetCodes = ['WEEKLY_REPORT'];
 
-    List<String> programIds = [];
-    List<String> dataSetIds = [];
+    // setState(() {
+    //   processesRunning = true;
+    //   // processPercent = 1.0;
+    // });
 
-    setState(() {
-      processesRunning = true;
-      // processPercent = 1.0;
-    });
-
-    setState(() {
-      currentProcess = "Syncing organisation units";
-    });
-    try {
-      if (!await AppHelpers.isConnected()) {
-        return;
-      }
-      await d2repository.organisationUnitModule.organisationUnit
-          
-          .download((p0, p1) {
-        setState(() {
-          // processPercent = p0.percentage / 800;
-          currentSubProcess = p0.message;
-        });
-      });
-    } catch (error) {}
+    // setState(() {
+    //   currentProcess = "Syncing organisation units";
+    // });
+    // try {
+    //   if (!await AppHelpers.isConnected()) {
+    //     return;
+    //   }
+    //   await d2repository.organisationUnitModule.organisationUnit
+    //       .download((p0, p1) {
+    //     setState(() {
+    //       // processPercent = p0.percentage / 800;
+    //       currentSubProcess = p0.message;
+    //     });
+    //   });
+    // } catch (error) {}
 
     setState(() {
       currentProcess = "Syncing data store keys";
@@ -137,96 +122,18 @@ class _HomeMetadataSyncState extends State<HomeMetadataSync>
       succesfullProcesses.add("Data store keys synced");
     });
 
-    try {
-      await d2repository.dataSetModule.dataSet
-          .whereIn(attribute: "code", values: dataSetCodes, merge: false)
-          .download((p0, p1) {
-        setState(() {
-          processPercent = (p0.percentage + 100) / 800;
-          currentSubProcess = p0.message;
-        });
-      });
-    } catch (error) {
-      //
-    }
-
-    setState(() {
-      currentProcess = "Syncing program configurations";
-      succesfullProcesses.add("Datasets synced");
-    });
-
-    try {
-      await d2repository.programModule.program
-          .whereIn(attribute: "code", values: programCodes, merge: false)
-          .download((p0, p1) {
-        setState(() {
-          processPercent = (p0.percentage + 200) / 800;
-          currentSubProcess = p0.message;
-        });
-      });
-    } catch (error) {}
-
-    try {
-      await d2repository.programModule.program
-          .ilike(attribute: 'code', value: 'CONTACT_')
-          .download((p0, p1) {
-        setState(() {
-          processPercent = (p0.percentage + 200) / 800;
-          currentSubProcess = p0.message;
-        });
-      });
-    } catch (error) {}
-
-    try {
-      await d2repository.programModule.program
-          .ilike(attribute: 'code', value: 'NOTIFICATION')
-          .download((p0, p1) {
-        setState(() {
-          processPercent = (p0.percentage + 200) / 800;
-          currentSubProcess = p0.message;
-        });
-      });
-    } catch (error) {}
-
-    try {
-      for (String code in programCodes) {
-        await d2repository.programModule.program
-            .ilike(attribute: 'code', value: code)
-            .download((p0, p1) {
-          setState(() {
-            processPercent = (p0.percentage + 200) / 800;
-            currentSubProcess = p0.message;
-          });
-        });
-      }
-    } catch (error) {}
-
-    setState(() {
-      currentProcess = "Syncing cif configurations";
-      succesfullProcesses.add("Programs synced");
-    });
-
-    try {
-      await d2repository.programModule.program
-          .ilike(attribute: "code", value: "CIF_")
-          .download((p0, p1) {
-        setState(() {
-          processPercent = (p0.percentage + 300) / 800;
-          currentSubProcess = p0.message;
-        });
-      });
-    } catch (error) {
-//
-    }
-
-    setState(() {
-      currentProcess = "Syncing contact form configurations";
-      succesfullProcesses.add("CIF synced");
-    });
-
-    setState(() {
-      currentProcess = "Downloading relationships";
-    });
+    // try {
+    //   await d2repository.dataSetModule.dataSet
+    //       .whereIn(attribute: "code", values: dataSetCodes, merge: false)
+    //       .download((p0, p1) {
+    //     setState(() {
+    //       processPercent = (p0.percentage + 100) / 800;
+    //       currentSubProcess = p0.message;
+    //     });
+    //   });
+    // } catch (error) {
+    //   //
+    // }
 
     try {
       List<Program> programs = await d2repository.programModule.program.get();
@@ -245,69 +152,6 @@ class _HomeMetadataSyncState extends State<HomeMetadataSync>
     setState(() {
       currentProcess = "Syncing Attribute Reserved Values";
       succesfullProcesses.add("Program configurations synced");
-    });
-
-    try {
-      await d2repository.trackerModule.attributeReservedValue
-          .download((p0, p1) {
-        setState(() {
-          processPercent = (p0.percentage + 500) / 800;
-          currentSubProcess = p0.message;
-        });
-      });
-    } catch (error) {
-      //
-    }
-
-    setState(() {
-      currentProcess = "Syncing Program Rules";
-      succesfullProcesses.add("Reserved Values synced");
-    });
-
-    try {
-      List<Program> programs = await d2repository.programModule.program.get();
-
-      programIds =
-          programs.map((Program program) => program.id as String).toList();
-
-      await d2repository.programModule.programRule
-          .whereIn(attribute: "program", values: programIds, merge: false)
-          .download((p0, p1) {
-        setState(() {
-          processPercent = (p0.percentage + 600) / 800;
-          currentSubProcess = p0.message;
-        });
-      });
-    } catch (error) {
-      //
-    }
-
-    setState(() {
-      currentProcess = "Syncing Validation Rules";
-      succesfullProcesses.add("Program Rules synced");
-    });
-
-    try {
-      List<DataSet> dataSets = await d2repository.dataSetModule.dataSet.get();
-
-      dataSetIds =
-          dataSets.map((DataSet dataSet) => dataSet.id as String).toList();
-
-      await d2repository.dataSetModule.validationRule
-          .whereIn(attribute: "dataSet", values: dataSetIds, merge: false)
-          .download((p0, p1) {
-        setState(() {
-          processPercent = (p0.percentage + 700) / 800;
-          currentSubProcess = p0.message;
-        });
-      });
-    } catch (error) {
-      //
-    }
-
-    setState(() {
-      currentProcess = "Syncing Relationship Types";
-      succesfullProcesses.add("Validation Rules synced");
     });
 
     try {
@@ -345,7 +189,7 @@ class _HomeMetadataSyncState extends State<HomeMetadataSync>
     await d2repository.userModule.userGroup.download((p0, p1) => {});
 
     await updateMetadataSyncTime();
-    Get.back(result: true);
+    context.go('/home');
   }
 
   Future<void> updateMetadataSyncTime() async {
@@ -399,15 +243,15 @@ class _HomeMetadataSyncState extends State<HomeMetadataSync>
                       ),
                     ],
                   ),
-                  // Column(
-                  //   children: [
-                  //     Lottie.asset('assets/lottie/lottie.json',
-                  //         width: Get.width * 0.55,
-                  //         height: Get.height * 0.55,
-                  //         repeat: true,
-                  //         animate: true)
-                  //   ],
-                  // ),
+                  Column(
+                    children: [
+                      Lottie.asset('assets/lottie/lottie.json',
+                          width: size.width * 0.55,
+                          height: size.height * 0.55,
+                          repeat: true,
+                          animate: true)
+                    ],
+                  ),
                   SizedBox(
                       height: size.height * 0.1,
                       child: Column(

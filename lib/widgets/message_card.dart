@@ -37,7 +37,7 @@ class MessageBox extends StatelessWidget {
         fetchedData.initialValue();
         fetchedData.fetchMessageThreadsById(messageId);
 
-        context.go('/request_details', extra: dataApproval);
+        context.go('/home/request_details', extra: dataApproval);
       },
       child: Padding(
         padding: const EdgeInsets.fromLTRB(8, 20, 10, 1),

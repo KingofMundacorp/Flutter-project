@@ -187,7 +187,7 @@ class MyWrapView extends StatelessWidget {
         (index) => GestureDetector(
           onTap: () {
             print('${items[index]['name']} clicked');
-            context.go(items[index]['route']);
+            context.go("/home/${items[index]['route']}");
           },
           child: Column(
             children: [

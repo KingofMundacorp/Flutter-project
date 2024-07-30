@@ -106,7 +106,7 @@ class NavigationDrawer extends StatelessWidget {
               onPressed: () async {
                 var logOut = await D2Touch.logOut();
                 if (logOut) {
-                  context.go('login');
+                  context.go('/home/login');
                 }
               },
               icon: Icon(Icons.exit_to_app),

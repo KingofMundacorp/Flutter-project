@@ -26,7 +26,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (isAuth) {
       Timer(const Duration(seconds: 3), () {
-        context.go('/login/${isAuth}');
+        context.go('/home/login/${isAuth}');
       });
     }
 

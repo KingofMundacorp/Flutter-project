@@ -24,9 +24,16 @@ class _DatasetScreenState extends State<DatasetScreen> {
     final size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
-        elevation: 0,
-        title: const Text('Form requests'),
-      ),
+          elevation: 0,
+          title: const Text('Form requests'),
+          actions: <Widget>[
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: () async {
+                await context.read<MessageModel>().fetchDataApproval;
+              },
+            ),
+          ]),
       body: RefreshIndicator(
         onRefresh: () async {
           await context.read<MessageModel>().fetchDataApproval;

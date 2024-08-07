@@ -9,7 +9,7 @@ const List<Map<String, dynamic>> menuItems = [
       {
         'name': 'Form Requests',
         'icon': Icons.document_scanner_sharp,
-        'route': 'dataset'
+        'route': 'dataset',
       },
       {
         'name': 'User account',

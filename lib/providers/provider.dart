@@ -48,33 +48,32 @@ class MessageModel with ChangeNotifier {
 
   Future<void> get fetchDataApproval async {
     log('this is initially called');
-    
+
     // try {
-      var response = [];
-      var res2;
+    var response = [];
+    var res2;
 
-      final res =
-          await d2repository.httpClient.get('dataStore/dhis2-user-support');
-      // DataStoreQuery test = d2repository.dataStore.dataStoreQuery
-      //     .byNamespace('dhis2-user-support');
-      // log(test.namespace.toString());
-      // log(res.toString());
-      // log(test.toString());
-      var list = res.body;
+    final res =
+        await d2repository.httpClient.get('dataStore/dhis2-user-support');
+    // DataStoreQuery test = d2repository.dataStore.dataStoreQuery
+    //     .byNamespace('dhis2-user-support');
+    // log(test.namespace.toString());
+    // log(res.toString());
+    // log(test.toString());
+    var list = res.body;
 
-      for (var i = 1; i < list.length; i++) {
-
-        if (list[i].toString().startsWith("DS")) {
+    for (var i = 1; i < list.length; i++) {
+      if (list[i].toString().startsWith("DS")) {
         print('dataStore/dhis2-user-support/${list[i]}');
-          res2 = await d2repository.httpClient.get(
-              'dataStore/dhis2-user-support/${list[i].toString()}');
-          response.add(res2.body);
-        }
+        res2 = await d2repository.httpClient
+            .get('dataStore/dhis2-user-support/${list[i].toString()}');
+        response.add(res2.body);
       }
-      // log('messages : $response');
-      _dataApproval = response
-          .map((x) => ApproveModel.fromMap(x as Map<String, dynamic>))
-          .toList();
+    }
+    // log('messages : $response');
+    _dataApproval = response
+        .map((x) => ApproveModel.fromMap(x as Map<String, dynamic>))
+        .toList();
     // } catch (e) {
     //   print("error : $e");
     // }
@@ -84,15 +83,9 @@ class MessageModel with ChangeNotifier {
 
   Future<void> approvalRequest(ApproveModel dataApproval,
       {String? message}) async {
-    var user = await d2repository.userModule.user.getOne();
-    print(user!.username);
+    
     _isLoading = true;
     var id = dataApproval.id!.substring(0, 15);
-    // Dio dio = Dio();
-
-    String createBasicAuthToken(username, password) {
-      return 'Basic ' + base64Encode(utf8.encode('$username:$password'));
-    }
 
     print(id);
     final res = await d2repository.httpClient.get(
@@ -102,16 +95,13 @@ class MessageModel with ChangeNotifier {
 
     if (message == null) {
       print('This is inside if statement');
-      final response = await Future.wait([
-        d2repository.httpClient.post(dataApproval.url!, dataApproval.payload!.toMap()),
-        
-        http.delete(
-            Uri.parse(
-                "http://41.59.227.69/tland-upgrade/api/dataStore/dhis2-user-support/${dataApproval.id}"),
-            headers: <String, String>{
-              'Authorization':
-                  createBasicAuthToken(user.username, user.password)
-            }),
+      await Future.wait([
+        d2repository.httpClient
+            .post(dataApproval.url!, dataApproval.payload!.toMap()),
+
+        d2repository.httpClient
+            .delete('dataStore/dhis2-user-support', dataApproval.id.toString()),
+
         d2repository.httpClient.post('messageConversations/${convId}',
             'Ombi lako limeshughulikiwa karibu!'),
         d2repository.httpClient.post(
@@ -119,33 +109,19 @@ class MessageModel with ChangeNotifier {
             ''),
       ]).whenComplete(() => _isLoading = false);
     } else {
-      print('This is inside else');
 
-      final response = await Future.wait([
-        http.delete(
-            Uri.parse(
-                "http://41.59.227.69/tland-upgrade/api/dataStore/dhis2-user-support/${dataApproval.id}"),
-            headers: <String, String>{
-              'Authorization':
-                  createBasicAuthToken(user.username, user.password)
-            }),
+      await Future.wait([
+        
+        d2repository.httpClient
+            .delete('dataStore/dhis2-user-support', dataApproval.id.toString()),
+
         d2repository.httpClient.post('messageConversations/${convId}', message),
         d2repository.httpClient.post(
             'messageConversations/${convId}/status?messageConversationStatus=SOLVED',
             '')
       ]).whenComplete(() => _isLoading = false);
-      inspect(response.first);
-      inspect(response[1]);
-      inspect(response[2].toString());
     }
 
-    // inspect(res[0].body);
-    // inspect(response.first);
-    // inspect(response[1].body);
-
-    // final res2 =
-    // print("This is a post request : ${res.statusCode}");
-    // print("This is a deletion request : ${res2.statusCode}");
     notifyListeners();
   }
 

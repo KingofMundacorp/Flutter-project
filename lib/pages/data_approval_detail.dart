@@ -202,7 +202,7 @@ class _PageContentState extends State<PageContent> {
       // Navigator.of(context).pushNamedAndRemoveUntil(
       //     DataApprovalScreen.routeName, (Route<dynamic> route) => false);
 
-      context.pushReplacement('home');
+      context.pushReplacement('/home');
     }
   }
 // .

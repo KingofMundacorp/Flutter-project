@@ -16,11 +16,11 @@ const List<Map<String, dynamic>> menuItems = [
         'icon': Icons.person,
         'route': 'user_account',
       },
-      // {
-      //   'name': 'Programs',
-      //   'icon': Icons.add_chart_outlined,
-      //   'route': 'programs'
-      // },
+       {
+        'name': 'local hospital',
+         'icon': Icons.local_hospital,
+         'route': 'local_hospital'
+       },
     ]
   }
 ];

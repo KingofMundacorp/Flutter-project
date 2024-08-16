@@ -184,6 +184,8 @@ class MyWrapView extends StatelessWidget {
           onTap: () {
             if (items[index]['name'] == 'Form Requests') {
               context.go("/home/${items[index]['route']}");
+            }else if(items[index]['name'] == 'local hospital'){
+              context.go("/home/${items[index]['route']}");
             }
           },
           child: Column(

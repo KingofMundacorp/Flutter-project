@@ -11,6 +11,7 @@ import 'package:user_support_mobile/pages/splash_page.dart';
 import '../pages/compose_page.dart';
 import '../pages/compose_painter.dart';
 import '../pages/inbox_page.dart';
+import '../pages/local_hospital_screen.dart';
 import '../pages/login_page.dart';
 import '../pages/system_page.dart';
 import '../pages/ticket_page.dart';
@@ -40,6 +41,12 @@ final GoRouter router = GoRouter(
                   builder: (BuildContext context, GoRouterState state) {
                     return const DatasetScreen();
                   },
+                ),
+                GoRoute(
+                  path : 'local_hospital',
+                  builder:  (BuildContext context, GoRouterState state){
+                    return const LocalHospitalScreen();
+                  }
                 ),
                 GoRoute(
                   path: 'compose',

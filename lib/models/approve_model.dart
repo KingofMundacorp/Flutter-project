@@ -200,6 +200,8 @@ class UserModel {
     this.displayName,
     this.phoneNumber,
     this.organisationUnits,
+    this.message,
+    this.payload,
   });
 
   String? id;
@@ -208,11 +210,14 @@ class UserModel {
   String? userName;
   String? displayName;
   String? phoneNumber;
+  Message? message;
+  Payload? payload;
   List<Addition>? organisationUnits;
 
   factory UserModel.fromMap(Map<String, dynamic> json) => UserModel(
         id: json["id"] == null ? null : json["id"],
         email: json["email"] == null ? null : json["email"],
+        message: json["message"] == null ? null : Message.fromMap(json["message"]),
         jobTitle: json["jobTitle"] == null ? null : json["jobTitle"],
         userName: json["userName"] == null ? null : json["userName"],
         displayName: json["displayName"] == null ? null : json["displayName"],
@@ -228,6 +233,7 @@ class UserModel {
         "email": email == null ? null : email,
         "jobTitle": jobTitle == null ? null : jobTitle,
         "userName": userName == null ? null : userName,
+        "message": message == null ? null : message!.toMap(),
         "displayName": displayName == null ? null : displayName,
         "phoneNumber": phoneNumber == null ? null : phoneNumber,
         "organisationUnits": organisationUnits == null

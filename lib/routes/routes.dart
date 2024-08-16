@@ -4,9 +4,12 @@ import 'package:go_router/go_router.dart';
 import 'package:user_support_mobile/models/approve_model.dart';
 import 'package:user_support_mobile/modules/module-authentication/metadatasync/initial-metadata-sync.dart';
 import 'package:user_support_mobile/pages/data_approval_detail.dart';
+import 'package:user_support_mobile/pages/user_approval_detail.dart';
 import 'package:user_support_mobile/pages/dataset_screen.dart';
 import 'package:user_support_mobile/pages/home_page.dart';
 import 'package:user_support_mobile/pages/splash_page.dart';
+import 'package:user_support_mobile/pages/user_account_screen.dart';
+import 'package:user_support_mobile/pages/user_approval_screen.dart';
 
 import '../pages/compose_page.dart';
 import '../pages/compose_painter.dart';
@@ -16,6 +19,7 @@ import '../pages/system_page.dart';
 import '../pages/ticket_page.dart';
 import '../pages/validation_page.dart';
 import '../pages/data_approval_screen.dart';
+import '../pages/user_approval_screen.dart';
 
 final GoRouter router = GoRouter(
   routes: <RouteBase>[
@@ -39,6 +43,12 @@ final GoRouter router = GoRouter(
                   path: 'dataset',
                   builder: (BuildContext context, GoRouterState state) {
                     return const DatasetScreen();
+                  },
+                ),
+                GoRoute(
+                  path: 'user_account',
+                  builder: (BuildContext context, GoRouterState state) {
+                    return const UserAccountScreen();
                   },
                 ),
                 GoRoute(
@@ -92,11 +102,25 @@ final GoRouter router = GoRouter(
                   },
                 ),
                 GoRoute(
+                  path: 'userApproval',
+                  builder: (BuildContext context, GoRouterState state) {
+                    return const UserApprovalScreen();
+                  },
+                ),
+                GoRoute(
                     path: 'request_details',
                     builder: (context, state) {
                       final dataApproval = state.extra as ApproveModel;
                       return DataApprovalDetailPage(
                         dataApproval: dataApproval,
+                      );
+                    }),
+                GoRoute(
+                    path: 'user_account_details',
+                    builder: (context, state) {
+                      final userApproval = state.extra as ApproveModel;
+                      return UserApprovalDetailPage(
+                        userApproval: userApproval,
                       );
                     }),
         ]),

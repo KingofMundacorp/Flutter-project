@@ -50,17 +50,17 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<MessageModel>(
-        create: (_) => MessageModel(),
-        child: MaterialApp.router(
-          routerConfig: router,
-          debugShowCheckedModeBanner: false,
-          title: 'User Support App',
-          theme: ThemeData(
-            useMaterial3: false,
-            textTheme: textTheme,
-            primaryColor: const Color(0xFF1D5288),
-          ),
-          builder: EasyLoading.init(),
-        ));
+          create: (_) => MessageModel(),
+          child: MaterialApp.router(
+            routerConfig: router,
+            debugShowCheckedModeBanner: false,
+            title: 'User Support App',
+            theme: ThemeData(
+              useMaterial3: false,
+              textTheme: textTheme,
+              primaryColor: const Color(0xFF1D5288),
+            ),
+            builder: EasyLoading.init(),
+          ));
   }
 }

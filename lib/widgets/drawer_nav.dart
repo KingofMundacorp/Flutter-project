@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:user_support_mobile/pages/data_approval_screen.dart';
+import 'package:user_support_mobile/pages/user_approval_screen.dart';
 import 'package:user_support_mobile/pages/login_page.dart';
 
 import '../providers/provider.dart';
@@ -102,6 +103,16 @@ class NavigationDrawer extends StatelessWidget {
               Colors.pinkAccent,
               () => const DataApprovalScreen(),
               isDataApproval: true),
+          _listTileWidget(
+              context,
+              'User Approval',
+              fetchedData.systemMessage
+                  .where((product) => product.read == false)
+                  .length,
+              Icons.done,
+              Colors.pinkAccent,
+                  () => const UserApprovalScreen(),
+              isUserApproval: true),
           TextButton.icon(
               onPressed: () async {
                 var logOut = await D2Touch.logOut();
@@ -118,7 +129,7 @@ class NavigationDrawer extends StatelessWidget {
 
   Widget _listTileWidget(BuildContext context, String title, int count,
       IconData icon, Color? color, Widget Function() page,
-      {bool? isDataApproval = false}) {
+      {bool? isDataApproval = false, bool isUserApproval = false}) {
     return ListTile(
         title: Text(title),
         leading: Icon(icon),

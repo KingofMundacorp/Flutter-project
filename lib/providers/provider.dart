@@ -14,12 +14,14 @@ import '/models/message_conversation.dart';
 import '/models/user.dart';
 import '../models/approve_model.dart';
 
+
 class MessageModel with ChangeNotifier {
   final List<MessageConversation> _allMessageConversation = [];
   late List<User> _listOfUsers;
   late MessageConversation _fetchedThread;
   List<MessageConversation> _privateMessages = [];
   List<ApproveModel> _dataApproval = [];
+  List<UserModel> _userApproval = [];
   List<MessageConversation> _validationMessages = [];
   List<MessageConversation> _ticketMessage = [];
   List<MessageConversation> _systemMessages = [];
@@ -37,6 +39,7 @@ class MessageModel with ChangeNotifier {
       _allMessageConversation;
   List<MessageConversation> get ticketMessage => _ticketMessage;
   List<ApproveModel> get dataApproval => _dataApproval;
+  List<UserModel> get userApproval => _userApproval;
   List<MessageConversation> get systemMessage => _systemMessages;
   List<User> get listOfUsers => _listOfUsers;
   List<MessageConversation> get privateMessages => _privateMessages;
@@ -64,12 +67,13 @@ class MessageModel with ChangeNotifier {
 
     for (var i = 1; i < list.length; i++) {
       if (list[i].toString().startsWith("DS")) {
+        // Access the first directory for "DS" values
         print('dataStore/dhis2-user-support/${list[i]}');
-        res2 = await d2repository.httpClient
-            .get('dataStore/dhis2-user-support/${list[i].toString()}');
+        res2 = await d2repository.httpClient.get('dataStore/dhis2-user-support/${list[i].toString()}');
         response.add(res2.body);
       }
     }
+
     // log('messages : $response');
     _dataApproval = response
         .map((x) => ApproveModel.fromMap(x as Map<String, dynamic>))
@@ -80,6 +84,7 @@ class MessageModel with ChangeNotifier {
 
     notifyListeners();
   }
+
 
   Future<void> approvalRequest(ApproveModel dataApproval,
       {String? message}) async {
@@ -114,6 +119,96 @@ class MessageModel with ChangeNotifier {
         
         d2repository.httpClient
             .delete('dataStore/dhis2-user-support', dataApproval.id.toString()),
+
+        d2repository.httpClient.post('messageConversations/${convId}', message),
+        d2repository.httpClient.post(
+            'messageConversations/${convId}/status?messageConversationStatus=SOLVED',
+            '')
+      ]).whenComplete(() => _isLoading = false);
+    }
+
+    notifyListeners();
+  }
+
+  Future<void> get fetchUserApproval async {
+    log('this is initially called');
+
+    // try {
+    var response = [];
+    var res2;
+
+    final res =
+    await d2repository.httpClient.get('dataStore/dhis2-user-support');
+    // DataStoreQuery test = d2repository.dataStore.dataStoreQuery
+    //     .byNamespace('dhis2-user-support');
+    // log(test.namespace.toString());
+    // log(res.toString());
+    // log(test.toString());
+    var list = res.body;
+
+    for (var i = 1; i < list.length; i++) {
+      if (list[i].toString().startsWith("UA170")) {
+        // Access the first directory for "UA" values
+        print('dataStore/dhis2-user-support/${list[i]}');
+        res2 = await d2repository.httpClient.get('dataStore/dhis2-user-support/${list[i].toString()}');
+        response.add(res2.body);
+      }
+    }
+
+    // log('messages : $response');
+    //try {
+      // Assuming `response` is a List<dynamic>
+      _userApproval = (response)
+          .map((x) {
+        if (x is Map<String, dynamic>) {
+          return UserModel.fromMap(x);
+        } else {
+          // Handle the case where x is not a Map<String, dynamic>
+          throw Exception("Unexpected item type: ${x.runtimeType}");
+        }
+      })
+          .toList();
+    //} catch (e) {
+     // print("error : $e");
+    //}
+
+
+    notifyListeners();
+  }
+
+  Future<void> approvalUserRequest(UserModel userApproval,
+      {String? message}) async {
+
+    _isLoading = true;
+    var id = userApproval.id!.substring(0, 15);
+
+    print(id);
+    final res = await d2repository.httpClient.get(
+        'messageConversations?messageType=TICKET&filter=subject:ilike:${id}');
+
+    var convId = res.body['messageConversations'][0]['id'].toString();
+
+    if (message == null) {
+      print('This is inside if statement');
+      await Future.wait([
+        d2repository.httpClient
+            .post(userApproval.email!, userApproval.userName!),
+
+        d2repository.httpClient
+            .delete('dataStore/dhis2-user-support', userApproval.id.toString()),
+
+        d2repository.httpClient.post('messageConversations/${convId}',
+            'Ombi lako limeshughulikiwa karibu!'),
+        d2repository.httpClient.post(
+            'messageConversations/${convId}/status?messageConversationStatus=SOLVED',
+            ''),
+      ]).whenComplete(() => _isLoading = false);
+    } else {
+
+      await Future.wait([
+
+        d2repository.httpClient
+            .delete('dataStore/dhis2-user-support', userApproval.id.toString()),
 
         d2repository.httpClient.post('messageConversations/${convId}', message),
         d2repository.httpClient.post(

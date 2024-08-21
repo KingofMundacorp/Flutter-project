@@ -63,7 +63,7 @@ class _PageContentState extends State<PageContent> {
                 ),
                 onPressed: () async {
                   //await context.read<MessageModel>().fetchDataApproval;
-                  Navigator.of(context).pop();
+                  context.go('/home/dataset');
                 },
               ),
             ),

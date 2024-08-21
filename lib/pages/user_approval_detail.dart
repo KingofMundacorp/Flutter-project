@@ -8,6 +8,8 @@ import 'user_approval_screen.dart';
 
 import '../models/approve_model.dart';
 import '../providers/provider.dart';
+import 'package:flutter_html/flutter_html.dart';
+
 
 class UserApprovalDetailPage extends StatefulWidget {
   const UserApprovalDetailPage({Key? key, required this.userApproval})
@@ -44,6 +46,7 @@ class _PageContentState extends State<PageContent> {
   bool isButtonEnabled = false;
   final TextEditingController _textEditingController = TextEditingController();
 
+
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
@@ -62,8 +65,8 @@ class _PageContentState extends State<PageContent> {
                   size: 25,
                 ),
                 onPressed: () async {
-                  //  await context.read<MessageModel>().fetchDataApproval;
-                  Navigator.of(context).pop();
+                  context.go('/home/user_account');
+                  //  await context.read<MessageModel>().fetchUserApproval;
                 },
               ),
             ),
@@ -74,23 +77,28 @@ class _PageContentState extends State<PageContent> {
                   width: size.width * 0.9,
                   child: ListView(
                     children: [
-                      Text(
-                        widget.userApproval.message!.subject!.split("-").last,
-                        style: const TextStyle(
+                      Html(
+                        data: widget.userApproval.message!.subject!.split("-").last,
+                        style: {
+                          'body': Style(
                             color: Colors.black,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w300),
+                            fontSize: FontSize(16),
+                            fontWeight: FontWeight.w300,
+                          ),
+                        },
                       ),
                       SizedBox(
                         height: 20,
                       ),
-                      Text(
-                        widget.userApproval.message!.message!,
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w300,
-                        ),
+                      Html(
+                        data: widget.userApproval.message!.message!,
+                        style: {
+                          'body': Style(
+                            color: Colors.black,
+                            fontSize: FontSize(16),
+                            fontWeight: FontWeight.w300,
+                          ),
+                        },
                       ),
                       SizedBox(
                         height: 20,
@@ -200,7 +208,7 @@ class _PageContentState extends State<PageContent> {
       EasyLoading.showSuccess(
           'Success!'); // code to show modal without masking and auto close
       // Navigator.of(context).pushNamedAndRemoveUntil(
-      //     DataApprovalScreen.routeName, (Route<dynamic> route) => false);
+      //     UserApprovalScreen.routeName, (Route<dynamic> route) => false);
 
       context.pushReplacement('/home');
     }

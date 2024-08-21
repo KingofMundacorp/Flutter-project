@@ -133,7 +133,7 @@ class MessageModel with ChangeNotifier {
   Future<void> get fetchUserApproval async {
     log('this is initially called');
 
-    List<UserModel> userApprovalList = []; // Create an empty list of UserModel
+    List<UserModel> userApprovalList = [];
     var res2;
 
     final res = await d2repository.httpClient.get('dataStore/dhis2-user-support');
@@ -149,7 +149,7 @@ class MessageModel with ChangeNotifier {
         if (jsonResponse is List) {
           userApprovalList.addAll(
             jsonResponse
-                .where((item) => item != null) // Filter out null values
+                .where((item) => item != null)
                 .map((item) {
               if (item is Map<String, dynamic>) {
                 return UserModel.fromMap(item);
@@ -159,7 +159,6 @@ class MessageModel with ChangeNotifier {
             }).toList(),
           );
         } else if (jsonResponse is Map<String, dynamic>) {
-          // If jsonResponse is a single map, convert it to a UserModel
           userApprovalList.add(UserModel.fromMap(jsonResponse));
         } else {
           throw Exception("Unexpected response type: ${jsonResponse.runtimeType}");
@@ -167,11 +166,26 @@ class MessageModel with ChangeNotifier {
       }
     }
 
-    // Assign the fully populated list to your _userApproval variable
-    _userApproval = userApprovalList;
+    // Separate and sort the user approvals
+    List<UserModel> noSubjectList = [];
+    List<UserModel> withSubjectList = [];
+
+    for (var userApproval in userApprovalList) {
+      String subject = userApproval.message?.message ?? 'No Subject';
+      if (subject == 'No Subject') {
+        noSubjectList.add(userApproval);
+      } else {
+        withSubjectList.add(userApproval);
+      }
+    }
+
+    // Combine the lists, with "No Subject" entries last
+    withSubjectList.addAll(noSubjectList);
+    _userApproval = withSubjectList;
 
     notifyListeners();
   }
+
 
 
   Future<void> approvalUserRequest(UserModel userApproval,

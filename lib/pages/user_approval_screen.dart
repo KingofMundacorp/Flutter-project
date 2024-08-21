@@ -5,6 +5,7 @@ import '../models/message_conversation.dart';
 import '../widgets/message_card.dart';
 import '../widgets/show_loading.dart';
 import 'package:user_support_mobile/providers/provider.dart';
+import 'package:html/parser.dart' as html_parser;
 
 class UserApprovalScreen extends StatefulWidget {
   const UserApprovalScreen({Key? key}) : super(key: key);
@@ -15,6 +16,14 @@ class UserApprovalScreen extends StatefulWidget {
 
 class _UserApprovalScreenState extends State<UserApprovalScreen> {
   List<MessageConversation> _searchResult = [];
+
+
+  String _parseHtmlString(String htmlString) {
+    final document = html_parser.parse(htmlString);
+    final String parsedString = html_parser.parse(document.body?.text ?? '').documentElement?.text ?? '';
+    return parsedString;
+  }
+
   @override
   Widget build(BuildContext context) {
     context.read<MessageModel>().fetchUserApproval;
@@ -50,19 +59,32 @@ class _UserApprovalScreenState extends State<UserApprovalScreen> {
                             final messageData = value.userApproval[index];
                             return Row(
                               children: [
-                                Expanded(
-                                  child: MessageBox(
-                                    userApproval: messageData,
-                                    isUserApproval: true,
-                                    lastMessage: DateTime.now().toString(),
-                                    subject: messageData.message?.message ?? 'No Subject',
-                                    displayName: messageData.message?.subject?.split("-").last ?? 'No Display',
-                                    messageId: messageData.id ?? 'No ID', read:false,
-
+                                Flexible(
+                                  fit: FlexFit.tight,
+                                  child: ClipRect(
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Container(
+                                        constraints: BoxConstraints(
+                                          maxWidth: MediaQuery.of(context).size.width * 0.9, // Adjust as needed
+                                        ),
+                                        child: MessageBox(
+                                          userApproval: messageData,
+                                          isUserApproval: true,
+                                          lastMessage: DateTime.now().toString(),
+                                          subject: _parseHtmlString(messageData.message?.message ?? 'No Subject'),
+                                          displayName: _parseHtmlString(messageData.message?.subject?.split("-").last ?? 'No Display'),
+                                          messageId: messageData.id ?? 'No ID',
+                                          read: false,
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ],
                             );
+
+
                           },
                         ),
                       ],

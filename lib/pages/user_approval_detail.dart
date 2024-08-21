@@ -12,7 +12,7 @@ import '../providers/provider.dart';
 class UserApprovalDetailPage extends StatefulWidget {
   const UserApprovalDetailPage({Key? key, required this.userApproval})
       : super(key: key);
-  final ApproveModel? userApproval;
+  final UserModel? userApproval;
 
   @override
   UserApprovalDetailPageState createState() => UserApprovalDetailPageState();
@@ -31,7 +31,7 @@ class UserApprovalDetailPageState extends State<UserApprovalDetailPage> {
 
 class PageContent extends StatefulWidget {
   const PageContent({Key? key, required this.userApproval}) : super(key: key);
-  final ApproveModel userApproval;
+  final UserModel userApproval;
 
   @override
   State<PageContent> createState() => _PageContentState();
@@ -186,13 +186,13 @@ class _PageContentState extends State<PageContent> {
         status: 'loading...',
         maskType: EasyLoadingMaskType.black); // code to show modal with masking
     if (isAccept) {
-      await context.read<MessageModel>().approvalRequest(widget.userApproval);
+      await context.read<MessageModel>().approvalUserRequest(widget.userApproval);
       // Navigator.of(context).pop();
     } else {
-      await context.read<MessageModel>().approvalRequest(widget.userApproval,
+      await context.read<MessageModel>().approvalUserRequest(widget.userApproval,
           message: _textEditingController.text.trim());
     }
-    await context.read<MessageModel>().approvalRequest(widget.userApproval);
+    await context.read<MessageModel>().approvalUserRequest(widget.userApproval);
     bool loading = context.read<MessageModel>().isLoading;
     // var data = await LoginAPI.connectToAPI(
     //     emailController.text, passwordController.text);
@@ -258,7 +258,7 @@ class _PageContentState extends State<PageContent> {
                           if (isAccept) {
                             context
                                 .read<MessageModel>()
-                                .approvalRequest(widget.userApproval);
+                                .approvalUserRequest(widget.userApproval);
                             // Navigator.of(context).pop();
                           } else {
                             // context.read<MessageModel>().approvalRequest(

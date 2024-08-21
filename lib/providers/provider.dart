@@ -133,48 +133,46 @@ class MessageModel with ChangeNotifier {
   Future<void> get fetchUserApproval async {
     log('this is initially called');
 
-    // try {
-    var response = [];
+    List<UserModel> userApprovalList = []; // Create an empty list of UserModel
     var res2;
 
-    final res =
-    await d2repository.httpClient.get('dataStore/dhis2-user-support');
-    // DataStoreQuery test = d2repository.dataStore.dataStoreQuery
-    //     .byNamespace('dhis2-user-support');
-    // log(test.namespace.toString());
-    // log(res.toString());
-    // log(test.toString());
+    final res = await d2repository.httpClient.get('dataStore/dhis2-user-support');
     var list = res.body;
 
     for (var i = 1; i < list.length; i++) {
-      if (list[i].toString().startsWith("UA170")) {
-        // Access the first directory for "UA" values
+      if (list[i].toString().startsWith("UA")) {
         print('dataStore/dhis2-user-support/${list[i]}');
         res2 = await d2repository.httpClient.get('dataStore/dhis2-user-support/${list[i].toString()}');
-        response.add(res2.body);
+
+        var jsonResponse = res2.body;
+
+        if (jsonResponse is List) {
+          userApprovalList.addAll(
+            jsonResponse
+                .where((item) => item != null) // Filter out null values
+                .map((item) {
+              if (item is Map<String, dynamic>) {
+                return UserModel.fromMap(item);
+              } else {
+                throw Exception("Unexpected item type: ${item.runtimeType}");
+              }
+            }).toList(),
+          );
+        } else if (jsonResponse is Map<String, dynamic>) {
+          // If jsonResponse is a single map, convert it to a UserModel
+          userApprovalList.add(UserModel.fromMap(jsonResponse));
+        } else {
+          throw Exception("Unexpected response type: ${jsonResponse.runtimeType}");
+        }
       }
     }
 
-    // log('messages : $response');
-    //try {
-      // Assuming `response` is a List<dynamic>
-      _userApproval = (response)
-          .map((x) {
-        if (x is Map<String, dynamic>) {
-          return UserModel.fromMap(x);
-        } else {
-          // Handle the case where x is not a Map<String, dynamic>
-          throw Exception("Unexpected item type: ${x.runtimeType}");
-        }
-      })
-          .toList();
-    //} catch (e) {
-     // print("error : $e");
-    //}
-
+    // Assign the fully populated list to your _userApproval variable
+    _userApproval = userApprovalList;
 
     notifyListeners();
   }
+
 
   Future<void> approvalUserRequest(UserModel userApproval,
       {String? message}) async {
@@ -192,7 +190,8 @@ class MessageModel with ChangeNotifier {
       print('This is inside if statement');
       await Future.wait([
         d2repository.httpClient
-            .post(userApproval.email!, userApproval.userName!),
+            .post(userApproval.url!, userApproval.payload!),
+
 
         d2repository.httpClient
             .delete('dataStore/dhis2-user-support', userApproval.id.toString()),

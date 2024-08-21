@@ -52,26 +52,33 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                       children: <Widget>[
                         ListView.builder(
                           shrinkWrap: true,
-                          physics: const ScrollPhysics(),
+                          physics: const ClampingScrollPhysics(),
                           itemCount: _searchResult.isEmpty
                               ? value.userApproval.length
                               : _searchResult.length,
                           itemBuilder: (context, index) {
                             final messageData = value.userApproval[index];
-                            return MessageBox(
-                                userApproval: messageData,
-                                lastMessage: DateTime.now().toString(),
-                                subject: messageData.message!.message!,
-                                displayName: messageData.message!.subject!
-                                    .split("-")
-                                    .last,
-                                read: false,
-                                messageId: messageData.id!);
+                            return Row(
+                              children: [
+                                Expanded(
+                                  child: MessageBox(
+                                    userApproval: messageData,
+                                    isUserApproval: true,
+                                    lastMessage: DateTime.now().toString(),
+                                    subject: messageData.message?.message ?? 'No Subject',
+                                    displayName: messageData.message?.subject?.split("-").last ?? 'No Display',
+                                    messageId: messageData.id ?? 'No ID', read:false,
+
+                                  ),
+                                ),
+                              ],
+                            );
                           },
                         ),
                       ],
                     ),
                   );
+
 
                 }
               },

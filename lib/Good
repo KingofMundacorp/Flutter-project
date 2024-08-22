@@ -1,61 +1,48 @@
-To remove the HTML tags and display the message as plain text, 
-you need to parse the HTML string and extract the content without the tags.
-In Flutter, you can use the flutter_html package to render HTML content 
-directly in a widget, or if you prefer to strip out the HTML tags entirely, 
-you can use the html package.
+ Future<void> get fetchUserApproval async {
+  log('this is initially called');
 
+  List<UserModel> userApprovalList = [];
+  var res2;
 
-Option 1: Render HTML Content with flutter_html
-If you want to render the content with the formatting specified by the HTML tags (like bold text), you can use the flutter_html package:
+  final res = await d2repository.httpClient.get('dataStore/dhis2-user-support');
+  var list = res.body;
 
-Add flutter_html to your pubspec.yaml:
+  for (var i = 1; i < list.length; i++) {
+    if (list[i].toString().startsWith("UA")) {
+      print('dataStore/dhis2-user-support/${list[i]}');
+      res2 = await d2repository.httpClient.get('dataStore/dhis2-user-support/${list[i].toString()}');
 
-yaml
-Copy code
-dependencies:
-  flutter:
-    sdk: flutter
-  flutter_html: ^2.2.1
-Import the package and use it in your widget:
+      var jsonResponse = res2.body;
 
-dart
-Copy code
-import 'package:flutter_html/flutter_html.dart';
+      if (jsonResponse is List) {
+        userApprovalList.addAll(
+          jsonResponse
+              .where((item) => item != null)
+              .map((item) {
+            if (item is Map<String, dynamic>) {
+              return UserModel.fromMap(item);
+            } else {
+              throw Exception("Unexpected item type: ${item.runtimeType}");
+            }
+          })
+          .where((userModel) => (userModel.message?.message != null &&
+                                 userModel.message?.message != 'No Subject' &&
+                                 userModel.message?.subject?.split("-").last != 'No Display'))
+          .toList(),
+        );
+      } else if (jsonResponse is Map<String, dynamic>) {
+        UserModel userModel = UserModel.fromMap(jsonResponse);
+        if (userModel.message?.message != null &&
+            userModel.message?.message != 'No Subject' && 
+            userModel.message?.subject?.split("-").last != 'No Display') {
+          userApprovalList.add(userModel);
+        }
+      } else {
+        throw Exception("Unexpected response type: ${jsonResponse.runtimeType}");
+      }
+    }
+  }
 
-// Inside your widget
-Html(
-  data: messageData.message,
-);
-Option 2: Strip HTML Tags and Display Plain Text
-If you prefer to display the content without any HTML formatting, you can strip out the tags:
-
-Add the html package to your pubspec.yaml:
-
-yaml
-Copy code
-dependencies:
-  flutter:
-    sdk: flutter
-  html: ^0.15.0
-Import the package and use it to strip HTML tags:
-
-dart
-Copy code
-import 'package:html/parser.dart' as htmlParser;
-import 'package:html/dom.dart' as htmlDom;
-
-// Function to remove HTML tags
-String parseHtmlString(String htmlString) {
-  final document = htmlParser.parse(htmlString);
-  final String parsedString = htmlParser.parse(document.body?.text).documentElement?.text ?? "";
-  return parsedString;
+  _userApproval = userApprovalList;
+  notifyListeners();
 }
-
-// Inside your widget
-Text(
-  parseHtmlString(messageData.message ?? "No data available"),
-);
-Explanation:
-flutter_html: This package renders the HTML content in a RichText widget, respecting the HTML tags.
-html package: The parseHtmlString function uses the html package to parse the HTML string, extract the text, and return a plain string without any HTML tags.
-By using one of these methods, you can either display the message with its HTML formatting or strip the HTML tags and show the content as plain text.

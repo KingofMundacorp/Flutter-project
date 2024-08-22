@@ -200,7 +200,7 @@ class _PageContentState extends State<PageContent> {
       await context.read<MessageModel>().approvalUserRequest(widget.userApproval,
           message: _textEditingController.text.trim());
     }
-    await context.read<MessageModel>().approvalUserRequest(widget.userApproval);
+
     bool loading = context.read<MessageModel>().isLoading;
     // var data = await LoginAPI.connectToAPI(
     //     emailController.text, passwordController.text);

@@ -256,31 +256,61 @@ class UserModel {
     this.type,
     this.url,
     this.message,
+    this.status,
+    this.messageBody,
+    this.actionType,
+    this.rejectionReasonMessage,
+    this.timeSinceResponseSent,
+    this.messageConversation,
+    this.shouldAlert,
+    this.privateMessage,
   });
 
   String? id;
   UserModel3? user;
-  dynamic? payload;
+  dynamic payload;
   String? ticketNumber;
   String? type;
+  String? status;
   String? url;
   String? method;
   String? action;
+  String? actionType;
   String? replyMessage;
+  String? timeSinceResponseSent;
+  String? rejectionReasonMessage;
+  MessageConv? messageConversation;
+  PrivateMessage? privateMessage;
   Message? message;
+  bool? shouldAlert;
+  MessageBody?  messageBody;
 
 
   factory UserModel.fromMap(Map<String, dynamic> json) => UserModel(
     id: json["id"] == null ? null : json["id"],
+    status: json["status"] == null ? null : json["status"],
     user: json["user"] == null ? null : UserModel3.fromMap(json["user"]),
     method: json["method"] == null ? null : json["method"],
     payload: json["payload"] == null ? null : _parsePayload(json["payload"]),
     url: json["url"] == null ? null : json["url"],
+    timeSinceResponseSent: json["timeSinceResponseSent"] == null
+        ? null
+        : json["timeSinceResponseSent"],
+    messageConversation: json["messageConversation"] == null
+        ? null
+        : MessageConv.fromMap(json["messageConversation"]),
+    privateMessage: json["privateMessage"] == null
+        ? null
+        : PrivateMessage.fromMap(json["privateMessage"]),
+    shouldAlert: json["shouldAlert"] == null ? null : json["shouldAlert"],
     message: json["message"] == null ? null : Message.fromMap(json["message"]),
     type: json["type"] == null ? null : json["type"],
     action: json["action"] == null ? null : json["action"],
+    actionType: json["actionType"] == null ? null : json["actionType"],
+    rejectionReasonMessage: json["rejectionReasonMessage"] == null ? null : json["rejectionReasonMessage"],
     replyMessage: json["replyMessage"] == null ? null : json["replyMessage"],
     ticketNumber: json["ticketNumber"] == null ? null : json["ticketNumber"],
+    messageBody: json["messageBody"] == null ? null : MessageBody.fromMap(json["messageBody"]),
   );
 
    static dynamic _parsePayload(dynamic payload){
@@ -296,13 +326,25 @@ class UserModel {
   Map<String, dynamic> toMap() => {
     "id": id == null ? null : id,
     "url": url == null ? null : url,
+    "status": status == null ? null : status,
     "method": method == null ? null : method,
+    "shouldAlert": shouldAlert == null ? null : shouldAlert,
+    "action": action == null ? null : action,
+    "actionType": actionType == null ? null : actionType,
     "userName": type == null ? null : type,
+    "timeSinceResponseSent":
+    timeSinceResponseSent == null ? null : timeSinceResponseSent,
     "message": message == null ? null : message!.toMap(),
     "user": user == null ? null : user!.toMap(),
     "payload": payload == null ? null : _serializablePayload(payload),
+    "messageConversation":
+    messageConversation == null ? null : messageConversation!.toMap(),
+    "privateMessage":
+    privateMessage == null ? null : privateMessage!.toMap(),
     "replyMessage": replyMessage == null ? null : replyMessage,
+    "rejectionReasonMessage": rejectionReasonMessage == null ? null : rejectionReasonMessage,
     "ticketNumber": ticketNumber == null ? null : ticketNumber,
+    "messageBody": messageBody == null ? null : messageBody!.toMap(),
   };
 
   static dynamic _serializablePayload(dynamic payload){
@@ -314,6 +356,75 @@ class UserModel {
       return null;
     }
   }
+}
+
+class PrivateMessage {
+  PrivateMessage({
+    this.subject,
+    this.text,
+    this.users,
+   });
+
+  String? subject;
+  String? text;
+  List<Users>? users;
+
+  factory PrivateMessage.fromMap(Map<String, dynamic> json) => PrivateMessage(
+    subject: json["subject"] == null ? null : json["subject"],
+    text: json["text"] == null ? null : json["text"],
+    users: json["users"] == null ? null : List<Users>.from(json["users"].map((x) => Users.fromMap(x))),
+  );
+
+  Map<String, dynamic> toMap() =>
+      {
+        "text": text == null ? null : text,
+        "subject": subject == null ? null : subject,
+        "users": users == null ? null : List<dynamic>.from(users!.map((x) => x.toMap())),
+      };
+}
+
+class MessageBody {
+  MessageBody({
+    this.attachments,
+    this.organisationUnits,
+    this.subject,
+    this.text,
+    this.userGroups,
+    this.users,
+});
+
+  List<String>? attachments;
+  List<String>? organisationUnits;
+  String? subject;
+  String? text;
+  List<String>? userGroups;
+  List<Users>? users;
+
+  factory MessageBody.fromMap(Map<String, dynamic> json) => MessageBody(
+    subject: json["subject"] == null ? null : json["subject"],
+    text: json["text"] == null ? null : json["text"],
+    attachments: json["attachments"] == null
+        ? null
+        : List<String>.from(json["attachments"].map((x) => x.toString())),
+    organisationUnits: json["organisationUnits"] == null
+        ? null
+        : List<String>.from(json["organisationUnits"].map((x) => x.toString())),
+    userGroups: json["userGroups"] == null
+        ? null
+        : List<String>.from(json["userGroups"].map((x) => x.toString())),
+    users: json["users"] == null ? null : List<Users>.from(json["users"].map((x) => Users.fromMap(x))),
+  );
+
+  Map<String, dynamic> toMap() =>
+      {
+        "text": text == null ? null : text,
+        "subject": subject == null ? null : subject,
+        "attachments": attachments == null ? null : List<dynamic>.from(attachments!),
+        "organisationUnits": organisationUnits == null ? null : List<dynamic>.from(organisationUnits!),
+        "userGroups": userGroups == null ? null : List<dynamic>.from(userGroups!),
+        "users": users == null ? null : List<dynamic>.from(users!.map((x) => x.toMap())),
+      };
+
 }
 
 class UserModel3 {
@@ -646,15 +757,49 @@ class Users {
     this.users,
   });
 
-  Map<String, dynamic>? users;
+  Map<String, UsersInnerObject>? users;
 
   factory Users.fromMap(Map<String, dynamic> json) => Users(
-    users: json["users"] == null ? {} : Map<String, dynamic>.from(json["users"]),
+    users: json["users"] == null
+        ? null
+        : Map.from(json["users"]).map((key, value) => MapEntry(
+      key,
+      UsersInnerObject.fromMap(value),
+    )),
   );
 
   Map<String, dynamic> toMap() => {
-    "users": users == null ? {} : Map<String, dynamic>.from(users!),
+    "users": users == null
+        ? null
+        : Map.from(users!).map((key, value) => MapEntry(
+      key,
+      value.toMap(),
+    )),
   };
+}
+class UsersInnerObject {
+  UsersInnerObject({
+    this.id,
+    this.username,
+    this.type,
+  });
+
+  String? id;
+  String? username;
+  String? type;
+
+  factory UsersInnerObject.fromMap(Map<String, dynamic> json) => UsersInnerObject(
+    id: json["id"] == null ? null : json["id"],
+    username: json["username"] == null ? null : json["username"],
+    type: json["type"] == null ? null : json["type"],
+  );
+
+  Map<String, dynamic> toMap() =>
+      {
+        "id": id == null ? null : id,
+        "name": username == null ? null : username,
+        "type": type == null ? null : type,
+      };
 }
 
 

@@ -156,33 +156,26 @@ class MessageModel with ChangeNotifier {
               } else {
                 throw Exception("Unexpected item type: ${item.runtimeType}");
               }
-            }).toList(),
+            })
+                .where((userModel) => (userModel.message?.message != null &&
+                userModel.message?.message != 'No Subject' &&
+                userModel.message?.subject?.split("-").last != 'No Display'))
+                .toList(),
           );
         } else if (jsonResponse is Map<String, dynamic>) {
-          userApprovalList.add(UserModel.fromMap(jsonResponse));
+          UserModel userModel = UserModel.fromMap(jsonResponse);
+          if (userModel.message?.message != null &&
+              userModel.message?.message != 'No Subject' &&
+              userModel.message?.subject?.split("-").last != 'No Display') {
+            userApprovalList.add(userModel);
+          }
         } else {
           throw Exception("Unexpected response type: ${jsonResponse.runtimeType}");
         }
       }
     }
 
-    // Separate and sort the user approvals
-    List<UserModel> noSubjectList = [];
-    List<UserModel> withSubjectList = [];
-
-    for (var userApproval in userApprovalList) {
-      String subject = userApproval.message?.message ?? 'No Subject';
-      if (subject == 'No Subject') {
-        noSubjectList.add(userApproval);
-      } else {
-        withSubjectList.add(userApproval);
-      }
-    }
-
-    // Combine the lists, with "No Subject" entries last
-    withSubjectList.addAll(noSubjectList);
-    _userApproval = withSubjectList;
-
+    _userApproval = userApprovalList;
     notifyListeners();
   }
 

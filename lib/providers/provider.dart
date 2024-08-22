@@ -133,7 +133,7 @@ class MessageModel with ChangeNotifier {
   Future<void> get fetchUserApproval async {
     log('this is initially called');
 
-    List<UserModel> userApprovalList = [];
+    List<UserModel> userApprovalList = []; // This will only hold items where actionType is null.
     var res2;
 
     final res = await d2repository.httpClient.get('dataStore/dhis2-user-support');
@@ -147,26 +147,25 @@ class MessageModel with ChangeNotifier {
         var jsonResponse = res2.body;
 
         if (jsonResponse is List) {
-          userApprovalList.addAll(
-            jsonResponse
-                .where((item) => item != null)
-                .map((item) {
-              if (item is Map<String, dynamic>) {
-                return UserModel.fromMap(item);
-              } else {
-                throw Exception("Unexpected item type: ${item.runtimeType}");
+          for (var item in jsonResponse.where((item) => item != null)) {
+            if (item is Map<String, dynamic>) {
+              UserModel userModel = UserModel.fromMap(item);
+              if (userModel.message?.message != null &&
+                  userModel.message?.message != 'No Subject' &&
+                  userModel.message?.subject?.split("-").last != 'No Display' &&
+                  userModel.actionType == null) { // Only add if actionType is null
+                userApprovalList.add(userModel);
               }
-            })
-                .where((userModel) => (userModel.message?.message != null &&
-                userModel.message?.message != 'No Subject' &&
-                userModel.message?.subject?.split("-").last != 'No Display'))
-                .toList(),
-          );
+            } else {
+              throw Exception("Unexpected item type: ${item.runtimeType}");
+            }
+          }
         } else if (jsonResponse is Map<String, dynamic>) {
           UserModel userModel = UserModel.fromMap(jsonResponse);
           if (userModel.message?.message != null &&
               userModel.message?.message != 'No Subject' &&
-              userModel.message?.subject?.split("-").last != 'No Display') {
+              userModel.message?.subject?.split("-").last != 'No Display' &&
+              userModel.actionType == null) { // Only add if actionType is null
             userApprovalList.add(userModel);
           }
         } else {
@@ -175,9 +174,11 @@ class MessageModel with ChangeNotifier {
       }
     }
 
+    // Set the final list only with items where actionType is null
     _userApproval = userApprovalList;
     notifyListeners();
   }
+
 
 
 

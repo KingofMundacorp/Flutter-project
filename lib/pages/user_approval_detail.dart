@@ -190,29 +190,36 @@ class _PageContentState extends State<PageContent> {
   }
 
   void _loading({bool isAccept = false}) async {
+    // Show loading indicator
     EasyLoading.show(
-        status: 'loading...',
-        maskType: EasyLoadingMaskType.black); // code to show modal with masking
-    if (isAccept) {
-      await context.read<MessageModel>().approvalUserRequest(widget.userApproval);
-      // Navigator.of(context).pop();
-    } else {
-      await context.read<MessageModel>().approvalUserRequest(widget.userApproval,
-          message: _textEditingController.text.trim());
-    }
+      status: 'loading...',
+      maskType: EasyLoadingMaskType.black,
+    );
 
-    bool loading = context.read<MessageModel>().isLoading;
-    // var data = await LoginAPI.connectToAPI(
-    //     emailController.text, passwordController.text);
-    if (!loading) {
-      EasyLoading.showSuccess(
-          'Success!'); // code to show modal without masking and auto close
-      // Navigator.of(context).pushNamedAndRemoveUntil(
-      //     UserApprovalScreen.routeName, (Route<dynamic> route) => false);
+    try {
+      // Call approvalUserRequest and handle response
+      await context.read<MessageModel>().approvalUserRequest(
+        widget.userApproval,
+        message: isAccept ? null : _textEditingController.text.trim(),
+      );
 
-      context.pushReplacement('/home');
+      // After processing, check if still loading
+      bool loading = context.read<MessageModel>().isLoading;
+
+      if (!loading) {
+        // Show success message and navigate to the user account page
+        EasyLoading.showSuccess('Success!');
+        context.pushReplacement('/home/user_account');
+      }
+    } catch (e) {
+      // Handle errors and show an appropriate message
+      EasyLoading.showError('Error: ${e.toString()}');
+      context.pushReplacement('/home/user_account');
+    } finally {
+      EasyLoading.dismiss();
     }
   }
+
 // .
 
   showDataAlert(BuildContext context, {bool isAccept = false}) {

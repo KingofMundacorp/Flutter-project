@@ -26,10 +26,10 @@ class MessageBox extends StatelessWidget {
 
   final String messageId;
   final bool read;
-  bool? isDataApproval;
-  ApproveModel? dataApproval;
-  bool? isUserApproval;
-  UserModel? userApproval;
+  final bool? isDataApproval;
+  final ApproveModel? dataApproval;
+  final bool? isUserApproval;
+  final UserModel? userApproval;
   final String subject;
   final String displayName;
   final String lastMessage;
@@ -38,6 +38,7 @@ class MessageBox extends StatelessWidget {
   Widget build(BuildContext context) {
     final fetchedData = Provider.of<MessageModel>(context);
     final Size size = MediaQuery.of(context).size;
+
     return GestureDetector(
       onTap: () {
         fetchedData.initialValue();
@@ -67,27 +68,36 @@ class MessageBox extends StatelessWidget {
                           semanticsLabel: 'Acme Logo',
                         ),
                         const SizedBox(width: 10),
-                        Text(
-                          displayName,
-                          style: TextStyle(
-                            fontWeight:
-                            read ? FontWeight.w400 : FontWeight.bold,
-                            color: Colors.black87,
-                            fontSize: 17.0,
+                        Expanded(
+                          child: Text(
+                            displayName,
+                            style: TextStyle(
+                              fontWeight:
+                              read ? FontWeight.w400 : FontWeight.bold,
+                              color: Colors.black87,
+                              fontSize: 17.0,
+                              overflow: TextOverflow.ellipsis, // Ellipsis for overflow
+                            ),
+                            maxLines: 1, // Ensure text stays on one line
+                            softWrap: false, // Prevent wrapping
                           ),
                         ),
                       ],
                     ),
+                    const SizedBox(height: 4.0), // Space between displayName and subject
                     Text(
                       subject,
                       overflow: TextOverflow.ellipsis,
-                      maxLines: 2,
+                      maxLines: 2, // Allow two lines for subject
+                      softWrap: true, // Allow wrapping if it fits within two lines
                       style: TextStyle(
                         fontWeight: read ? FontWeight.w400 : FontWeight.bold,
                         color: Colors.black87,
                         fontSize: 15.5,
                       ),
-                    )
+                    ),
+                    const SizedBox(height: 4.0), // Space between subject and lastMessage
+
                   ],
                 ),
               ),

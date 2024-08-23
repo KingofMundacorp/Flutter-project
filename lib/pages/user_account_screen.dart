@@ -60,42 +60,27 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                       children: <Widget>[
                         ListView.builder(
                           shrinkWrap: true,
-                          physics: const ClampingScrollPhysics(),
+                          physics: const ScrollPhysics(),
                           itemCount: _searchResult.isEmpty
                               ? value.userApproval.length
                               : _searchResult.length,
                           itemBuilder: (context, index) {
                             final messageData = value.userApproval[index];
-                            return Row(
-                              children: [
-                                Flexible(
-                                  fit: FlexFit.tight,
-                                  child: ClipRect(
-                                    child: Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: Container(
-                                        constraints: BoxConstraints(
-                                          maxWidth: MediaQuery.of(context).size.width * 0.9, // Adjust as needed
-                                        ),
-                                        child: MessageBox(
-                                          userApproval: messageData,
-                                          isUserApproval: true,
-                                          lastMessage: DateTime.now().toString(),
-                                          subject: _parseHtmlString(messageData.message?.message ?? 'No Subject'),
-                                          displayName: _parseHtmlString(messageData.message?.subject?.split("-").last ?? 'No Display'),
-                                          messageId: messageData.id ?? 'No ID',
-                                          read: false,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
+                            return MessageBox(
+                              userApproval: messageData,
+                              isUserApproval: true,
+                              lastMessage: DateTime.now().toString(),
+                              subject: _parseHtmlString(
+                                  messageData.message?.message ?? 'No Subject'),
+                              displayName: _parseHtmlString(
+                                  messageData.message?.subject
+                                      ?.split("-")
+                                      .last ?? 'No Display'),
+                              messageId: messageData.id ?? 'No ID',
+                              read: false,
                             );
-
-
                           },
-                        ),
+                       ),
                       ],
                     ),
                   );

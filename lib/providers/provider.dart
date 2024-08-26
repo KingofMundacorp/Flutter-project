@@ -182,50 +182,71 @@ class MessageModel with ChangeNotifier {
 
 
 
-  Future<void> approvalUserRequest(UserModel userApproval,
-      {String? message}) async {
-
+  Future<void> approvalUserRequest(UserModel userApproval, {String? message}) async {
     _isLoading = true;
     var id = userApproval.id!.substring(0, 15);
 
     print(id);
-    final res = await d2repository.httpClient.get(
-        'messageConversations?messageType=TICKET&filter=subject:ilike:${id}');
+    try {
+      final res = await d2repository.httpClient.get(
+          'messageConversations?messageType=TICKET&filter=subject:ilike:$id');
 
-    var convId = res.body['messageConversations'][0]['id'].toString();
+      String convId;
+      if (res.body['messageConversations'] != null && res.body['messageConversations'].isNotEmpty) {
+        // A conversation exists, get its ID
+        convId = res.body['messageConversations'][0]['id'].toString();
+      } else {
+        // No conversation found, create a new one
+        print("No message conversation found for id: $id. Creating a new conversation.");
 
-    if (message == null) {
-      print('This is inside if statement');
-      await Future.wait([
-        d2repository.httpClient
-            .post(userApproval.url!, userApproval.payload!),
+        final createRes = await d2repository.httpClient.post(
+          'messageConversations',
+          {
+            "subject": "New Conversation for User ID $id",
+            "users": [userApproval.id],  // Assuming you need to add users to the conversation
+            "messageType": "TICKET",
+            "messages": [
+              {
+                "text": "Initial message for new conversation.",
+                "sender": userApproval.id // The sender ID
+              }
+            ]
+          },
+        );
 
+        // Extract the ID of the newly created conversation
+        convId = createRes.body['id'].toString();
+      }
 
-        d2repository.httpClient
-            .delete('dataStore/dhis2-user-support', userApproval.id.toString()),
-
-        d2repository.httpClient.post('messageConversations/${convId}',
-            'Ombi lako limeshughulikiwa karibu!'),
-        d2repository.httpClient.post(
-            'messageConversations/${convId}/status?messageConversationStatus=SOLVED',
-            ''),
-      ]).whenComplete(() => _isLoading = false);
-    } else {
-
-      await Future.wait([
-
-        d2repository.httpClient
-            .delete('dataStore/dhis2-user-support', userApproval.id.toString()),
-
-        d2repository.httpClient.post('messageConversations/${convId}', message),
-        d2repository.httpClient.post(
-            'messageConversations/${convId}/status?messageConversationStatus=SOLVED',
-            '')
-      ]).whenComplete(() => _isLoading = false);
+      // Now proceed with the logic using the convId
+      if (message == null) {
+        print('This is inside if statement');
+        await Future.wait([
+          d2repository.httpClient.post(userApproval.url!, userApproval.payload!),
+          d2repository.httpClient.delete('dataStore/dhis2-user-support', userApproval.id.toString()),
+          d2repository.httpClient.post('messageConversations/$convId', 'Ombi lako limeshughulikiwa karibu!'),
+          d2repository.httpClient.post('messageConversations/$convId/status?messageConversationStatus=SOLVED', ''),
+        ]).whenComplete(() => _isLoading = false);
+      } else {
+        await Future.wait([
+          d2repository.httpClient.delete('dataStore/dhis2-user-support', userApproval.id.toString()),
+          d2repository.httpClient.post('messageConversations/$convId', message),
+          d2repository.httpClient.post('messageConversations/$convId/status?messageConversationStatus=SOLVED', ''),
+        ]).whenComplete(() => _isLoading = false);
+      }
+    } catch (e, stackTrace) {
+      // Handle any other errors, including network issues or JSON parsing errors
+      print("An error occurred: $e");
+      print("Stack trace: $stackTrace");
+      _isLoading = false;
     }
 
     notifyListeners();
   }
+
+
+
+
 
   //send message to the message conversation
   Future<void> sendMessages(String id, String message) async {

@@ -116,8 +116,9 @@ class _PageContentState extends State<PageContent> {
                                   ),
                                 ),
                                 onPressed: () {
-                                  // showDataAlert(context, isAccept: true);
-                                  _loading();
+                                  //showDataAlert(context, isAccept: true);
+                                  // Start loading action
+                                 _loading();
                                 },
                                 child: Padding(
                                   padding: const EdgeInsets.all(10.0),
@@ -270,17 +271,19 @@ class _PageContentState extends State<PageContent> {
                       padding: const EdgeInsets.all(8.0),
                       child: ElevatedButton(
                         onPressed: () async {
+                          // Start loading action
+                          //_loading();
                           if (isAccept) {
                             context
                                 .read<MessageModel>()
                                 .approvalUserRequest(widget.userApproval);
                             // Navigator.of(context).pop();
                           } else {
-                            // context.read<MessageModel>().approvalRequest(
-                            //     widget.dataApproval,
+                            // context.read<MessageModel>().approvalUserRequest(
+                            //     widget.userApproval,
                             //     message: _textEditingController.text.trim());
-                            // context.read<MessageModel>().approvalRequest(
-                            //     widget.dataApproval,
+                            // context.read<MessageModel>().approvalUserRequest(
+                            //     widget.userApproval,
                             //     message: _textEditingController.text.trim());
                             _loading();
                           }
@@ -288,7 +291,7 @@ class _PageContentState extends State<PageContent> {
                           // Navigator.of(context).pop();
                           // Future.delayed(const Duration(milliseconds: 500), () {
                           //   Navigator.pushNamed(
-                          //       context, DataApprovalScreen.routeName);
+                          //       context, UserApprovalScreen.routeName);
                           // });
                         },
                         style: ElevatedButton.styleFrom(

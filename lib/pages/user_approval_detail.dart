@@ -116,9 +116,9 @@ class _PageContentState extends State<PageContent> {
                                   ),
                                 ),
                                 onPressed: () {
-                                  //showDataAlert(context, isAccept: true);
+                                  showDataAlert(context, isAccept: true);
                                   // Start loading action
-                                 _loading();
+                                 //_loading();
                                 },
                                 child: Padding(
                                   padding: const EdgeInsets.all(10.0),
@@ -288,7 +288,7 @@ class _PageContentState extends State<PageContent> {
                             _loading();
                           }
                           await context.read<MessageModel>().fetchUserApproval;
-                          // Navigator.of(context).pop();
+                          //Navigator.of(context).pop();
                           // Future.delayed(const Duration(milliseconds: 500), () {
                           //   Navigator.pushNamed(
                           //       context, UserApprovalScreen.routeName);

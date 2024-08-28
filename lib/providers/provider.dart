@@ -203,7 +203,12 @@ class MessageModel with ChangeNotifier {
           'messageConversations',
           {
             "subject": "New Conversation for User ID $id",
-            "users": [userApproval.id],  // Assuming you need to add users to the conversation
+            "users": [
+              {
+                "id": userApproval.id
+              }
+            ],
+            // Assuming you need to add users to the conversation
             "messageType": "TICKET",
             "messages": [
               {
@@ -221,19 +226,28 @@ class MessageModel with ChangeNotifier {
       // Now proceed with the logic using the convId
       if (message == null) {
         print('This is inside if statement');
-        await Future.wait([
-          d2repository.httpClient.post(userApproval.url!, userApproval.payload!),
-          d2repository.httpClient.delete('dataStore/dhis2-user-support', userApproval.id.toString()),
-          d2repository.httpClient.post('messageConversations/$convId', 'Ombi lako limeshughulikiwa karibu!'),
-          d2repository.httpClient.post('messageConversations/$convId/status?messageConversationStatus=SOLVED', ''),
-        ]).whenComplete(() => _isLoading = false);
+        try {
+          // Execute each operation sequentially
+          await d2repository.httpClient.post(userApproval.url!, userApproval.payload!);
+          await d2repository.httpClient.post('messageConversations/$convId', 'Ombi lako limeshughulikiwa karibu!');
+          await d2repository.httpClient.post('messageConversations/$convId/status?messageConversationStatus=SOLVED', '');
+          await d2repository.httpClient.delete('dataStore/dhis2-user-support', userApproval.id.toString());
+        } catch (e) {
+          // Handle any errors that occur during the requests
+          print("An error occurred: $e");
+        }
       } else {
-        await Future.wait([
-          d2repository.httpClient.delete('dataStore/dhis2-user-support', userApproval.id.toString()),
-          d2repository.httpClient.post('messageConversations/$convId', message),
-          d2repository.httpClient.post('messageConversations/$convId/status?messageConversationStatus=SOLVED', ''),
-        ]).whenComplete(() => _isLoading = false);
+        try {
+          // Execute each operation sequentially
+          await d2repository.httpClient.post('messageConversations/$convId', message);
+          await d2repository.httpClient.post('messageConversations/$convId/status?messageConversationStatus=SOLVED', '');
+          await d2repository.httpClient.delete('dataStore/dhis2-user-support', userApproval.id.toString());
+        } catch (e) {
+          // Handle any errors that occur during the requests
+          print("An error occurred: $e");
+        }
       }
+
     } catch (e, stackTrace) {
       // Handle any other errors, including network issues or JSON parsing errors
       print("An error occurred: $e");
@@ -253,7 +267,7 @@ class MessageModel with ChangeNotifier {
     if (message.isNotEmpty) {
       _isLoading = true;
     }
-    final response = await http.post(
+    /*final response = await http.post(
       Uri.parse('$baseUrl/messageConversations/$id?internal=false'),
       headers: {
         'Content-Type': 'application/json;charset=UTF-8',
@@ -266,13 +280,13 @@ class MessageModel with ChangeNotifier {
       _isLoading = false;
     } else {
       _isLoading = false;
-    }
+    }*/
     notifyListeners();
   }
 
   Future<void> addFeedbackMessage(String subject, String text) async {
     _isLoading = true;
-    final response = await http.post(
+    /*final response = await http.post(
         Uri.parse('$baseUrl/messageConversations/feedback?subject=$subject'),
         headers: {
           'Content-Type': 'application/json',
@@ -285,13 +299,13 @@ class MessageModel with ChangeNotifier {
       print('is Successfully');
     } else {
       _isLoading = false;
-    }
+    }*/
     notifyListeners();
   }
 
   //post message read
   Future<void> messageRead(String id) async {
-    final response = await http.post(
+    /*final response = await http.post(
       Uri.parse('$baseUrl/messageConversations/read'),
       headers: {
         'Content-Type': 'application/json;charset=UTF-8',
@@ -302,20 +316,20 @@ class MessageModel with ChangeNotifier {
     print(response.body);
     if (response.statusCode == 200) {
       print('is Successfully');
-    }
+    }*/
     notifyListeners();
   }
 
   //post message unread
   Future<void> messageUnread(String id) async {
-    final response = await http.post(
+    /*final response = await http.post(
       Uri.parse('$baseUrl/messageConversations/unread'),
       headers: {
         'Content-Type': 'application/json;charset=UTF-8',
         'Accept': 'application/json',
       },
       body: jsonEncode([id]),
-    );
+    );*/
     // print(response.body);
     // if (response.statusCode == 200) {
     // }
@@ -324,7 +338,7 @@ class MessageModel with ChangeNotifier {
 
   //delete message conversation
   Future<void> deleteMessage(String messageId) async {
-    final response = await http.delete(
+    /*final response = await http.delete(
       Uri.parse('$baseUrl/messageConversations/$messageId/xE7jOejl9FI'),
       headers: {
         'Content-Type': 'application/json;charset=UTF-8',
@@ -338,7 +352,7 @@ class MessageModel with ChangeNotifier {
     if (response.statusCode == 200) {
       print('is Successfully');
       _privateMessages.removeWhere((messages) => messages.id == messageId);
-    }
+    }*/
     notifyListeners();
   }
 
@@ -346,7 +360,7 @@ class MessageModel with ChangeNotifier {
   Future<void> addNewMessage(
       String attachment, String text, String subject) async {
     _isLoading = true;
-    final response = await http.post(
+    /*final response = await http.post(
       Uri.parse('$baseUrl/messageConversations'),
       headers: {
         'Content-Type': 'application/json',
@@ -379,12 +393,12 @@ class MessageModel with ChangeNotifier {
       _isLoading = false;
     } else {
       _isLoading = false;
-    }
+    }*/
     notifyListeners();
   }
 
   Future<void> get fetchSystemMessage async {
-    final response = await http.get(
+    /*final response = await http.get(
       Uri.parse(
           '$baseUrl/messageConversations?filter=messageType%3Aeq%3ASYSTEM&fields=id,displayName,subject,messageType,lastSender%5Bid%2C%20displayName%5D,assignee%5Bid%2C%20displayName%5D,status,priority,lastUpdated,read,lastMessage,followUp&order=lastMessage%3Adesc'),
       headers: {
@@ -403,13 +417,13 @@ class MessageModel with ChangeNotifier {
       _error = false;
     } else {
       throw Exception("Failed to Load Data");
-    }
+    }*/
     notifyListeners();
   }
 
   //fetch private message conversation
   Future<void> get fetchPrivateMessages async {
-    try {
+    /*try {
       final response = await http.get(
         Uri.parse(
             '$baseUrl/messageConversations?filter=messageType%3Aeq%3APRIVATE&pageSize=35&page=1&fields=id,displayName,subject,messageType,lastSender%5Bid%2C%20displayName%5D,assignee%5Bid%2C%20displayName%5D,status,priority,lastUpdated,read,lastMessage,followUp&order=lastMessage%3Adesc'),
@@ -432,13 +446,13 @@ class MessageModel with ChangeNotifier {
       }
     } catch (e) {
       print('What error is $e');
-    }
+    }*/
 
     notifyListeners();
   }
 
   Future<void> get fetchTicketMessages async {
-    try {
+    /*try {
       final response = await http.get(
         Uri.parse(
             '$baseUrl/messageConversations?filter=messageType%3Aeq%3ATICKET&pageSize=35&page=1&fields=id,displayName,subject,messageType,lastSender%5Bid%2C%20displayName%5D,assignee%5Bid%2C%20displayName%5D,status,priority,lastUpdated,read,lastMessage,followUp&order=lastMessage%3Adesc'),
@@ -462,14 +476,14 @@ class MessageModel with ChangeNotifier {
       }
     } catch (e) {
       print("error $e catched");
-    }
+    }*/
 
     notifyListeners();
   }
 
   // fetch validation message
   Future<void> get fetchValidationMessages async {
-    try {
+    /*try {
       final response = await http.get(
         Uri.parse(
             '$baseUrl/messageConversations?filter=messageType%3Aeq%3AVALIDATION_RESULT&fields=id,displayName,subject,messageType,lastSender%5Bid%2C%20displayName%5D,assignee%5Bid%2C%20displayName%5D,status,priority,lastUpdated,read,lastMessage,followUp&order=lastMessage%3Adesc'),
@@ -494,14 +508,14 @@ class MessageModel with ChangeNotifier {
       }
     } catch (e) {
       print("error $e catched");
-    }
+    }*/
 
     notifyListeners();
   }
 
   //fetch message conversation by id
   Future<void> fetchMessageThreadsById(String id) async {
-    final response = await http.get(
+    /*final response = await http.get(
       Uri.parse(
           '$baseUrl/messageConversations/$id?fields=*,assignee%5Bid%2C%20displayName%5D,messages%5B*%2Csender%5Bid%2CdisplayName%5D,attachments%5Bid%2C%20name%2C%20contentLength%5D%5D,userMessages%5Buser%5Bid%2C%20displayName%5D%5D'),
       headers: {
@@ -515,7 +529,7 @@ class MessageModel with ChangeNotifier {
       final Map<String, dynamic> body =
           json.decode(response.body) as Map<String, dynamic>;
       _fetchedThread = MessageConversation.fromJson(body);
-    }
+    }*/
     notifyListeners();
     //delete message conversation
   }

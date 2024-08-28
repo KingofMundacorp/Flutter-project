@@ -80,105 +80,105 @@ class _InboxPageState extends State<InboxPage> {
                                       : _searchResult[index];
                                   return Slidable(
   // Replacing 'actionPane' with 'startActionPane' and 'endActionPane'
-  startActionPane: ActionPane(
-    motion: const DrawerMotion(),
-    extentRatio: 0.25,
-    children: <Widget>[
-      SlidableAction(
-        onPressed: (context) {
-          // Handle approve action
-        },
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-        icon: Icons.approval,
-        label: 'Approve',
-      ),
-    ],
-  ),
-  endActionPane: ActionPane(
-    motion: const DrawerMotion(),
-    extentRatio: 0.25,
-    children: <Widget>[
-      SlidableAction(
-        onPressed: (context) {
-          // Handle reject action
-        },
-        backgroundColor: Colors.black45,
-        foregroundColor: Colors.white,
-        icon: Icons.block,
-        label: 'Reject',
-      ),
-      SlidableAction(
-        onPressed: (context) {
-          showDialog(
-            context: context,
-            builder: (_) {
-              return AlertDialog(
-                title: const Text('Are you sure?'),
-                content: const Text('Do you want to delete?'),
-                actions: <Widget>[
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop(false);
-                    },
-                    child: const Text('No'),
-                  ),
-                  OutlinedButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Text('deleted message'),
-                          duration: const Duration(seconds: 2),
-                          action: SnackBarAction(
-                            label: 'UNDO',
-                            onPressed: () {},
-                          ),
+                                      startActionPane: ActionPane(
+                                        motion: const DrawerMotion(),
+                                        extentRatio: 0.25,
+                                        children: <Widget>[
+                                          SlidableAction(
+                                            onPressed: (context) {
+                                              // Handle approve action
+                                            },
+                                            backgroundColor: Colors.blue,
+                                            foregroundColor: Colors.white,
+                                            icon: Icons.approval,
+                                            label: 'Approve',
+                                          ),
+                                        ],
+                                      ),
+                                      endActionPane: ActionPane(
+                                        motion: const DrawerMotion(),
+                                        extentRatio: 0.25,
+                                        children: <Widget>[
+                                          SlidableAction(
+                                            onPressed: (context) {
+                                              // Handle reject action
+                                            },
+                                            backgroundColor: Colors.black45,
+                                            foregroundColor: Colors.white,
+                                            icon: Icons.block,
+                                            label: 'Reject',
+                                          ),
+                                          SlidableAction(
+                                            onPressed: (context) {
+                                              showDialog(
+                                                context: context,
+                                                builder: (_) {
+                                                  return AlertDialog(
+                                                    title: const Text('Are you sure?'),
+                                                    content: const Text('Do you want to delete?'),
+                                                    actions: <Widget>[
+                                                      ElevatedButton(
+                                                        onPressed: () {
+                                                          Navigator.of(context).pop(false);
+                                                        },
+                                                        child: const Text('No'),
+                                                      ),
+                                                      OutlinedButton(
+                                                        onPressed: () {
+                                                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                                          ScaffoldMessenger.of(context).showSnackBar(
+                                                            SnackBar(
+                                                              content: const Text('deleted message'),
+                                                              duration: const Duration(seconds: 2),
+                                                              action: SnackBarAction(
+                                                                label: 'UNDO',
+                                                                onPressed: () {},
+                                                              ),
+                                                            ),
+                                                          );
+                                                          value.deleteMessage(value.privateMessages[index].id);
+                                                          Navigator.of(context).pop(true);
+                                                        },
+                                                        child: const Text('Yes'),
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
+                                              );
+                                            },
+                                            backgroundColor: Colors.red,
+                                            foregroundColor: Colors.white,
+                                            icon: Icons.delete,
+                                            label: 'Delete',
+                                          ),
+                                        ],
+                                      ),
+                                      child: MessageBox(
+                                        lastMessage: messageData.lastMessage,
+                                        subject: messageData.subject,
+                                        displayName: messageData.lastSender!.displayName,
+                                        read: value.privateMessages[index].read,
+                                        messageId: messageData.id,
+                                      ),
+                                    );
+                              },
+                            ),
+                          ],
                         ),
                       );
-                      value.deleteMessage(value.privateMessages[index].id);
-                      Navigator.of(context).pop(true);
-                    },
-                    child: const Text('Yes'),
-                  ),
-                ],
-              );
+              }
             },
-          );
-        },
-        backgroundColor: Colors.red,
-        foregroundColor: Colors.white,
-        icon: Icons.delete,
-        label: 'Delete',
-      ),
-    ],
-  ),
-  child: MessageBox(
-    lastMessage: messageData.lastMessage,
-    subject: messageData.subject,
-    displayName: messageData.lastSender!.displayName,
-    read: value.privateMessages[index].read,
-    messageId: messageData.id,
-  ),
-);
-                                },
-                              ),
-                            ],
-                          ),
-                        );
-                }
-              },
-            ),
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.pushNamed(context, ComposePainter.routeName),
-        child: const Icon(Icons.add),
-      ),
-      drawer: const NavigationDrawer(),
-    );
-  }
+    ),
+    floatingActionButton: FloatingActionButton(
+      onPressed: () => Navigator.pushNamed(context, ComposePainter.routeName),
+      child: const Icon(Icons.add),
+    ),
+    drawer: const NavigationDrawer(),
+  );
+}
 
   Container searchBarWidget(BuildContext context, MessageModel value) {
     return Container(

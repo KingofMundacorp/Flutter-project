@@ -1,3 +1,85 @@
+
+/*You said:
+Install the Flutter plugin
+#
+Add the Flutter plugin if you don't already have it installed. This can be done using the normal Plugins page in the IntelliJ and Android Studio settings. Once that page is open, you can search the marketplace for the Flutter plugin.
+
+Start an app to debug
+#
+To open DevTools, you first need to run a Flutter app. This can be accomplished by opening a Flutter project, ensuring that you have a device connected, and clicking the Run or Debug toolbar buttons.
+
+Launch DevTools from the toolbar/menu
+#
+Once an app is running, you can start DevTools using one of the following techniques:
+
+Select the Open DevTools toolbar action in the Run view.
+Select the Open DevTools toolbar action in the Debug view. (if debugging)
+Select the Open DevTools action from the More Actions menu in the Flutter Inspector view.
+screenshot of Open DevTools button
+
+Launch DevTools from an action
+#
+You can also open DevTools from an IntelliJ action. Open the Find Action... dialog (on macOS, press Cmd + Shift + A), and search for the Open DevTools action. When you select that action, the DevTools server launches and a browser instance opens pointing to the DevTools app.
+
+When opened with an IntelliJ action, DevTools is not connected to a Flutter app. You'll need to provide a service protocol port for a currently running app. You can do this using the inline Connect to a running app dialog.EXPLAIN WELL AS IN ANDROID STUDIO STEP BY STEP
+ChatGPT said:
+ChatGPT
+Certainly! Here's a step-by-step guide on how to install the Flutter plugin and use DevTools in Android Studio:
+
+1. Install the Flutter Plugin
+Open Android Studio: Launch Android Studio on your computer.
+
+Access Plugins:
+
+Go to File > Settings (on Windows/Linux) or Android Studio > Preferences (on macOS).
+In the Settings/Preferences dialog, select Plugins from the left-hand sidebar.
+Search for Flutter Plugin:
+
+In the Plugins page, click on the Marketplace tab.
+In the search bar, type "Flutter" and press Enter.
+Install Flutter Plugin:
+
+Locate the Flutter plugin in the search results and click the Install button next to it.
+If prompted, Android Studio will also suggest installing the Dart plugin (which is required for Flutter development). Click Install for the Dart plugin as well.
+Restart Android Studio:
+
+After the installation is complete, you will be prompted to restart Android Studio. Click Restart IDE to apply the changes.
+2. Start an App to Debug
+Open Your Flutter Project:
+
+Open the Flutter project you want to work on in Android Studio.
+Connect a Device:
+
+Ensure that a physical device is connected or an emulator is running. You can check this in the Device Selector dropdown in the top-right corner of Android Studio.
+Run or Debug the App:
+
+Click the Run button (a green triangle) or Debug button (a green bug icon) in the toolbar. This will build and launch your app on the connected device or emulator.
+3. Launch DevTools from the Toolbar/Menu
+Open DevTools from the Toolbar:
+
+Once the app is running, you can open DevTools by clicking on the Open DevTools action in the Run or Debug view.
+Alternatively, if you are debugging, you can click the Open DevTools action in the Debug view.
+Open DevTools from the Flutter Inspector:
+
+In Android Studio, open the Flutter Inspector tab (usually located on the right side of the IDE).
+Click the More Actions menu (three vertical dots or a gear icon) in the Flutter Inspector view.
+Select Open DevTools from the dropdown menu.
+4. Launch DevTools from an Action
+Open the Find Action Dialog:
+
+Press Cmd + Shift + A on macOS or Ctrl + Shift + A on Windows/Linux to open the Find Action dialog.
+Search for DevTools Action:
+
+Type "Open DevTools" into the search box and select the Open DevTools action from the list.
+Connect DevTools to Your App:
+
+When opened from the Find Action dialog, DevTools will not be automatically connected to a Flutter app.
+You will need to connect it manually by providing the service protocol port for the currently running app. This will typically prompt you with an inline dialog to Connect to a running app.
+Provide Service Protocol Port:
+
+Enter the service protocol port that corresponds to your running app. This port is often shown in the terminal output when you run or debug your app.
+*/
+
 Future<void> approvalUserRequest(UserModel userApproval, {String? message}) async {
     _isLoading = true;
     var id = userApproval.id!.substring(0, 15);

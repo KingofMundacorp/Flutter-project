@@ -12,12 +12,12 @@ const List<Map<String, dynamic>> menuItems = [
         'route': 'dataset',
       },
       {
-        'name': 'User account',
+        'name': 'User Account',
         'icon': Icons.person,
         'route': 'user_account',
       },
        {
-        'name': 'local hospital',
+        'name': 'Local Hospital',
          'icon': Icons.local_hospital,
          'route': 'local_hospital'
        },

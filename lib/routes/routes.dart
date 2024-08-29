@@ -11,7 +11,7 @@ import 'package:user_support_mobile/pages/splash_page.dart';
 import '../pages/compose_page.dart';
 import '../pages/compose_painter.dart';
 import '../pages/inbox_page.dart';
-import '../pages/local_hospital_screen.dart';
+import '../pages/facility_screen/local_hospital_screen.dart';
 import '../pages/login_page.dart';
 import '../pages/system_page.dart';
 import '../pages/ticket_page.dart';

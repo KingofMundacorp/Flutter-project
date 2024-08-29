@@ -1,191 +1,415 @@
+import 'dart:io';
 
-/*You said:
-Install the Flutter plugin
-#
-Add the Flutter plugin if you don't already have it installed. This can be done using the normal Plugins page in the IntelliJ and Android Studio settings. Once that page is open, you can search the marketplace for the Flutter plugin.
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'user_approval_screen.dart';
+import '../models/approve_model.dart';
+import '../providers/provider.dart';
+import 'package:flutter_html/flutter_html.dart';
+import 'package:html/parser.dart' as html_parser;
 
-Start an app to debug
-#
-To open DevTools, you first need to run a Flutter app. This can be accomplished by opening a Flutter project, ensuring that you have a device connected, and clicking the Run or Debug toolbar buttons.
+class UserApprovalDetailPage extends StatefulWidget {
+  const UserApprovalDetailPage({Key? key, required this.userApproval})
+      : super(key: key);
+  final UserModel userApproval; // Changed to UserModel
 
-Launch DevTools from the toolbar/menu
-#
-Once an app is running, you can start DevTools using one of the following techniques:
+  @override
+  UserApprovalDetailPageState createState() => UserApprovalDetailPageState();
+}
 
-Select the Open DevTools toolbar action in the Run view.
-Select the Open DevTools toolbar action in the Debug view. (if debugging)
-Select the Open DevTools action from the More Actions menu in the Flutter Inspector view.
-screenshot of Open DevTools button
+class UserApprovalDetailPageState extends State<UserApprovalDetailPage> {
 
-Launch DevTools from an action
-#
-You can also open DevTools from an IntelliJ action. Open the Find Action... dialog (on macOS, press Cmd + Shift + A), and search for the Open DevTools action. When you select that action, the DevTools server launches and a browser instance opens pointing to the DevTools app.
+List<Map<String, String>> _parseMessages(String htmlMessage) {
+  final plainText = extractPlainText(htmlMessage); // Extract plain text from HTML
+  final List<Map<String, String>> accounts = [];
+  final RegExp regex = RegExp(
+    r'Names:\s*(.+?)\s*Email:\s*(.+?)\s*Phone number\s*:\s*(.+?)\s*User role\s*->\s*(.+?)\s*User group\s*->\s*(.+?)\s*Entry access level\s*->\s*(.+?)\s*and Report access level\s*->\s*(.+?)(?=\d|$)', 
+    multiLine: true
+  );
 
-When opened with an IntelliJ action, DevTools is not connected to a Flutter app. You'll need to provide a service protocol port for a currently running app. You can do this using the inline Connect to a running app dialog.EXPLAIN WELL AS IN ANDROID STUDIO STEP BY STEP
-ChatGPT said:
-ChatGPT
-Certainly! Here's a step-by-step guide on how to install the Flutter plugin and use DevTools in Android Studio:
+  final matches = regex.allMatches(plainText);
+  for (final match in matches) {
+    accounts.add({
+      'SN': (accounts.length + 1).toString(), // Serial number based on the length
+      'Names': match.group(1) ?? '',
+      'Email': match.group(2) ?? '',
+      'Phone Number': match.group(3) ?? '',
+      'User Role': match.group(4) ?? '',
+      'User Group': match.group(5) ?? '',
+      'Entry Access Level': match.group(6) ?? '',
+      'Report Access Level': match.group(7) ?? '',
+    });
+  }
 
-1. Install the Flutter Plugin
-Open Android Studio: Launch Android Studio on your computer.
+  return accounts;
+}
 
-Access Plugins:
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: PageContent(
+        userApproval: widget.userApproval,
+        parseMessages: _parseMessages,
+      ),
+    );
+  }
+}
 
-Go to File > Settings (on Windows/Linux) or Android Studio > Preferences (on macOS).
-In the Settings/Preferences dialog, select Plugins from the left-hand sidebar.
-Search for Flutter Plugin:
+class PageContent extends StatefulWidget {
+  const PageContent({Key? key, required this.userApproval, required this.parseMessages}) : super(key: key);
+  final UserModel userApproval;
+  final List<Map<String, String>> Function(String) parseMessages;
 
-In the Plugins page, click on the Marketplace tab.
-In the search bar, type "Flutter" and press Enter.
-Install Flutter Plugin:
+  @override
+  State<PageContent> createState() => _PageContentState();
+}
 
-Locate the Flutter plugin in the search results and click the Install button next to it.
-If prompted, Android Studio will also suggest installing the Dart plugin (which is required for Flutter development). Click Install for the Dart plugin as well.
-Restart Android Studio:
+class _PageContentState extends State<PageContent> {
+  File? file;
+  String? selectedUser;
+  bool isVisible = true;
+  bool isButtonEnabled = false;
+  final TextEditingController _textEditingController = TextEditingController();
 
-After the installation is complete, you will be prompted to restart Android Studio. Click Restart IDE to apply the changes.
-2. Start an App to Debug
-Open Your Flutter Project:
+  @override
+  Widget build(BuildContext context) {
+    final Size size = MediaQuery.of(context).size;
+    return Stack(
+      alignment: AlignmentDirectional.center,
+      children: <Widget>[
+        SizedBox(
+          child: Scaffold(
+            appBar: AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              leading: IconButton(
+                icon: const Icon(
+                  Icons.arrow_back,
+                  color: Colors.black,
+                  size: 25,
+                ),
+                onPressed: () async {
+                  context.go('/home/user_account');
+                },
+              ),
+            ),
+            body: SafeArea(
+              child: Center(
+                child: Container(
+                  height: size.height,
+                  width: size.width * 0.9,
+                  child: ListView(
+                    children: [
+                      Html(
+                        data: widget.userApproval.message!.subject!.split("-").last,
+                        style: {
+                          'body': Style(
+                            color: Colors.black,
+                            fontSize: FontSize(16),
+                            fontWeight: FontWeight.w300,
+                          ),
+                        },
+                      ),
+                      SizedBox(
+                        height: 20,
+                      ),
+                      Html(
+                        data: widget.userApproval.message!.message!,
+                        style: {
+                          'body': Style(
+                            color: Colors.black,
+                            fontSize: FontSize(16),
+                            fontWeight: FontWeight.w300,
+                          ),
+                        },
+                      ),
+                      SizedBox(
+                        height: 20,
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        child: Row(
+                          children: [
+                            AbsorbPointer(
+                              absorbing: false,
+                              child: ElevatedButton(
+                                style: ButtonStyle(
+                                  backgroundColor: MaterialStateProperty.all(
+                                    Color(0xFF235EA0),
+                                  ),
+                                ),
+                                onPressed: () {
+                                  final accounts = widget.parseMessages(widget.userApproval.message!.message!);
+                                  _showApprovalTableDialog(accounts);
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: Text(
+                                    'Accept',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 20,
+                            ),
+                            AbsorbPointer(
+                              absorbing: false,
+                              child: OutlinedButton(
+                                style: ButtonStyle(
+                                  backgroundColor:
+                                  MaterialStateProperty.all(Colors.red),
+                                ),
+                                onPressed: () {
+                                  showDataAlert(context);
+                                },
+                                child: Padding(
+                                  padding: EdgeInsets.all(10.0),
+                                  child: Text(
+                                    'Reject',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 20,
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        height: 30,
+                      )
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
-Open the Flutter project you want to work on in Android Studio.
-Connect a Device:
+  void _loading({bool isAccept = false}) async {
+    EasyLoading.show(
+      status: 'loading...',
+      maskType: EasyLoadingMaskType.black,
+    );
 
-Ensure that a physical device is connected or an emulator is running. You can check this in the Device Selector dropdown in the top-right corner of Android Studio.
-Run or Debug the App:
-
-Click the Run button (a green triangle) or Debug button (a green bug icon) in the toolbar. This will build and launch your app on the connected device or emulator.
-3. Launch DevTools from the Toolbar/Menu
-Open DevTools from the Toolbar:
-
-Once the app is running, you can open DevTools by clicking on the Open DevTools action in the Run or Debug view.
-Alternatively, if you are debugging, you can click the Open DevTools action in the Debug view.
-Open DevTools from the Flutter Inspector:
-
-In Android Studio, open the Flutter Inspector tab (usually located on the right side of the IDE).
-Click the More Actions menu (three vertical dots or a gear icon) in the Flutter Inspector view.
-Select Open DevTools from the dropdown menu.
-4. Launch DevTools from an Action
-Open the Find Action Dialog:
-
-Press Cmd + Shift + A on macOS or Ctrl + Shift + A on Windows/Linux to open the Find Action dialog.
-Search for DevTools Action:
-
-Type "Open DevTools" into the search box and select the Open DevTools action from the list.
-Connect DevTools to Your App:
-
-When opened from the Find Action dialog, DevTools will not be automatically connected to a Flutter app.
-You will need to connect it manually by providing the service protocol port for the currently running app. This will typically prompt you with an inline dialog to Connect to a running app.
-Provide Service Protocol Port:
-
-Enter the service protocol port that corresponds to your running app. This port is often shown in the terminal output when you run or debug your app.
-*/
-
-Future<void> approvalUserRequest(UserModel userApproval, {String? message}) async {
-    _isLoading = true;
-    var id = userApproval.id!.substring(0, 15);
-
-    print(id);
     try {
-      final res = await d2repository.httpClient.get(
-          'messageConversations?messageType=TICKET&filter=subject:ilike:$id');
+      await context.read<MessageModel>().approvalUserRequest(
+        widget.userApproval,
+        message: isAccept ? null : _textEditingController.text.trim(),
+      );
 
-      String convId;
-      if (res.body['messageConversations'] != null && res.body['messageConversations'].isNotEmpty) {
-        // A conversation exists, get its ID
-        convId = res.body['messageConversations'][0]['id'].toString();
-      } else {
-        // No conversation found, create a new one
-        print("No message conversation found for id: $id. Creating a new conversation.");
+      bool loading = context.read<MessageModel>().isLoading;
 
-        final createRes = await d2repository.httpClient.post(
-          'messageConversations',
-          {
-            "subject": "New Conversation for User ID $id",
-            "users": [userApproval.id],  // Assuming you need to add users to the conversation
-            "messageType": "TICKET",
-            "messages": [
-              {
-                "text": "Initial message for new conversation.",
-                "sender": userApproval.id // The sender ID
-              }
-            ]
-          },
-        );
-
-        // Extract the ID of the newly created conversation
-        convId = createRes.body['id'].toString();
+      if (!loading) {
+        EasyLoading.showSuccess('Success!');
+        context.pushReplacement('/home/user_account');
       }
-
-      // Now proceed with the logic using the convId
-      if (message == null) {
-        print('This is inside if statement');
-        await Future.wait([
-          d2repository.httpClient.post(userApproval.url!, userApproval.payload!),
-          d2repository.httpClient.delete('dataStore/dhis2-user-support', userApproval.id.toString()),
-          d2repository.httpClient.post('messageConversations/$convId', 'Ombi lako limeshughulikiwa karibu!'),
-          d2repository.httpClient.post('messageConversations/$convId/status?messageConversationStatus=SOLVED', ''),
-        ]).whenComplete(() => _isLoading = false);
-      } else {
-        await Future.wait([
-          d2repository.httpClient.delete('dataStore/dhis2-user-support', userApproval.id.toString()),
-          d2repository.httpClient.post('messageConversations/$convId', message),
-          d2repository.httpClient.post('messageConversations/$convId/status?messageConversationStatus=SOLVED', ''),
-        ]).whenComplete(() => _isLoading = false);
-      }
-    } catch (e, stackTrace) {
-      // Handle any other errors, including network issues or JSON parsing errors
-      print("An error occurred: $e");
-      print("Stack trace: $stackTrace");
-      _isLoading = false;
-    }
-
-    notifyListeners();
-  }
-Future<void> get fetchUserApproval async {
-  log('this is initially called');
-
-  List<UserModel> userApprovalList = [];
-  var res2;
-
-  final res = await d2repository.httpClient.get('dataStore/dhis2-user-support');
-  var list = res.body;
-
-  for (var i = 1; i < list.length; i++) {
-    if (list[i].toString().startsWith("UA")) {
-      print('dataStore/dhis2-user-support/${list[i]}');
-      res2 = await d2repository.httpClient.get('dataStore/dhis2-user-support/${list[i].toString()}');
-
-      var jsonResponse = res2.body;
-
-      if (jsonResponse is List) {
-        userApprovalList.addAll(
-          jsonResponse
-              .where((item) => item != null)
-              .map((item) {
-            if (item is Map<String, dynamic>) {
-              return UserModel.fromMap(item);
-            } else {
-              throw Exception("Unexpected item type: ${item.runtimeType}");
-            }
-          })
-          .where((userModel) => (userModel.message?.message != null &&
-                                 userModel.message?.message != 'No Subject' &&
-                                 userModel.message?.subject?.split("-").last != 'No Display'))
-          .toList(),
-        );
-      } else if (jsonResponse is Map<String, dynamic>) {
-        UserModel userModel = UserModel.fromMap(jsonResponse);
-        if (userModel.message?.message != null &&
-            userModel.message?.message != 'No Subject' && 
-            userModel.message?.subject?.split("-").last != 'No Display') {
-          userApprovalList.add(userModel);
-        }
-      } else {
-        throw Exception("Unexpected response type: ${jsonResponse.runtimeType}");
-      }
+    } catch (e) {
+      EasyLoading.showError('Error: ${e.toString()}');
+      context.pushReplacement('/home/user_account');
+    } finally {
+      EasyLoading.dismiss();
     }
   }
 
-  _userApproval = userApprovalList;
-  notifyListeners();
+  void _showApprovalTableDialog(List<Map<String, String>> accounts) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text('Review User Details'),
+        content: SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.6, // Adjust height as needed
+              maxWidth: MediaQuery.of(context).size.width * 0.9,   // Adjust width as needed
+            ),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                columnSpacing: 12,
+                columns: const [
+                  DataColumn(label: Text('SN')),
+                  DataColumn(label: Text('Names')),
+                  DataColumn(label: Text('Email')),
+                  DataColumn(label: Text('Phone Number')),
+                  DataColumn(label: Text('User Role')),
+                  DataColumn(label: Text('User Group')),
+                  DataColumn(label: Text('Entry Access Level')),
+                  DataColumn(label: Text('Report Access Level')),
+                  DataColumn(label: Text('Action')),
+                ],
+                rows: accounts.map((account) {
+                  return DataRow(cells: [
+                    DataCell(Text(account['SN']!)),
+                    DataCell(
+                      Container(
+                        width: 150, // Set width to your fixed length
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.vertical,
+                          child: Text(account['Names']!),
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Container(
+                        width: 150, // Set width to your fixed length
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.vertical,
+                          child: Text(account['Email']!),
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Container(
+                        width: 150, // Set width to your fixed length
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.vertical,
+                          child: Text(account['Phone Number']!),
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Container(
+                        width: 150, // Set width to your fixed length
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.vertical,
+                          child: Text(account['User Role']!),
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Container(
+                        width: 150, // Set width to your fixed length
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.vertical,
+                          child: Text(account['User Group']!),
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Container(
+                        width: 150, // Set width to your fixed length
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.vertical,
+                          child: Text(account['Entry Access Level']!),
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Container(
+                        width: 150, // Set width to your fixed length
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.vertical,
+                          child: Text(account['Report Access Level']!),
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      ElevatedButton(
+                        onPressed: () {
+                          
+                        },
+                        child: Text('Select'),
+                      ),
+                    ),
+                  ]);
+                }).toList(),
+              ),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(), // Close the dialog
+            child: Text('Cancel'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+  void showDataAlert(BuildContext context, {bool isAccept = false}) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(
+              Radius.circular(20.0),
+            ),
+          ),
+          contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 2),
+          content: Container(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  if (!isAccept)
+                    Container(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextField(
+                        controller: _textEditingController,
+                        minLines: 3,
+                        maxLines: 5,
+                        decoration: InputDecoration(
+                          labelText: 'Provide a reason for rejection',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      isAccept
+                          ? 'Are you sure you want to accept the request?'
+                          : 'Are you sure you want to reject the request?',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            TextButton(
+              child: Text(isAccept ? 'Accept' : 'Reject'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+                _loading(isAccept: isAccept);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+String extractPlainText(String htmlContent) {
+  final document = html_parser.parse(htmlContent);
+  return document.body?.text ?? '';
 }

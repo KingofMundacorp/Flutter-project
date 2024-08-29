@@ -118,7 +118,7 @@ final GoRouter router = GoRouter(
                 GoRoute(
                     path: 'user_account_details',
                     builder: (context, state) {
-                      final userApproval = state.extra as ApproveModel;
+                      final userApproval = state.extra as UserModel;
                       return UserApprovalDetailPage(
                         userApproval: userApproval,
                       );

@@ -59,6 +59,7 @@ class _DatasetScreenState extends State<DatasetScreen> {
                             final messageData = value.dataApproval[index];
                             return MessageBox(
                                 dataApproval: messageData,
+                                isDataApproval: true,
                                 lastMessage: DateTime.now().toString(),
                                 subject: messageData.message!.message!,
                                 displayName: messageData.message!.subject!

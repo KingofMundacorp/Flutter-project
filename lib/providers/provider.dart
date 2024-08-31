@@ -28,8 +28,12 @@ class MessageModel with ChangeNotifier {
   late MessageConversation _reply;
   Map<String, dynamic> _map = {};
   bool _error = false;
-  final String _errorMessage = '';
+  String _errorMessage = '';
   bool _isLoading = false;
+  bool _isConfirmed = false;
+  bool _isDuplicate = false;
+
+
 
   Map<String, dynamic> get map => _map;
   bool get error => _error;
@@ -46,7 +50,12 @@ class MessageModel with ChangeNotifier {
   List<MessageConversation> get validationMessage => _validationMessages;
   MessageConversation get userReply => _reply;
   MessageConversation get fetchedThread => _fetchedThread;
-
+  bool get isConfirmed => _isConfirmed;
+  set isConfirmed(bool value) {
+    _isConfirmed = value;
+    notifyListeners();
+  }
+  bool get isDuplicate => _isDuplicate;
   // new codes
 
   Future<void> get fetchDataApproval async {
@@ -258,6 +267,94 @@ class MessageModel with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> confirmUser(Map<String, dynamic> selectedAccount) async {
+    final username = selectedAccount['Proposed Username'];
+
+    if (username == null || username.isEmpty) {
+      _error = true;
+      _errorMessage = 'Username is invalid.';
+      notifyListeners();
+      return;
+    }
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final response = await http.post(
+        Uri.parse('http://41.59.227.69/tland-upgrade/dhis-web-datastore/index.html#/edit/dhis2-user-support/$userApproval.id'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'username': username}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        bool isDuplicate = data['exists'];
+
+        if (isDuplicate) {
+          _error = true;
+          _errorMessage = 'Username is a duplicate.';
+        } else {
+          _error = false;
+          _errorMessage = '';
+          // Handle the case where username is not a duplicate
+        }
+      } else {
+        _error = true;
+        _errorMessage = 'Failed to check username.';
+      }
+    } catch (e) {
+      _error = true;
+      _errorMessage = 'An error occurred: $e';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> checkDuplicate(Map<String, dynamic> selectedAccount) async {
+    final username = selectedAccount['Proposed Username'];
+
+    if (username == null || username.isEmpty) {
+      _error = true;
+      _errorMessage = 'Username is invalid.';
+      notifyListeners();
+      return;
+    }
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final response = await http.post(
+        Uri.parse('http://41.59.227.69/tland-upgrade/dhis-web-datastore/index.html#/edit/dhis2-user-support/$userApproval.id'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'username': username}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        bool isDuplicate = data['exists']; // Assumes the API returns a field 'exists'
+
+        if (isDuplicate) {
+          _error = true;
+          _errorMessage = 'Username already exists.';
+        } else {
+          _error = false;
+          _errorMessage = 'Username is available.';
+        }
+      } else {
+        _error = true;
+        _errorMessage = 'Failed to check username.';
+      }
+    } catch (e) {
+      _error = true;
+      _errorMessage = 'An error occurred: $e';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 
 
 
@@ -280,8 +377,8 @@ class MessageModel with ChangeNotifier {
       _isLoading = false;
     } else {
       _isLoading = false;
-    }*/
-    notifyListeners();
+    }*//*
+    notifyListeners();*/
   }
 
   Future<void> addFeedbackMessage(String subject, String text) async {
@@ -299,13 +396,13 @@ class MessageModel with ChangeNotifier {
       print('is Successfully');
     } else {
       _isLoading = false;
-    }*/
-    notifyListeners();
+    }*//*
+    notifyListeners();*/
   }
 
   //post message read
   Future<void> messageRead(String id) async {
-    /*final response = await http.post(
+   /* *//*final response = await http.post(
       Uri.parse('$baseUrl/messageConversations/read'),
       headers: {
         'Content-Type': 'application/json;charset=UTF-8',
@@ -316,8 +413,8 @@ class MessageModel with ChangeNotifier {
     print(response.body);
     if (response.statusCode == 200) {
       print('is Successfully');
-    }*/
-    notifyListeners();
+    }*//*
+    notifyListeners();*/
   }
 
   //post message unread
@@ -329,11 +426,11 @@ class MessageModel with ChangeNotifier {
         'Accept': 'application/json',
       },
       body: jsonEncode([id]),
-    );*/
+    );*//*
     // print(response.body);
     // if (response.statusCode == 200) {
     // }
-    notifyListeners();
+    notifyListeners();*/
   }
 
   //delete message conversation
@@ -352,8 +449,8 @@ class MessageModel with ChangeNotifier {
     if (response.statusCode == 200) {
       print('is Successfully');
       _privateMessages.removeWhere((messages) => messages.id == messageId);
-    }*/
-    notifyListeners();
+    }*//*
+    notifyListeners();*/
   }
 
   //add new message conversation
@@ -393,8 +490,8 @@ class MessageModel with ChangeNotifier {
       _isLoading = false;
     } else {
       _isLoading = false;
-    }*/
-    notifyListeners();
+    }*//*
+    notifyListeners();*/
   }
 
   Future<void> get fetchSystemMessage async {
@@ -417,8 +514,8 @@ class MessageModel with ChangeNotifier {
       _error = false;
     } else {
       throw Exception("Failed to Load Data");
-    }*/
-    notifyListeners();
+    }*//*
+    notifyListeners();*/
   }
 
   //fetch private message conversation
@@ -446,9 +543,9 @@ class MessageModel with ChangeNotifier {
       }
     } catch (e) {
       print('What error is $e');
-    }*/
+    }*//*
 
-    notifyListeners();
+    notifyListeners();*/
   }
 
   Future<void> get fetchTicketMessages async {
@@ -476,9 +573,9 @@ class MessageModel with ChangeNotifier {
       }
     } catch (e) {
       print("error $e catched");
-    }*/
+    }*//*
 
-    notifyListeners();
+    notifyListeners();*/
   }
 
   // fetch validation message
@@ -508,9 +605,9 @@ class MessageModel with ChangeNotifier {
       }
     } catch (e) {
       print("error $e catched");
-    }*/
+    }*//*
 
-    notifyListeners();
+    notifyListeners();*/
   }
 
   //fetch message conversation by id
@@ -529,10 +626,14 @@ class MessageModel with ChangeNotifier {
       final Map<String, dynamic> body =
           json.decode(response.body) as Map<String, dynamic>;
       _fetchedThread = MessageConversation.fromJson(body);
-    }*/
+    }*//*
     notifyListeners();
-    //delete message conversation
+    //delete message conversation*/
   }
+
+
+
+
 
   void initialValue() {
     // _allMessageConversation = [];

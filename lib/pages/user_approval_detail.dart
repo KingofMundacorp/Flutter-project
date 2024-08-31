@@ -1,39 +1,70 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'user_approval_screen.dart';
-
 import '../models/approve_model.dart';
 import '../providers/provider.dart';
 import 'package:flutter_html/flutter_html.dart';
-
+import 'package:html/parser.dart' as html_parser;
 
 class UserApprovalDetailPage extends StatefulWidget {
   const UserApprovalDetailPage({Key? key, required this.userApproval})
       : super(key: key);
-  final UserModel? userApproval;
+  final UserModel userApproval;
 
   @override
   UserApprovalDetailPageState createState() => UserApprovalDetailPageState();
 }
 
 class UserApprovalDetailPageState extends State<UserApprovalDetailPage> {
+  String extractPlainText(String htmlContent) {
+    final document = html_parser.parse(htmlContent);
+    return document.body?.text ?? '';
+  }
+
+  List<Map<String, String>> _parseMessages(String htmlMessage) {
+    final plainText = extractPlainText(htmlMessage);
+    final List<Map<String, String>> accounts = [];
+    final RegExp regex = RegExp(
+        r'Names:\s*(.+?)\s*Email:\s*(.+?)\s*Phone number\s*:\s*(.+?)\s*User role\s*->\s*(.+?)\s*User group\s*->\s*(.+?)\s*Entry access level\s*->\s*(.+?)\s*and Report access level\s*->\s*(.+?)(?=\d|$)',
+        multiLine: true);
+
+    final matches = regex.allMatches(plainText);
+    for (final match in matches) {
+      accounts.add({
+        'SN': (accounts.length + 1).toString(),
+        'Names': match.group(1) ?? '',
+        'Email': match.group(2) ?? '',
+        'Phone Number': match.group(3) ?? '',
+        'User Role': match.group(4) ?? '',
+        'User Group': match.group(5) ?? '',
+        'Entry Access Level': match.group(6) ?? '',
+        'Report Access Level': match.group(7) ?? '',
+      });
+    }
+
+    return accounts;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: PageContent(
-        userApproval: widget.userApproval!,
+        userApproval: widget.userApproval,
+        parseMessages: _parseMessages,
       ),
     );
   }
 }
 
 class PageContent extends StatefulWidget {
-  const PageContent({Key? key, required this.userApproval}) : super(key: key);
+  const PageContent(
+      {Key? key, required this.userApproval, required this.parseMessages})
+      : super(key: key);
   final UserModel userApproval;
+  final List<Map<String, String>> Function(String) parseMessages;
 
   @override
   State<PageContent> createState() => _PageContentState();
@@ -45,7 +76,9 @@ class _PageContentState extends State<PageContent> {
   bool isVisible = true;
   bool isButtonEnabled = false;
   final TextEditingController _textEditingController = TextEditingController();
-
+  bool _isDropdownShown = false; // Tracks whether the dropdown is shown
+  Map<String, dynamic> _selectedAccount = {}; // Holds the selected account details
+  Color _selectButtonColor = Color(0xFF235EA0); // Initial color of the select button
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +99,6 @@ class _PageContentState extends State<PageContent> {
                 ),
                 onPressed: () async {
                   context.go('/home/user_account');
-                  //  await context.read<MessageModel>().fetchUserApproval;
                 },
               ),
             ),
@@ -78,7 +110,9 @@ class _PageContentState extends State<PageContent> {
                   child: ListView(
                     children: [
                       Html(
-                        data: widget.userApproval.message!.subject!.split("-").last,
+                        data: widget.userApproval.message!.subject!
+                            .split("-")
+                            .last,
                         style: {
                           'body': Style(
                             color: Colors.black,
@@ -108,17 +142,17 @@ class _PageContentState extends State<PageContent> {
                         child: Row(
                           children: [
                             AbsorbPointer(
-                              absorbing: false,
+                              absorbing: _isDropdownShown, // Disable button if dropdown is shown
                               child: ElevatedButton(
                                 style: ButtonStyle(
                                   backgroundColor: MaterialStateProperty.all(
-                                    Color(0xFF235EA0),
+                                    _selectButtonColor,
                                   ),
                                 ),
                                 onPressed: () {
-                                  showDataAlert(context, isAccept: true);
-                                  // Start loading action
-                                 //_loading();
+                                  final accounts = widget.parseMessages(
+                                      widget.userApproval.message!.message!);
+                                  _showApprovalTableDialog(accounts);
                                 },
                                 child: Padding(
                                   padding: const EdgeInsets.all(10.0),
@@ -136,8 +170,8 @@ class _PageContentState extends State<PageContent> {
                               absorbing: false,
                               child: OutlinedButton(
                                 style: ButtonStyle(
-                                  backgroundColor:
-                                  MaterialStateProperty.all(Colors.red),
+                                  backgroundColor: MaterialStateProperty.all(
+                                      Colors.red),
                                 ),
                                 onPressed: () {
                                   showDataAlert(context);
@@ -169,51 +203,29 @@ class _PageContentState extends State<PageContent> {
             ),
           ),
         ),
-        // if (isLoading)
-        //   SizedBox(
-        //     width: size.width,
-        //     height: size.height,
-        //     child: AbsorbPointer(
-        //       absorbing: isLoading,
-        //       child: Container(
-        //         color: Colors.white.withOpacity(0.2),
-        //         child: Center(
-        //             child: CircularProgressIndicator(
-        //           strokeWidth: 10,
-        //         )),
-        //       ),
-        //     ),
-        //   )
-        // else
-        //   Container(),
       ],
     );
   }
 
   void _loading({bool isAccept = false}) async {
-    // Show loading indicator
     EasyLoading.show(
       status: 'loading...',
       maskType: EasyLoadingMaskType.black,
     );
 
     try {
-      // Call approvalUserRequest and handle response
       await context.read<MessageModel>().approvalUserRequest(
         widget.userApproval,
         message: isAccept ? null : _textEditingController.text.trim(),
       );
 
-      // After processing, check if still loading
       bool loading = context.read<MessageModel>().isLoading;
 
       if (!loading) {
-        // Show success message and navigate to the user account page
         EasyLoading.showSuccess('Success!');
         context.pushReplacement('/home/user_account');
       }
     } catch (e) {
-      // Handle errors and show an appropriate message
       EasyLoading.showError('Error: ${e.toString()}');
       context.pushReplacement('/home/user_account');
     } finally {
@@ -221,93 +233,294 @@ class _PageContentState extends State<PageContent> {
     }
   }
 
-// .
-
-  showDataAlert(BuildContext context, {bool isAccept = false}) {
+  void _showApprovalTableDialog(List<Map<String, String>> accounts) {
     showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(
-                Radius.circular(
-                  20.0,
-                ),
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Review User Details'),
+          content: SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight:
+                MediaQuery.of(context).size.height * 0.6, // Adjust height as needed
+                maxWidth:
+                MediaQuery.of(context).size.width * 0.9, // Adjust width as needed
               ),
-            ),
-            contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 2),
-            content: Container(
-              // height: 300,
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    if (!isAccept)
-                      Container(
-                        padding: const EdgeInsets.all(8.0),
-                        child: TextField(
-                          controller: _textEditingController,
-                          minLines: 3,
-                          maxLines: 8,
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(),
-                            hintText: 'Reasons',
+                scrollDirection: Axis.horizontal,
+                child: DataTable(
+                  columnSpacing: 12,
+                  columns: const [
+                    DataColumn(label: Text('SN')),
+                    DataColumn(label: Text('Names')),
+                    DataColumn(label: Text('Email')),
+                    DataColumn(label: Text('Phone Number')),
+                    DataColumn(label: Text('User Role')),
+                    DataColumn(label: Text('User Group')),
+                    DataColumn(label: Text('Entry Access Level')),
+                    DataColumn(label: Text('Report Access Level')),
+                    DataColumn(label: Text('Action')),
+                  ],
+                  rows: accounts.map((account) {
+                    return DataRow(cells: [
+                      DataCell(Text(account['SN']!)),
+                      DataCell(
+                        Container(
+                          width: 150,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: Text(account['Names']!),
                           ),
                         ),
                       ),
-                    if (isAccept)
-                      Container(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          'You are about to accept.',
+                      DataCell(
+                        Container(
+                          width: 150,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: Text(account['Email']!),
+                          ),
                         ),
                       ),
-                    Container(
-                      width: double.infinity,
-                      height: 60,
-                      padding: const EdgeInsets.all(8.0),
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          // Start loading action
-                          //_loading();
-                          if (isAccept) {
-                            context
-                                .read<MessageModel>()
-                                .approvalUserRequest(widget.userApproval);
-                            // Navigator.of(context).pop();
-                          } else {
-                            // context.read<MessageModel>().approvalUserRequest(
-                            //     widget.userApproval,
-                            //     message: _textEditingController.text.trim());
-                            // context.read<MessageModel>().approvalUserRequest(
-                            //     widget.userApproval,
-                            //     message: _textEditingController.text.trim());
-                            _loading();
-                          }
-                          await context.read<MessageModel>().fetchUserApproval;
-                          //Navigator.of(context).pop();
-                          // Future.delayed(const Duration(milliseconds: 500), () {
-                          //   Navigator.pushNamed(
-                          //       context, UserApprovalScreen.routeName);
-                          // });
+                      DataCell(
+                        Container(
+                          width: 150,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: Text(account['Phone Number']!),
+                          ),
+                        ),
+                      ),
+                      DataCell(
+                        Container(
+                          width: 150,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: Text(account['User Role']!),
+                          ),
+                        ),
+                      ),
+                      DataCell(
+                        Container(
+                          width: 150,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: Text(account['User Group']!),
+                          ),
+                        ),
+                      ),
+                      DataCell(
+                        Container(
+                          width: 150,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: Text(account['Entry Access Level']!),
+                          ),
+                        ),
+                      ),
+                      DataCell(
+                        Container(
+                          width: 150,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: Text(account['Report Access Level']!),
+                          ),
+                        ),
+                      ),
+                      DataCell(
+                        ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              _isDropdownShown = true;
+                              selectedUser = account['Email']!;
+                              _selectedAccount = account;
+                              _selectButtonColor = Colors.grey;
+                            });
+                            Navigator.of(context).pop();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                          ),
+                          child: Text(
+                            'Select',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ]);
+                  }).toList(),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    ).then((value) {
+      // This ensures that the selected user is displayed and the button's color is updated
+      setState(() {
+        if (_selectedAccount.isNotEmpty) {
+          _proposeUsername(_selectedAccount['Email']!);
+        }
+      });
+    });
+  }
+
+  void _proposeUsername(String email) {
+    final usernameSuggestion = email.split('@')[0];
+
+    setState(() {
+      _textEditingController.text = usernameSuggestion;
+      isButtonEnabled = false;
+    });
+
+    _showUserApprovalBottomSheet(usernameSuggestion);
+  }
+
+  void _showUserApprovalBottomSheet(String usernameSuggestion) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  SizedBox(height: 16.0),
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: isButtonEnabled,
+                        onChanged: (bool? newValue) {
+                          setState(() {
+                            isButtonEnabled = newValue ?? false;
+                          });
                         },
-                        style: ElevatedButton.styleFrom(
-                          // primary: Colors.black,
-                          // fixedSize: Size(250, 50),
+                      ),
+                      Expanded(
+                        child: TextField(
+                          controller: _textEditingController,
+                          decoration: InputDecoration(
+                            hintText: 'Enter username',
+                          ),
+                          onChanged: (String text) {
+                            setState(() {
+                              isButtonEnabled = false; // Disable Confirm button initially
+                            });
+                          },
                         ),
-                        child: Text(
-                          "Confirm",
-                        ),
+                      ),
+                      SizedBox(
+                        width: 8,
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          // Handle username duplication check
+                          if (_textEditingController.text.isNotEmpty) {
+                            setState(() {
+                              isButtonEnabled = true; // Enable Confirm button after duplication check
+                            });
+                          }
+                        },
+                        child: Text('Check Duplicate'),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 16.0),
+                  ElevatedButton(
+                    onPressed: isButtonEnabled
+                        ? () {
+                      Navigator.of(context).pop();
+                      _loading(isAccept: true);
+                    }
+                        : null, // Button is disabled if not confirmed
+                    child: Text('Confirm'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                    ),
+                    child: Text('Reject'),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> showDataAlert(BuildContext context) async {
+    TextEditingController reasonController = TextEditingController();
+    bool isReasonEntered = false;
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return AlertDialog(
+              title: Text('Please enter a reason'),
+              content: SingleChildScrollView(
+                child: ListBody(
+                  children: <Widget>[
+                    TextField(
+                      controller: reasonController,
+                      maxLines: 3,
+                      onChanged: (value) {
+                        setState(() {
+                          isReasonEntered = value.trim().isNotEmpty;
+                        });
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'Enter the reason for rejection',
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
-          );
-        });
+              actions: <Widget>[
+                TextButton(
+                  child: Text('Cancel'),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the dialog without rejecting
+                  },
+                ),
+                TextButton(
+                  onPressed: isReasonEntered
+                      ? () {
+                    Navigator.of(context).pop(); // Close the dialog and proceed with rejection
+                    setState(() {
+                      _textEditingController.text =
+                          reasonController.text; // Set rejection reason
+                    });
+                    _loading(isAccept: false); // Pass the reason to the loading function
+                  }
+                      : null, // Disable the button if no reason is entered
+                  child: Text('Reject'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // Function to extract plain text from HTML content
+  String extractPlainText(String htmlContent) {
+    final document = html_parser.parse(htmlContent);
+    return document.body?.text ?? '';
   }
 }

@@ -8,6 +8,8 @@ import 'package:user_support_mobile/providers/provider.dart';
 import 'package:html/parser.dart' as html_parser;
 
 class UserApprovalScreen extends StatefulWidget {
+
+
   const UserApprovalScreen({Key? key}) : super(key: key);
 
   @override

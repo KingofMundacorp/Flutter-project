@@ -268,7 +268,7 @@ class UserModel {
 
   String? id;
   UserModel3? user;
-  dynamic payload;
+  List<PayloadUser>? payload;
   String? ticketNumber;
   String? type;
   String? status;
@@ -291,7 +291,7 @@ class UserModel {
     status: json["status"] == null ? null : json["status"],
     user: json["user"] == null ? null : UserModel3.fromMap(json["user"]),
     method: json["method"] == null ? null : json["method"],
-    payload: json["payload"] == null ? null : _parsePayload(json["payload"]),
+    payload: json["payload"] == null ? null : List<PayloadUser>.from(json["payload"].map((x) => PayloadUser.fromMap(x))),
     url: json["url"] == null ? null : json["url"],
     timeSinceResponseSent: json["timeSinceResponseSent"] == null
         ? null
@@ -313,15 +313,7 @@ class UserModel {
     messageBody: json["messageBody"] == null ? null : MessageBody.fromMap(json["messageBody"]),
   );
 
-   static dynamic _parsePayload(dynamic payload){
-    if (payload is List) {
-      return List<PayloadUser>.from(payload.map((x)=> PayloadUser.fromMap(x as Map<String, dynamic>)));
-    }else if (payload is Map) {
-      return PayloadUser.fromMap(payload as Map<String, dynamic>);
-    } else {
-      return null;
-    }
-  }
+
 
   Map<String, dynamic> toMap() => {
     "id": id == null ? null : id,
@@ -336,7 +328,7 @@ class UserModel {
     timeSinceResponseSent == null ? null : timeSinceResponseSent,
     "message": message == null ? null : message!.toMap(),
     "user": user == null ? null : user!.toMap(),
-    "payload": payload == null ? null : _serializablePayload(payload),
+    "payload": payload == null ? null : List<dynamic>.from(payload!.map((x) => x.toMap())),
     "messageConversation":
     messageConversation == null ? null : messageConversation!.toMap(),
     "privateMessage":
@@ -347,15 +339,7 @@ class UserModel {
     "messageBody": messageBody == null ? null : messageBody!.toMap(),
   };
 
-  static dynamic _serializablePayload(dynamic payload){
-    if(payload is List<PayloadUser>) {
-      return List<dynamic>.from(payload.map((x)=> x.toMap()));
-    } else if (payload is PayloadUser){
-      return payload.toMap();
-    } else {
-      return null;
-    }
-  }
+
 }
 
 class PrivateMessage {
@@ -1022,7 +1006,7 @@ class KeyedAuthority {
 }
 
 class PayloadUser {
-  final List<Userpayload>? payload;
+  List<Userpayload>? payload;
 
   PayloadUser({this.payload});
 
@@ -1036,7 +1020,9 @@ class PayloadUser {
 
   Map<String, dynamic> toMap() {
     return {
-      if (payload != null) "users": List<dynamic>.from(payload!.map((user) => user.toMap())),
+      "payload": payload == null
+          ? null
+          : List<dynamic>.from(payload!.map((x) => x.toMap())),
     };
   }
 }

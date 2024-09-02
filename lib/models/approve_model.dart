@@ -803,7 +803,8 @@ class UserCredentials {
     this.sharing,
     this.twoFA,
     this.userRoles,
-    this.username
+    this.username,
+    this.password,
   });
 
   bool? disabled;
@@ -813,6 +814,7 @@ class UserCredentials {
   bool? invitation;
   String? username;
   String? id;
+  String? password;
   String? lastLogin;
   String? passwordLastUpdated;
   List<String>? previousPasswords;
@@ -827,6 +829,7 @@ class UserCredentials {
         id: json["id"] == null ? null : json["id"],
         lastLogin: json["lastLogin"] == null ? null : json["lastLogin"],
         username: json["username"] == null ? null : json["username"],
+        password: json["password"] == null ? null : json["password"],
         selfRegistered: json["id"] == null ? null : json["selfRegistered"],
         externalAuth: json["externalAuth"] == null ? null : json["externalAuth"],
         disabled: json["disabled"] == null ? null : json["disabled"],
@@ -849,6 +852,7 @@ class UserCredentials {
       {
         "id": id == null ? null : id,
         "username": username == null ? null : username,
+        "password": password == null ? null : password,
         "lastLogin": lastLogin == null ? null : lastLogin,
         "invitation": invitation == null ? null : invitation,
         "twoFA": twoFA == null ? null : twoFA,
@@ -1038,6 +1042,8 @@ class Userpayload {
   final String? name;
   final String? firstName;
   final List<UserGroup>? userGroups;
+  final String? email;
+  String? password;
 
   Userpayload({
     this.attributeValues,
@@ -1050,6 +1056,8 @@ class Userpayload {
     this.operations,
     this.firstName,
     this.name,
+    this.email,
+    this.password,
   });
 
   factory Userpayload.fromMap(Map<String, dynamic> json) {
@@ -1063,7 +1071,9 @@ class Userpayload {
       phoneNumber: json["phoneNumber"] as String?,
       referenceId: json["referenceId"] as String?,
       surname: json["surname"] as String?,
+      email: json["email"] as String?,
       name: json["name"] as String?,
+      password: json["password"] as String?,
       firstName: json["firstName"] as String?,
       userCredentials: json["userCredentials"] != null
           ? UserCredentials.fromMap(json["userCredentials"])
@@ -1086,6 +1096,8 @@ class Userpayload {
       if (surname != null) "surname": surname!,
       if (firstName != null) "firstName": firstName!,
       if (name != null) "name": name!,
+      if (password != null) "password": password!,
+      if (email != null) "email": email!,
       if (userCredentials != null) "userCredentials": userCredentials!.toMap(),
       if (userGroups != null) "userGroups": List<dynamic>.from(userGroups!.map((x) => x.toMap())),
       if (operations != null) "operations": operations!.map((operation) => operation.toMap()).toList(),

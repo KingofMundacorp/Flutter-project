@@ -314,10 +314,16 @@ class MessageModel with ChangeNotifier {
 
   Future<void> checkDuplicate(UserModel userApproval, Map<String, dynamic> selectedAccount) async {
     final username = selectedAccount['Proposed Username'];
+    final email = selectedAccount['Email'];
+    final phoneNumber = selectedAccount['Phone Number'];
     var id = userApproval.id!.substring(0, 15);
-    if (username == null || username.isEmpty) {
+
+    // Basic validation
+    if ((username == null || username.isEmpty) &&
+        (email == null || email.isEmpty) &&
+        (phoneNumber == null || phoneNumber.isEmpty)) {
       _error = true;
-      _errorMessage = 'Username is invalid.';
+      _errorMessage = 'Username, email, or phone number is invalid.';
       notifyListeners();
       return;
     }
@@ -328,24 +334,37 @@ class MessageModel with ChangeNotifier {
     try {
       final response = await http.post(
         Uri.parse('http://41.59.227.69/tland-upgrade/dhis-web-datastore/index.html#/edit/dhis2-user-support/$id'),
+        //http://41.59.227.69/tland-upgrade/api/users?filter=userCredentials
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'username': username}),
+        body: jsonEncode({
+          'username': username,
+          'email': email,
+          'phoneNumber': phoneNumber,
+        }),
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        bool isDuplicate = data['exists']; // Assumes the API returns a field 'exists'
 
-        if (isDuplicate) {
+        // Assumes the API returns boolean fields 'usernameExists', 'emailExists', 'phoneNumberExists'
+        bool usernameExists = data['usernameExists'];
+        bool emailExists = data['emailExists'];
+        bool phoneNumberExists = data['phoneNumberExists'];
+
+        if (usernameExists || emailExists || phoneNumberExists) {
           _error = true;
-          _errorMessage = 'Username already exists.';
+          _errorMessage = 'Duplicate found: ';
+          if (usernameExists) _errorMessage += 'Username ';
+          if (emailExists) _errorMessage += 'Email ';
+          if (phoneNumberExists) _errorMessage += 'Phone Number ';
+          _errorMessage += 'already exists.';
         } else {
           _error = false;
-          _errorMessage = 'Username is available.';
+          _errorMessage = 'Username, email, and phone number are available.';
         }
       } else {
         _error = true;
-        _errorMessage = 'Failed to check username.';
+        _errorMessage = 'Failed to check for duplicates.';
       }
     } catch (e) {
       _error = true;

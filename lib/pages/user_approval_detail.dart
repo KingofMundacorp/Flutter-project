@@ -79,6 +79,8 @@ class _PageContentState extends State<PageContent> {
   bool _isDropdownShown = false; // Tracks whether the dropdown is shown
   Map<String, dynamic> _selectedAccount = {}; // Holds the selected account details
   Color _selectButtonColor = Color(0xFF235EA0); // Initial color of the select button
+  Map<String, bool> _rejectedAccounts = {};
+  Map<String, bool> _confirmedAccounts = {};
 
   @override
   Widget build(BuildContext context) {
@@ -264,7 +266,18 @@ class _PageContentState extends State<PageContent> {
                     DataColumn(label: Text('Action')),
                   ],
                   rows: accounts.map((account) {
-                    return DataRow(cells: [
+                    bool isRejected = _rejectedAccounts[account['id']] == true;
+                    bool isConfirmed = _confirmedAccounts[account['id']] == true;
+
+                    return DataRow(
+                        color: WidgetStateProperty.resolveWith<Color?>(
+                              (Set<WidgetState> states) {
+                            if (isRejected) return Colors.red.withOpacity(0.2); // Change to red if rejected
+                            if (isConfirmed) return Colors.green.withOpacity(0.2); // Change to green if confirmed
+                            return null; // Default color
+                          },
+                        ),
+                      cells: [
                       DataCell(Text(account['SN']!)),
                       DataCell(
                         Container(
@@ -436,15 +449,14 @@ class _PageContentState extends State<PageContent> {
                   ElevatedButton(
                     onPressed: isButtonEnabled
                         ? () {
-                      Navigator.of(context).pop();
-                      _loading(isAccept: true);
+                      showConfirmApprovalAlert(context);
                     }
                         : null, // Button is disabled if not confirmed
                     child: Text('Confirm'),
                   ),
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.of(context).pop();
+                      showDataAlert(context);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
@@ -502,17 +514,57 @@ class _PageContentState extends State<PageContent> {
                       ? () {
                     Navigator.of(context).pop(); // Close the dialog and proceed with rejection
                     setState(() {
-                      _textEditingController.text =
-                          reasonController.text; // Set rejection reason
+                      _textEditingController.text = reasonController.text; // Set rejection reason
+                      _rejectedAccounts[_selectedAccount['id']] = true; // Mark the account as rejected
+                      _confirmedAccounts[_selectedAccount['id']] = false; // Ensure it's not marked as confirmed
                     });
                     _loading(isAccept: false); // Pass the reason to the loading function
                   }
                       : null, // Disable the button if no reason is entered
                   child: Text('Reject'),
-                ),
+                )
               ],
             );
           },
+        );
+      },
+    );
+  }
+
+  Future<void> showConfirmApprovalAlert(BuildContext context) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirm Approval'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Are you sure you want to confirm approval of this request?'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('No'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog without confirming
+              },
+            ),
+            TextButton(
+              child: Text('Yes'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog and proceed with confirmation
+                setState(() {
+                _confirmedAccounts[_selectedAccount['id']] = true; // Mark the account as confirmed
+                _rejectedAccounts[_selectedAccount['id']] = false; // Ensure it's not marked as rejected
+                });
+                _loading(isAccept: true); // Pass the action to the loading function
+                },
+              // Call the method to handle the approval
+            ),
+          ],
         );
       },
     );

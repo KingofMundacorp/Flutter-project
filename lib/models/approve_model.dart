@@ -295,7 +295,12 @@ class UserModel {
     status: json["status"] == null ? null : json["status"],
     user: json["user"] == null ? null : UserModel3.fromMap(json["user"]),
     method: json["method"] == null ? null : json["method"],
-    payload: json["payload"] == null ? null : List<PayloadUser>.from(json["payload"].map((x) => PayloadUser.fromMap(x))),
+    //payload: json["payload"] == null ? null : List<PayloadUser>.from(json["payload"].map((x) => PayloadUser.fromMap(x))),
+    payload: json["payload"] != null
+        ? (json["payload"] as List<dynamic>)
+        .map((e) => PayloadUser.fromMap(e as Map<String, dynamic>))
+        .toList()
+        : null,
     url: json["url"] == null ? null : json["url"],
     timeSinceResponseSent: json["timeSinceResponseSent"] == null
         ? null
@@ -1026,7 +1031,9 @@ class PayloadUser {
   factory PayloadUser.fromMap(Map<String, dynamic> json) {
     return PayloadUser(
       payload: json['payload'] != null
-          ? List<Userpayload>.from(json['payload'].map((x) => Userpayload.fromMap(x)))
+          ? (json['payload'] as List<dynamic>)
+          .map((e) => Userpayload.fromMap(e as Map<String, dynamic>))
+          .toList()
           : null,
     );
   }

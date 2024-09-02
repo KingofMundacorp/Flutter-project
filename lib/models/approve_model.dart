@@ -4,6 +4,8 @@
 
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
+
 ApproveModel approveModelFromMap(String str) =>
     ApproveModel.fromMap(json.decode(str));
 
@@ -264,11 +266,13 @@ class UserModel {
     this.messageConversation,
     this.shouldAlert,
     this.privateMessage,
+    this.rowColor,
   });
 
   String? id;
   UserModel3? user;
   List<PayloadUser>? payload;
+  Color? rowColor;
   String? ticketNumber;
   String? type;
   String? status;
@@ -311,6 +315,7 @@ class UserModel {
     replyMessage: json["replyMessage"] == null ? null : json["replyMessage"],
     ticketNumber: json["ticketNumber"] == null ? null : json["ticketNumber"],
     messageBody: json["messageBody"] == null ? null : MessageBody.fromMap(json["messageBody"]),
+    rowColor: Colors.transparent,
   );
 
 
@@ -1012,7 +1017,11 @@ class KeyedAuthority {
 class PayloadUser {
   List<Userpayload>? payload;
 
-  PayloadUser({this.payload});
+  PayloadUser(
+      {
+        this.payload
+      }
+  );
 
   factory PayloadUser.fromMap(Map<String, dynamic> json) {
     return PayloadUser(
@@ -1041,6 +1050,7 @@ class Userpayload {
   final String? surname;
   final String? name;
   final String? firstName;
+  final String? status;
   final List<UserGroup>? userGroups;
   final String? email;
   String? password;
@@ -1058,6 +1068,7 @@ class Userpayload {
     this.name,
     this.email,
     this.password,
+    this.status,
   });
 
   factory Userpayload.fromMap(Map<String, dynamic> json) {
@@ -1072,6 +1083,7 @@ class Userpayload {
       referenceId: json["referenceId"] as String?,
       surname: json["surname"] as String?,
       email: json["email"] as String?,
+      status: json["status"] as String?,
       name: json["name"] as String?,
       password: json["password"] as String?,
       firstName: json["firstName"] as String?,
@@ -1098,6 +1110,7 @@ class Userpayload {
       if (name != null) "name": name!,
       if (password != null) "password": password!,
       if (email != null) "email": email!,
+      if (status != null) "status": status!,
       if (userCredentials != null) "userCredentials": userCredentials!.toMap(),
       if (userGroups != null) "userGroups": List<dynamic>.from(userGroups!.map((x) => x.toMap())),
       if (operations != null) "operations": operations!.map((operation) => operation.toMap()).toList(),

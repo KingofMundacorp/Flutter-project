@@ -142,7 +142,7 @@ class MessageModel with ChangeNotifier {
   Future<void> get fetchUserApproval async {
     log('this is initially called');
 
-    List<UserModel> userApprovalList = []; // This will only hold items where actionType is null.
+    List<UserModel> userApprovalList = [];
     var res2;
 
     final res = await d2repository.httpClient.get('dataStore/dhis2-user-support');
@@ -162,7 +162,12 @@ class MessageModel with ChangeNotifier {
               if (userModel.message?.message != null &&
                   userModel.message?.message != 'No Subject' &&
                   userModel.message?.subject?.split("-").last != 'No Display' &&
-                  userModel.actionType == null) { // Only add if actionType is null
+                  userModel.actionType == null) {
+
+                // Determine the color based on the payload status
+                Color rowColor = _determineRowColor(userModel.payload);
+
+                userModel.rowColor = rowColor; // Set the color in the user model
                 userApprovalList.add(userModel);
               }
             } else {
@@ -174,7 +179,12 @@ class MessageModel with ChangeNotifier {
           if (userModel.message?.message != null &&
               userModel.message?.message != 'No Subject' &&
               userModel.message?.subject?.split("-").last != 'No Display' &&
-              userModel.actionType == null) { // Only add if actionType is null
+              userModel.actionType == null) {
+
+            // Determine the color based on the payload status
+            Color rowColor = _determineRowColor(userModel.payload);
+
+            userModel.rowColor = rowColor; // Set the color in the user model
             userApprovalList.add(userModel);
           }
         } else {
@@ -183,9 +193,28 @@ class MessageModel with ChangeNotifier {
       }
     }
 
-    // Set the final list only with items where actionType is null
     _userApproval = userApprovalList;
     notifyListeners();
+  }
+
+// Helper function to determine the color based on the payload status
+  Color _determineRowColor(List<PayloadUser>? payload) {
+    if (payload != null && payload.isNotEmpty) {
+      for (var payloadUser in payload) {
+        if (payloadUser.payload != null) {
+          for (var userpayload in payloadUser.payload!) {
+            // Access the status field inside each Userpayload
+            String? status = userpayload.status;
+            if (status == 'CREATED') {
+              return Colors.green;
+            } else if (status == 'REJECTED') {
+              return Colors.red;
+            }
+          }
+        }
+      }
+    }
+    return Colors.transparent; // Default color if no relevant status is found
   }
 
 

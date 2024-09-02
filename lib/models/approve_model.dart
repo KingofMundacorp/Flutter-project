@@ -1022,27 +1022,20 @@ class KeyedAuthority {
 class PayloadUser {
   List<Userpayload>? payload;
 
-  PayloadUser(
-      {
-        this.payload
-      }
-  );
+  PayloadUser({this.payload});
 
   factory PayloadUser.fromMap(Map<String, dynamic> json) {
     return PayloadUser(
       payload: json['payload'] != null
-          ? (json['payload'] as List<dynamic>)
-          .map((e) => Userpayload.fromMap(e as Map<String, dynamic>))
-          .toList()
+          ? List<Userpayload>.from(
+          (json['payload'] as List<dynamic>).map((e) => Userpayload.fromMap(e as Map<String, dynamic>)))
           : null,
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      "payload": payload == null
-          ? null
-          : List<dynamic>.from(payload!.map((x) => x.toMap())),
+      "payload": payload?.map((x) => x.toMap()).toList(),
     };
   }
 }
@@ -1081,7 +1074,7 @@ class Userpayload {
   factory Userpayload.fromMap(Map<String, dynamic> json) {
     return Userpayload(
       attributeValues: json["attributeValues"] != null
-          ? List<dynamic>.from(json["attributeValues"].map((x) => x))
+          ? List<dynamic>.from(json["attributeValues"])
           : null,
       dataViewOrganisationUnits: json["dataViewOrganisationUnits"] != null
           ? List<String>.from(json["dataViewOrganisationUnits"].map((x) => x.toString()))
@@ -1095,32 +1088,32 @@ class Userpayload {
       password: json["password"] as String?,
       firstName: json["firstName"] as String?,
       userCredentials: json["userCredentials"] != null
-          ? UserCredentials.fromMap(json["userCredentials"])
+          ? UserCredentials.fromMap(json["userCredentials"] as Map<String, dynamic>)
           : null,
       userGroups: json["userGroups"] != null
-          ? List<UserGroup>.from(json["userGroups"].map((x) => UserGroup.fromMap(x)))
+          ? List<UserGroup>.from(json["userGroups"].map((x) => UserGroup.fromMap(x as Map<String, dynamic>)))
           : null,
       operations: json["operations"] != null
-          ? (json["operations"] as List).map((i) => Operation.fromMap(i)).toList()
+          ? List<Operation>.from(json["operations"].map((x) => Operation.fromMap(x as Map<String, dynamic>)))
           : null,
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      if (attributeValues != null) "attributeValues": List<dynamic>.from(attributeValues!.map((x) => x)),
-      if (dataViewOrganisationUnits != null) "dataViewOrganisationUnits": List<dynamic>.from(dataViewOrganisationUnits!),
-      if (phoneNumber != null) "phoneNumber": phoneNumber!,
-      if (referenceId != null) "referenceId": referenceId!,
-      if (surname != null) "surname": surname!,
-      if (firstName != null) "firstName": firstName!,
-      if (name != null) "name": name!,
-      if (password != null) "password": password!,
-      if (email != null) "email": email!,
-      if (status != null) "status": status!,
+      if (attributeValues != null) "attributeValues": attributeValues,
+      if (dataViewOrganisationUnits != null) "dataViewOrganisationUnits": dataViewOrganisationUnits,
+      if (phoneNumber != null) "phoneNumber": phoneNumber,
+      if (referenceId != null) "referenceId": referenceId,
+      if (surname != null) "surname": surname,
+      if (firstName != null) "firstName": firstName,
+      if (name != null) "name": name,
+      if (password != null) "password": password,
+      if (email != null) "email": email,
+      if (status != null) "status": status,
       if (userCredentials != null) "userCredentials": userCredentials!.toMap(),
-      if (userGroups != null) "userGroups": List<dynamic>.from(userGroups!.map((x) => x.toMap())),
-      if (operations != null) "operations": operations!.map((operation) => operation.toMap()).toList(),
+      if (userGroups != null) "userGroups": userGroups!.map((x) => x.toMap()).toList(),
+      if (operations != null) "operations": operations!.map((x) => x.toMap()).toList(),
     };
   }
 }

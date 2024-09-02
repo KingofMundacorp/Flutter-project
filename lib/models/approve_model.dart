@@ -1022,6 +1022,26 @@ class KeyedAuthority {
 }
 
 class PayloadUser {
+  final List<Userpayload>? payload;
+
+  PayloadUser({this.payload});
+
+  factory PayloadUser.fromMap(Map<String, dynamic> json) {
+    return PayloadUser(
+      payload: json['payload'] != null
+          ? List<Userpayload>.from(json['payload'].map((x) => Userpayload.fromMap(x)))
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      if (payload != null) "users": List<dynamic>.from(payload!.map((user) => user.toMap())),
+    };
+  }
+}
+
+class Userpayload {
   final List<Operation>? operations;
   final UserCredentials? userCredentials;
   final List<dynamic>? attributeValues;
@@ -1033,7 +1053,7 @@ class PayloadUser {
   final String? firstName;
   final List<UserGroup>? userGroups;
 
-  PayloadUser({
+  Userpayload({
     this.attributeValues,
     this.dataViewOrganisationUnits,
     this.phoneNumber,
@@ -1046,20 +1066,19 @@ class PayloadUser {
     this.name,
   });
 
-  factory PayloadUser.fromMap(Map<String, dynamic> json) {
-    return PayloadUser(
+  factory Userpayload.fromMap(Map<String, dynamic> json) {
+    return Userpayload(
       attributeValues: json["attributeValues"] != null
           ? List<dynamic>.from(json["attributeValues"].map((x) => x))
           : null,
       dataViewOrganisationUnits: json["dataViewOrganisationUnits"] != null
           ? List<String>.from(json["dataViewOrganisationUnits"].map((x) => x.toString()))
           : null,
-
       phoneNumber: json["phoneNumber"] as String?,
       referenceId: json["referenceId"] as String?,
       surname: json["surname"] as String?,
       name: json["name"] as String?,
-      firstName: json["firsName"] as String?,
+      firstName: json["firstName"] as String?,
       userCredentials: json["userCredentials"] != null
           ? UserCredentials.fromMap(json["userCredentials"])
           : null,
@@ -1083,11 +1102,11 @@ class PayloadUser {
       if (name != null) "name": name!,
       if (userCredentials != null) "userCredentials": userCredentials!.toMap(),
       if (userGroups != null) "userGroups": List<dynamic>.from(userGroups!.map((x) => x.toMap())),
-      if (operations != null) "payload": {"operations": operations!.map((operation) => operation.toMap()).toList()},
-
+      if (operations != null) "operations": operations!.map((operation) => operation.toMap()).toList(),
     };
   }
 }
+
 
 
 

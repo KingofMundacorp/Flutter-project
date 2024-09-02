@@ -267,9 +267,9 @@ class MessageModel with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> confirmUser(Map<String, dynamic> selectedAccount) async {
+  Future<void> confirmUser(UserModel userApproval, Map<String, dynamic> selectedAccount) async {
     final username = selectedAccount['Proposed Username'];
-
+    var id = userApproval.id!.substring(0, 15);
     if (username == null || username.isEmpty) {
       _error = true;
       _errorMessage = 'Username is invalid.';
@@ -282,7 +282,7 @@ class MessageModel with ChangeNotifier {
 
     try {
       final response = await http.post(
-        Uri.parse('http://41.59.227.69/tland-upgrade/dhis-web-datastore/index.html#/edit/dhis2-user-support/$userApproval.id'),
+        Uri.parse('http://41.59.227.69/tland-upgrade/dhis-web-datastore/index.html#/edit/dhis2-user-support/$id'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'username': username}),
       );
@@ -312,9 +312,9 @@ class MessageModel with ChangeNotifier {
     }
   }
 
-  Future<void> checkDuplicate(Map<String, dynamic> selectedAccount) async {
+  Future<void> checkDuplicate(UserModel userApproval, Map<String, dynamic> selectedAccount) async {
     final username = selectedAccount['Proposed Username'];
-
+    var id = userApproval.id!.substring(0, 15);
     if (username == null || username.isEmpty) {
       _error = true;
       _errorMessage = 'Username is invalid.';
@@ -327,7 +327,7 @@ class MessageModel with ChangeNotifier {
 
     try {
       final response = await http.post(
-        Uri.parse('http://41.59.227.69/tland-upgrade/dhis-web-datastore/index.html#/edit/dhis2-user-support/$userApproval.id'),
+        Uri.parse('http://41.59.227.69/tland-upgrade/dhis-web-datastore/index.html#/edit/dhis2-user-support/$id'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'username': username}),
       );

@@ -9,10 +9,12 @@ import 'package:http/http.dart' as http;
 import 'package:d2_touch/shared/utilities/http_client.util.dart';
 import 'package:user_support_mobile/constants/d2-repository.dart';
 
+import '../widgets/Utilities.dart';
 import '/constants/constants.dart';
 import '/models/message_conversation.dart';
 import '/models/user.dart';
 import '../models/approve_model.dart';
+import '../pages/user_approval_detail.dart';
 
 
 class MessageModel with ChangeNotifier {
@@ -164,8 +166,8 @@ class MessageModel with ChangeNotifier {
                   userModel.message?.subject?.split("-").last != 'No Display' &&
                   userModel.actionType == null) {
 
-                // Determine the color based on the payload status
-                Color rowColor = _determineRowColor(userModel.payload);
+                // Use the utility function to determine the color
+                Color rowColor = Utils.determineRowColor(userModel.payload);
 
                 userModel.rowColor = rowColor; // Set the color in the user model
                 userApprovalList.add(userModel);
@@ -181,8 +183,8 @@ class MessageModel with ChangeNotifier {
               userModel.message?.subject?.split("-").last != 'No Display' &&
               userModel.actionType == null) {
 
-            // Determine the color based on the payload status
-            Color rowColor = _determineRowColor(userModel.payload);
+            // Use the utility function to determine the color
+            Color rowColor = Utils.determineRowColor(userModel.payload);
 
             userModel.rowColor = rowColor; // Set the color in the user model
             userApprovalList.add(userModel);
@@ -197,25 +199,7 @@ class MessageModel with ChangeNotifier {
     notifyListeners();
   }
 
-// Helper function to determine the color based on the payload status
-  Color _determineRowColor(List<PayloadUser>? payload) {
-    if (payload != null && payload.isNotEmpty) {
-      for (var payloadUser in payload) {
-        if (payloadUser.payload != null) {
-          for (var userpayload in payloadUser.payload!) {
-            // Access the status field inside each Userpayload
-            String? status = userpayload.status;
-            if (status == 'CREATED') {
-              return Colors.green;
-            } else if (status == 'REJECTED') {
-              return Colors.red;
-            }
-          }
-        }
-      }
-    }
-    return Colors.transparent; // Default color if no relevant status is found
-  }
+
 
 
 

@@ -1050,7 +1050,7 @@ class Userpayload {
   final String? surname;
   final String? name;
   final String? firstName;
-  final String? status;
+  String? status;
   final List<UserGroup>? userGroups;
   final String? email;
   String? password;

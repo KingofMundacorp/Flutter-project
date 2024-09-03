@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import '../widgets/Utilities.dart';
 import 'user_approval_screen.dart';
 import '../models/approve_model.dart';
 import '../providers/provider.dart';
@@ -147,7 +148,7 @@ class _PageContentState extends State<PageContent> {
                               absorbing: _isDropdownShown, // Disable button if dropdown is shown
                               child: ElevatedButton(
                                 style: ButtonStyle(
-                                  backgroundColor: MaterialStateProperty.all(
+                                  backgroundColor: WidgetStateProperty.all(
                                     _selectButtonColor,
                                   ),
                                 ),
@@ -245,10 +246,8 @@ class _PageContentState extends State<PageContent> {
             scrollDirection: Axis.vertical,
             child: ConstrainedBox(
               constraints: BoxConstraints(
-                maxHeight:
-                MediaQuery.of(context).size.height * 0.6, // Adjust height as needed
-                maxWidth:
-                MediaQuery.of(context).size.width * 0.9, // Adjust width as needed
+                maxHeight: MediaQuery.of(context).size.height * 0.6,
+                maxWidth: MediaQuery.of(context).size.width * 0.9,
               ),
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -266,103 +265,102 @@ class _PageContentState extends State<PageContent> {
                     DataColumn(label: Text('Action')),
                   ],
                   rows: accounts.map((account) {
-                    bool isRejected = _rejectedAccounts[account['id']] == true;
-                    bool isConfirmed = _confirmedAccounts[account['id']] == true;
+                    // Determine the color based on the status field within the payload
+                    Color rowColor = Utils.determineRowColor(account['payload']);
 
                     return DataRow(
-                        color: WidgetStateProperty.resolveWith<Color?>(
-                              (Set<WidgetState> states) {
-                            if (isRejected) return Colors.red.withOpacity(0.2); // Change to red if rejected
-                            if (isConfirmed) return Colors.green.withOpacity(0.2); // Change to green if confirmed
-                            return null; // Default color
-                          },
-                        ),
+                      color: WidgetStateProperty.resolveWith<Color?>(
+                            (Set<WidgetState> states) {
+                          return rowColor; // Use the determined color
+                        },
+                      ),
                       cells: [
-                      DataCell(Text(account['SN']!)),
-                      DataCell(
-                        Container(
-                          width: 150,
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.vertical,
-                            child: Text(account['Names']!),
+                        DataCell(Text(account['SN']!)),
+                        DataCell(
+                          Container(
+                            width: 150,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.vertical,
+                              child: Text(account['Names']!),
+                            ),
                           ),
                         ),
-                      ),
-                      DataCell(
-                        Container(
-                          width: 150,
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.vertical,
-                            child: Text(account['Email']!),
+                        DataCell(
+                          Container(
+                            width: 150,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.vertical,
+                              child: Text(account['Email']!),
+                            ),
                           ),
                         ),
-                      ),
-                      DataCell(
-                        Container(
-                          width: 150,
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.vertical,
-                            child: Text(account['Phone Number']!),
+                        DataCell(
+                          Container(
+                            width: 150,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.vertical,
+                              child: Text(account['Phone Number']!),
+                            ),
                           ),
                         ),
-                      ),
-                      DataCell(
-                        Container(
-                          width: 150,
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.vertical,
-                            child: Text(account['User Role']!),
+                        DataCell(
+                          Container(
+                            width: 150,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.vertical,
+                              child: Text(account['User Role']!),
+                            ),
                           ),
                         ),
-                      ),
-                      DataCell(
-                        Container(
-                          width: 150,
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.vertical,
-                            child: Text(account['User Group']!),
+                        DataCell(
+                          Container(
+                            width: 150,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.vertical,
+                              child: Text(account['User Group']!),
+                            ),
                           ),
                         ),
-                      ),
-                      DataCell(
-                        Container(
-                          width: 150,
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.vertical,
-                            child: Text(account['Entry Access Level']!),
+                        DataCell(
+                          Container(
+                            width: 150,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.vertical,
+                              child: Text(account['Entry Access Level']!),
+                            ),
                           ),
                         ),
-                      ),
-                      DataCell(
-                        Container(
-                          width: 150,
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.vertical,
-                            child: Text(account['Report Access Level']!),
+                        DataCell(
+                          Container(
+                            width: 150,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.vertical,
+                              child: Text(account['Report Access Level']!),
+                            ),
                           ),
                         ),
-                      ),
-                      DataCell(
-                        ElevatedButton(
-                          onPressed: () {
-                            setState(() {
-                              _isDropdownShown = true;
-                              selectedUser = account['Email']!;
-                              _selectedAccount = account;
-                              _selectButtonColor = Colors.grey;
-                            });
-                            Navigator.of(context).pop();
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                          ),
-                          child: Text(
-                            'Select',
-                            style: TextStyle(color: Colors.white),
+                        DataCell(
+                          ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                _isDropdownShown = true;
+                                selectedUser = account['Email']!;
+                                _selectedAccount = account;
+                                _selectButtonColor = Colors.grey;
+                              });
+                              Navigator.of(context).pop();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                            ),
+                            child: Text(
+                              'Select',
+                              style: TextStyle(color: Colors.white),
+                            ),
                           ),
                         ),
-                      ),
-                    ]);
+                      ],
+                    );
                   }).toList(),
                 ),
               ),
@@ -371,7 +369,6 @@ class _PageContentState extends State<PageContent> {
         );
       },
     ).then((value) {
-      // This ensures that the selected user is displayed and the button's color is updated
       setState(() {
         if (_selectedAccount.isNotEmpty) {
           _proposeUsername(_selectedAccount['Email']!);

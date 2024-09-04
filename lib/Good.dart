@@ -1,414 +1,603 @@
-import 'dart:io';
+import 'dart:convert';
+import 'dart:developer';
 
+import 'package:d2_touch/d2_touch.dart';
+import 'package:d2_touch/modules/data/data_store/queries/data_store.query.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:http/http.dart' as http;
+import 'package:d2_touch/shared/utilities/http_client.util.dart';
+import 'package:user_support_mobile/constants/d2-repository.dart';
+
+import '../widgets/Utilities.dart';
+import '/constants/constants.dart';
+import '/models/message_conversation.dart';
+import '/models/user.dart';
 import '../models/approve_model.dart';
-import '../providers/provider.dart';
-import 'package:flutter_html/flutter_html.dart';
-import 'package:html/parser.dart' as html_parser;
+import '../pages/user_approval_detail.dart';
 
-class UserApprovalDetailPage extends StatefulWidget {
-  const UserApprovalDetailPage({Key? key, required this.userApproval})
-      : super(key: key);
-  final UserModel userApproval; // Changed to UserModel
 
-  @override
-  UserApprovalDetailPageState createState() => UserApprovalDetailPageState();
-}
+class MessageModel with ChangeNotifier {
+  final List<MessageConversation> _allMessageConversation = [];
+  late List<User> _listOfUsers;
+  late MessageConversation _fetchedThread;
+  List<MessageConversation> _privateMessages = [];
+  List<ApproveModel> _dataApproval = [];
+  List<UserModel> _userApproval = [];
+  List<MessageConversation> _validationMessages = [];
+  List<MessageConversation> _ticketMessage = [];
+  List<MessageConversation> _systemMessages = [];
+  late MessageConversation _reply;
+  Map<String, dynamic> _map = {};
+  bool _error = false;
+  String _errorMessage = '';
+  bool _isLoading = false;
+  bool _isConfirmed = false;
+  bool _isDuplicate = false;
 
-class UserApprovalDetailPageState extends State<UserApprovalDetailPage> {
 
-List<Map<String, String>> _parseMessages(String htmlMessage) {
-  final plainText = extractPlainText(htmlMessage); // Extract plain text from HTML
-  final List<Map<String, String>> accounts = [];
-  final RegExp regex = RegExp(
-    r'Names:\s*(.+?)\s*Email:\s*(.+?)\s*Phone number\s*:\s*(.+?)\s*User role\s*->\s*(.+?)\s*User group\s*->\s*(.+?)\s*Entry access level\s*->\s*(.+?)\s*and Report access level\s*->\s*(.+?)(?=\d|$)', 
-    multiLine: true
-  );
 
-  final matches = regex.allMatches(plainText);
-  for (final match in matches) {
-    accounts.add({
-      'SN': (accounts.length + 1).toString(), // Serial number based on the length
-      'Names': match.group(1) ?? '',
-      'Email': match.group(2) ?? '',
-      'Phone Number': match.group(3) ?? '',
-      'User Role': match.group(4) ?? '',
-      'User Group': match.group(5) ?? '',
-      'Entry Access Level': match.group(6) ?? '',
-      'Report Access Level': match.group(7) ?? '',
-    });
+  Map<String, dynamic> get map => _map;
+  bool get error => _error;
+  bool get isLoading => _isLoading;
+  String get errorMessage => _errorMessage;
+  List<MessageConversation> get allMessageConversation =>
+      _allMessageConversation;
+  List<MessageConversation> get ticketMessage => _ticketMessage;
+  List<ApproveModel> get dataApproval => _dataApproval;
+  List<UserModel> get userApproval => _userApproval;
+  List<MessageConversation> get systemMessage => _systemMessages;
+  List<User> get listOfUsers => _listOfUsers;
+  List<MessageConversation> get privateMessages => _privateMessages;
+  List<MessageConversation> get validationMessage => _validationMessages;
+  MessageConversation get userReply => _reply;
+  MessageConversation get fetchedThread => _fetchedThread;
+  bool get isConfirmed => _isConfirmed;
+  set isConfirmed(bool value) {
+    _isConfirmed = value;
+    notifyListeners();
+  }
+  bool get isDuplicate => _isDuplicate;
+  // new codes
+
+  Future<void> get fetchDataApproval async {
+    log('this is initially called');
+
+    // try {
+    var response = [];
+    var res2;
+
+    final res =
+        await d2repository.httpClient.get('dataStore/dhis2-user-support');
+    // DataStoreQuery test = d2repository.dataStore.dataStoreQuery
+    //     .byNamespace('dhis2-user-support');
+    // log(test.namespace.toString());
+    // log(res.toString());
+    // log(test.toString());
+    var list = res.body;
+
+    for (var i = 1; i < list.length; i++) {
+      if (list[i].toString().startsWith("DS")) {
+        // Access the first directory for "DS" values
+        print('dataStore/dhis2-user-support/${list[i]}');
+        res2 = await d2repository.httpClient.get('dataStore/dhis2-user-support/${list[i].toString()}');
+        response.add(res2.body);
+      }
+    }
+
+    // log('messages : $response');
+    _dataApproval = response
+        .map((x) => ApproveModel.fromMap(x as Map<String, dynamic>))
+        .toList();
+    // } catch (e) {
+    //   print("error : $e");
+    // }
+
+    notifyListeners();
   }
 
-  return accounts;
-}
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: PageContent(
-        userApproval: widget.userApproval,
-        parseMessages: _parseMessages,
-      ),
-    );
-  }
-}
+  Future<void> approvalRequest(ApproveModel dataApproval,
+      {String? message}) async {
+    
+    _isLoading = true;
+    var id = dataApproval.id!.substring(0, 15);
 
-class PageContent extends StatefulWidget {
-  const PageContent({Key? key, required this.userApproval, required this.parseMessages}) : super(key: key);
-  final UserModel userApproval;
-  final List<Map<String, String>> Function(String) parseMessages;
+    print(id);
+    final res = await d2repository.httpClient.get(
+        'messageConversations?messageType=TICKET&filter=subject:ilike:${id}');
 
-  @override
-  State<PageContent> createState() => _PageContentState();
-}
+    var convId = res.body['messageConversations'][0]['id'].toString();
 
-class _PageContentState extends State<PageContent> {
-  File? file;
-  String? selectedUser;
-  bool isVisible = true;
-  bool isButtonEnabled = false;
-  final TextEditingController _textEditingController = TextEditingController();
+    if (message == null) {
+      print('This is inside if statement');
+      await Future.wait([
+        d2repository.httpClient
+            .post(dataApproval.url!, dataApproval.payload!.toMap()),
 
-  @override
-  Widget build(BuildContext context) {
-    final Size size = MediaQuery.of(context).size;
-    return Stack(
-      alignment: AlignmentDirectional.center,
-      children: <Widget>[
-        SizedBox(
-          child: Scaffold(
-            appBar: AppBar(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              leading: IconButton(
-                icon: const Icon(
-                  Icons.arrow_back,
-                  color: Colors.black,
-                  size: 25,
-                ),
-                onPressed: () async {
-                  context.go('/home/user_account');
-                },
-              ),
-            ),
-            body: SafeArea(
-              child: Center(
-                child: Container(
-                  height: size.height,
-                  width: size.width * 0.9,
-                  child: ListView(
-                    children: [
-                      Html(
-                        data: widget.userApproval.message!.subject!.split("-").last,
-                        style: {
-                          'body': Style(
-                            color: Colors.black,
-                            fontSize: FontSize(16),
-                            fontWeight: FontWeight.w300,
-                          ),
-                        },
-                      ),
-                      SizedBox(
-                        height: 20,
-                      ),
-                      Html(
-                        data: widget.userApproval.message!.message!,
-                        style: {
-                          'body': Style(
-                            color: Colors.black,
-                            fontSize: FontSize(16),
-                            fontWeight: FontWeight.w300,
-                          ),
-                        },
-                      ),
-                      SizedBox(
-                        height: 20,
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        child: Row(
-                          children: [
-                            AbsorbPointer(
-                              absorbing: false,
-                              child: ElevatedButton(
-                                style: ButtonStyle(
-                                  backgroundColor: MaterialStateProperty.all(
-                                    Color(0xFF235EA0),
-                                  ),
-                                ),
-                                onPressed: () {
-                                  final accounts = widget.parseMessages(widget.userApproval.message!.message!);
-                                  _showApprovalTableDialog(accounts);
-                                },
-                                child: Padding(
-                                  padding: const EdgeInsets.all(10.0),
-                                  child: Text(
-                                    'Accept',
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(
-                              width: 20,
-                            ),
-                            AbsorbPointer(
-                              absorbing: false,
-                              child: OutlinedButton(
-                                style: ButtonStyle(
-                                  backgroundColor:
-                                  MaterialStateProperty.all(Colors.red),
-                                ),
-                                onPressed: () {
-                                  showDataAlert(context);
-                                },
-                                child: Padding(
-                                  padding: EdgeInsets.all(10.0),
-                                  child: Text(
-                                    'Reject',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(
-                              width: 20,
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(
-                        height: 30,
-                      )
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
+        d2repository.httpClient
+            .delete('dataStore/dhis2-user-support', dataApproval.id.toString()),
+
+        d2repository.httpClient.post('messageConversations/${convId}',
+            'Ombi lako limeshughulikiwa karibu!'),
+        d2repository.httpClient.post(
+            'messageConversations/${convId}/status?messageConversationStatus=SOLVED',
+            ''),
+      ]).whenComplete(() => _isLoading = false);
+    } else {
+
+      await Future.wait([
+        
+        d2repository.httpClient
+            .delete('dataStore/dhis2-user-support', dataApproval.id.toString()),
+
+        d2repository.httpClient.post('messageConversations/${convId}', message),
+        d2repository.httpClient.post(
+            'messageConversations/${convId}/status?messageConversationStatus=SOLVED',
+            '')
+      ]).whenComplete(() => _isLoading = false);
+    }
+
+    notifyListeners();
   }
 
-  void _loading({bool isAccept = false}) async {
-    EasyLoading.show(
-      status: 'loading...',
-      maskType: EasyLoadingMaskType.black,
-    );
+  Future<void> get fetchUserApproval async {
+    log('this is initially called');
 
+    List<UserModel> userApprovalList = []; // This will only hold items where actionType is null.
+
+    var res2;
+
+    final res = await d2repository.httpClient.get('dataStore/dhis2-user-support');
+    var list = res.body;
+
+    for (var i = 1; i < list.length; i++) {
+      if (list[i].toString().startsWith("UA")) {
+        print('dataStore/dhis2-user-support/${list[i]}');
+        res2 = await d2repository.httpClient.get('dataStore/dhis2-user-support/${list[i].toString()}');
+
+        var jsonResponse = res2.body;
+
+        if (jsonResponse is List) {
+          for (var item in jsonResponse.where((item) => item != null)) {
+            if (item is Map<String, dynamic>) {
+              UserModel userModel = UserModel.fromMap(item);
+              if (userModel.message?.message != null &&
+                  userModel.message?.message != 'No Subject' &&
+                  userModel.message?.subject?.split("-").last != 'No Display' &&
+                  userModel.actionType == null) { // Only add if actionType is null
+
+                userApprovalList.add(userModel);
+              }
+            } else {
+              throw Exception("Unexpected item type: ${item.runtimeType}");
+            }
+          }
+        } else if (jsonResponse is Map<String, dynamic>) {
+          UserModel userModel = UserModel.fromMap(jsonResponse);
+          if (userModel.message?.message != null &&
+              userModel.message?.message != 'No Subject' &&
+              userModel.message?.subject?.split("-").last != 'No Display' &&
+              userModel.actionType == null) { // Only add if actionType is null
+
+            userApprovalList.add(userModel);
+          }
+        } else {
+          throw Exception("Unexpected response type: ${jsonResponse.runtimeType}");
+        }
+      }
+    }
+
+
+    _userApproval = userApprovalList;
+    notifyListeners();
+  }
+
+  Future<void> approvalUserRequest(UserModel userApproval, {String? message}) async {
+    await d2repository.httpClient.get('dataStore/dhis2-user-support/${userApproval.id}');
+
+    _isLoading = true;
+   for (var payload in userApproval.userPayload!) {
+    var id = userApproval.id!.substring(0, 15);
+    var username = payload.username;
+    var phoneNumber = payload.phoneNumber;
+
+    print(id);
+    print(username);
     try {
-      await context.read<MessageModel>().approvalUserRequest(
-        widget.userApproval,
-        message: isAccept ? null : _textEditingController.text.trim(),
+      final res = await d2repository.httpClient.get(
+          'messageConversations?messageType=TICKET&filter=subject:ilike:$id');
+
+
+      String convId;
+      if (res.body['messageConversations'] != null && res.body['messageConversations'].isNotEmpty) {
+        // A conversation exists, get its ID
+        convId = res.body['messageConversations'][0]['id'].toString();
+      } else {
+        // No conversation found, create a new one
+        print("No message conversation found for id: $id. Creating a new conversation.");
+
+        final createRes = await d2repository.httpClient.post(
+          'messageConversations',
+          {
+            "subject": "New Conversation for User ID $id",
+            // Assuming you need to add users to the conversation
+            "messageType": "TICKET",
+            "messages": [
+              {
+                "text": "Initial message for new conversation.",
+              }
+            ]
+          },
+        );
+
+                // Extract the ID of the newly created conversation
+        convId = createRes.body['id'].toString();
+      }
+
+      if (message == null) {
+        print('This is inside if statement');
+        try {
+          await d2repository.httpClient.get('dataStore/dhis2-user-support/${userApproval.id}');
+          await d2repository.httpClient.post('users', userApproval.userPayload!.map((x)=> x.toMap()));
+          await d2repository.httpClient.post('users', jsonEncode(userApproval.userPayload?.toString()));
+          await d2repository.httpClient.post('messageConversations/${convId}', 'The following are the accounts created \n \n 1. user details  - ${phoneNumber}  is: username=  ${username} and password = Hmis@2024');
+          await d2repository.httpClient.post('messageConversations/${convId}/status?messageConversationStatus=SOLVED', '');
+          await d2repository.httpClient.post(('messageConversations'), ({"subject":"HMIS DHIS2 ACCOUNT","users":[{"id":"hey","username":"${username}","type":"user"}],"userGroups":[],"text":"Your creadentials are: \n Username: ${username} \n\n                    Password: Hmis@2024 \n\n\n                    MoH requires you to change password after login.\n                    The account will be disabled if it is not used for 3 months consecutively"}));
+          await d2repository.httpClient.delete('dataStore/dhis2-user-support', userApproval.id.toString());
+        } catch (e) {
+          print("An error occurred: $e");
+        }
+      } else {
+        try {
+          await d2repository.httpClient.post('messageConversations/$convId', message);
+          await d2repository.httpClient.post('messageConversations/$convId/status?messageConversationStatus=SOLVED', '');
+          await d2repository.httpClient.delete('dataStore/dhis2-user-support', userApproval.id.toString());
+        } catch (e) {
+          // Handle any errors that occur during the requests
+          print("An error occurred: $e");
+        }
+      }
+
+
+    } catch (e, stackTrace) {
+      // Handle any other errors, including network issues or JSON parsing errors
+      print("An error occurred: $e");
+      print("Stack trace: $stackTrace");
+      _isLoading = false;
+    }
+
+    notifyListeners();
+  }
+
+
+  }
+
+
+  //send message to the message conversation
+  Future<void> sendMessages(String id, String message) async {
+    if (message.isNotEmpty) {
+      _isLoading = true;
+    }
+    final response = await d2repository.httpClient.post('messageConversations/$id?internal=false',message
+     
+
+    );
+
+    if (response.statusCode == 200) {
+      _isLoading = false;
+    } else {
+      _isLoading = false;
+    }
+    notifyListeners();
+  }
+
+  Future<void> addFeedbackMessage(String subject, String text) async {
+    _isLoading = true;
+    final response = await d2repository.httpClient.post('messageConversations/feedback?subject=$subject',text
+        );
+
+    print(response.statusCode);
+    if (response.statusCode == 201) {
+      _isLoading = false;
+      print('is Successfully');
+    } else {
+      _isLoading = false;
+    }
+    notifyListeners();
+  }
+
+  //post message read
+  Future<void> messageRead(String id) async {
+    final response = await d2repository.httpClient.post('messageConversations/read',jsonEncode([id])
+
+    );
+    print(response.body);
+    if (response.statusCode == 200) {
+      print('is Successfully');
+    }
+    notifyListeners();
+  }
+
+  //post message unread
+  Future<void> messageUnread(String id) async {
+
+    final response = await d2repository.httpClient.post('messageConversations/unread',jsonEncode([id])
+    );
+
+    // print(response.body);
+    // if (response.statusCode == 200) {
+    // }
+    notifyListeners();
+  }
+
+  //delete message conversation
+  Future<void> deleteMessage(String messageId) async {
+    final response = await d2repository.httpClient.delete('messageConversations/$messageId/xE7jOejl9FI',messageId
+
+    );
+    print(messageId);
+    print(response.statusCode);
+    print('messageConversations/$messageId/xE7jOejl9FI');
+
+    if (response.statusCode == 200) {
+      print('is Successfully');
+      _privateMessages.removeWhere((messages) => messages.id == messageId);
+    }
+    notifyListeners();
+  }
+
+  //add new message conversation
+  Future<void> addNewMessage(
+      String attachment, String text, String subject) async {
+    _isLoading = true;
+    final response = await d2repository.httpClient.post(('messageConversations'), json.encode(
+
+        {
+          "subject": subject,
+          "users": [
+            {
+              "id": "Onf73mPD6sL",
+              "username": "keita",
+              "firstName": "Seydou",
+              "surname": "Keita",
+              "displayName": "Seydou Keita",
+              "type": "user"
+            }
+          ],
+          "userGroups": [],
+          "organisationUnits": [],
+          "text": text,
+          "attachments": [
+            // {"name": attachment, "contentLength": 153509, "loading": true},
+          ],
+        },
+      ),
+      
+    );
+    print(response.statusCode);
+    if (response.statusCode == 200) {
+      _isLoading = false;
+    } else {
+      _isLoading = false;
+    }
+    notifyListeners();
+  }
+
+  Future<void> get fetchSystemMessage async {
+    final response = await d2repository.httpClient.get(('messageConversations?filter=messageType%3Aeq%3ASYSTEM&fields=id,displayName,subject,messageType,lastSender%5Bid%2C%20displayName%5D,assignee%5Bid%2C%20displayName%5D,status,priority,lastUpdated,read,lastMessage,followUp&order=lastMessage%3Adesc'),
+    
+
+    );
+    if (response.statusCode == 200) {
+      final list =
+          json.decode(response.body)['messageConversations'] as List<dynamic>;
+      _map = jsonDecode(response.body) as Map<String, dynamic>;
+      _systemMessages = list
+          .map((model) =>
+              MessageConversation.fromJson(model as Map<String, dynamic>))
+          .toList();
+      _error = false;
+    } else {
+      throw Exception("Failed to Load Data");
+    }
+    notifyListeners();
+  }
+
+  //fetch private message conversation
+  Future<void> get fetchPrivateMessages async {
+    try {
+      final response = await d2repository.httpClient.get(('messageConversations?filter=messageType%3Aeq%3APRIVATE&pageSize=35&page=1&fields=id,displayName,subject,messageType,lastSender%5Bid%2C%20displayName%5D,assignee%5Bid%2C%20displayName%5D,status,priority,lastUpdated,read,lastMessage,followUp&order=lastMessage%3Adesc'),
+        
+
       );
-
-      bool loading = context.read<MessageModel>().isLoading;
-
-      if (!loading) {
-        EasyLoading.showSuccess('Success!');
-        context.pushReplacement('/home/user_account');
+      if (response.statusCode == 200) {
+        final list =
+            json.decode(response.body)['messageConversations'] as List<dynamic>;
+        _map = jsonDecode(response.body) as Map<String, dynamic>;
+        _privateMessages = list
+            .map((model) =>
+                MessageConversation.fromJson(model as Map<String, dynamic>))
+            .toList();
+        _error = false;
+      } else {
+        throw Exception("Failed to Load Data");
       }
     } catch (e) {
-      EasyLoading.showError('Error: ${e.toString()}');
-      context.pushReplacement('/home/user_account');
-    } finally {
-      EasyLoading.dismiss();
+      print('What error is $e');
     }
+
+    notifyListeners();
   }
 
-  void _showApprovalTableDialog(List<Map<String, String>> accounts) {
-  showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: Text('Review User Details'),
-        content: SingleChildScrollView(
-          scrollDirection: Axis.vertical,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.6, // Adjust height as needed
-              maxWidth: MediaQuery.of(context).size.width * 0.9,   // Adjust width as needed
-            ),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: DataTable(
-                columnSpacing: 12,
-                columns: const [
-                  DataColumn(label: Text('SN')),
-                  DataColumn(label: Text('Names')),
-                  DataColumn(label: Text('Email')),
-                  DataColumn(label: Text('Phone Number')),
-                  DataColumn(label: Text('User Role')),
-                  DataColumn(label: Text('User Group')),
-                  DataColumn(label: Text('Entry Access Level')),
-                  DataColumn(label: Text('Report Access Level')),
-                  DataColumn(label: Text('Action')),
-                ],
-                rows: accounts.map((account) {
-                  return DataRow(cells: [
-                    DataCell(Text(account['SN']!)),
-                    DataCell(
-                      Container(
-                        width: 150, // Set width to your fixed length
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.vertical,
-                          child: Text(account['Names']!),
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      Container(
-                        width: 150, // Set width to your fixed length
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.vertical,
-                          child: Text(account['Email']!),
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      Container(
-                        width: 150, // Set width to your fixed length
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.vertical,
-                          child: Text(account['Phone Number']!),
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      Container(
-                        width: 150, // Set width to your fixed length
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.vertical,
-                          child: Text(account['User Role']!),
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      Container(
-                        width: 150, // Set width to your fixed length
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.vertical,
-                          child: Text(account['User Group']!),
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      Container(
-                        width: 150, // Set width to your fixed length
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.vertical,
-                          child: Text(account['Entry Access Level']!),
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      Container(
-                        width: 150, // Set width to your fixed length
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.vertical,
-                          child: Text(account['Report Access Level']!),
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      ElevatedButton(
-                        onPressed: () {
-                          
-                        },
-                        child: Text('Select'),
-                      ),
-                    ),
-                  ]);
-                }).toList(),
-              ),
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(), // Close the dialog
-            child: Text('Cancel'),
-          ),
-        ],
+  Future<void> get fetchTicketMessages async {
+    try {
+      final response = await d2repository.httpClient.get(('messageConversations?filter=messageType%3Aeq%3ATICKET&pageSize=35&page=1&fields=id,displayName,subject,messageType,lastSender%5Bid%2C%20displayName%5D,assignee%5Bid%2C%20displayName%5D,status,priority,lastUpdated,read,lastMessage,followUp&order=lastMessage%3Adesc'),
+       
+
       );
-    },
-  );
-}
 
-  void showDataAlert(BuildContext context, {bool isAccept = false}) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(
-              Radius.circular(20.0),
-            ),
-          ),
-          contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 2),
-          content: Container(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  if (!isAccept)
-                    Container(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextField(
-                        controller: _textEditingController,
-                        minLines: 3,
-                        maxLines: 5,
-                        decoration: InputDecoration(
-                          labelText: 'Provide a reason for rejection',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Container(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      isAccept
-                          ? 'Are you sure you want to accept the request?'
-                          : 'Are you sure you want to reject the request?',
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            TextButton(
-              child: Text(isAccept ? 'Accept' : 'Reject'),
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-                _loading(isAccept: isAccept);
-              },
-            ),
-          ],
-        );
-      },
+      if (response.statusCode == 200) {
+        final list =
+            json.decode(response.body)['messageConversations'] as List<dynamic>;
+        _map = jsonDecode(response.body) as Map<String, dynamic>;
+        _ticketMessage = list
+            .map((model) =>
+                MessageConversation.fromJson(model as Map<String, dynamic>))
+            .toList();
+        _error = false;
+      } else {
+        throw Exception("Failed to Load Data");
+      }
+    } catch (e) {
+      print("error $e catched");
+    }
+
+    notifyListeners();
+  }
+
+  // fetch validation message
+  Future<void> get fetchValidationMessages async {
+    try {
+      final response = await d2repository.httpClient.get(('messageConversations?filter=messageType%3Aeq%3AVALIDATION_RESULT&fields=id,displayName,subject,messageType,lastSender%5Bid%2C%20displayName%5D,assignee%5Bid%2C%20displayName%5D,status,priority,lastUpdated,read,lastMessage,followUp&order=lastMessage%3Adesc'),
+        
+
+      );
+      print(response.statusCode);
+
+      if (response.statusCode == 200) {
+        final list =
+            json.decode(response.body)['messageConversations'] as List<dynamic>;
+        _map = jsonDecode(response.body) as Map<String, dynamic>;
+        _validationMessages = list
+            .map((model) =>
+                MessageConversation.fromJson(model as Map<String, dynamic>))
+            .toList();
+        _error = false;
+      } else {
+        throw Exception("Failed to Load Data");
+      }
+    } catch (e) {
+      print("error $e catched");
+    }
+
+    notifyListeners();
+  }
+
+  //fetch message conversation by id
+  Future<void> fetchMessageThreadsById(String id) async {
+
+    final response = await d2repository.httpClient.get((
+          'messageConversations/$id?fields=*,assignee%5Bid%2C%20displayName%5D,messages%5B*%2Csender%5Bid%2CdisplayName%5D,attachments%5Bid%2C%20name%2C%20contentLength%5D%5D,userMessages%5Buser%5Bid%2C%20displayName%5D%5D'),
+
     );
+
+    print(response.statusCode);
+    if (response.statusCode == 200) {
+      final dynamic body =
+          json.decode(response.body) as dynamic;
+      _fetchedThread = MessageConversation.fromJson(body);
+    }
+    notifyListeners();
+    //delete message conversation*/
+  }
+
+
+
+
+
+  void initialValue() {
+    // _allMessageConversation = [];
+    // _map = {};
+    // _error = false;
+    // _errorMessage = '';
+    _fetchedThread = MessageConversation(
+      messageCount: '',
+      followUp: false,
+      lastUpdated: '',
+      id: '',
+      read: false,
+      name: '',
+      subject: '',
+      displayName: '',
+      messageType: '',
+      lastMessage: '',
+      favorite: false,
+      lastSender: null,
+      userMessages: null,
+      createdBy: User(displayName: '', name: '', id: '', username: ''),
+    );
+    notifyListeners();
   }
 }
 
-String extractPlainText(String htmlContent) {
-  final document = html_parser.parse(htmlContent);
-  return document.body?.text ?? '';
-}
+// Future<void> queryUser(String query) async {
+//   final url =
+//       "$baseUrl/userGroups?fields=id%2C%20displayName&pageSize=10&filter=displayName%3Atoken%3A$query";
+//   final response = await http.get(
+//     Uri.parse(url),
+//     headers: {
+//       'Content-Type': 'application/json',
+//       'Accept': 'application/json',
+//     },
+//   );
+//   print(response.body);
+// }
+
+// Future<void> queryOrgarnizationUnits(String query) async {
+//   final url =
+//       "$baseUrl/organisationUnits?fields=id,displayName&pageSize=10&filter=displayName%3Atoken%3A$query&filter=users%3Agte%3A1";
+//   final response = await http.get(
+//     Uri.parse(url),
+//     headers: {
+//       'Content-Type': 'application/json',
+//       'Accept': 'application/json',
+//     },
+//   );
+
+// if (response.statusCode==200) {
+
+// } else {
+// }
+// }
+
+// Future<void> queryUserGroups(String query) async {
+//   final url =
+//       "$baseUrl/userGroups?fields=id%2C%20displayName&pageSize=10&filter=displayName%3Atoken%3A$query";
+//   final response = await http.get(
+//     Uri.parse(url),
+//     headers: {
+//       'Content-Type': 'application/json',
+//       'Accept': 'application/json',
+//     },
+//   );
+// }
+
+//add participant
+// Future<void> addParticipant() async {
+//   final response = await http.post(
+//     Uri.parse('$baseUrl/messageConversation/id/recepients'),
+//     headers: {
+//       'Content-Type': 'application/json',
+//       'Accept': 'application/json',
+//     },
+//     body: json.encode({
+//       "users": [
+//         {
+//           "id": "Onf73mPD6sL",
+//           "username": "keita",
+//           "firstName": "Seydou",
+//           "surname": "Keita",
+//           "displayName": "Seydou Keita",
+//           "type": "user"
+//         }
+//       ],
+//       "userGroups": [],
+//       "organisationUnits": [],
+//     }),
+//   );
+
+//   notifyListeners();
+// }
+
+//fetch system message

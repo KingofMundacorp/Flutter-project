@@ -1,27 +1,48 @@
 
-
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
 import '../models/approve_model.dart';
 
 class Utils {
-  static Color determineRowColor(dynamic payload) {
-    if (payload is List) {
+  static Color determineRowColor(List<PayloadUser>? payload) {
+    if (payload != null && payload.isNotEmpty) {
       for (var payloadUser in payload) {
-        if (payloadUser['payload'] != null) {
-          for (var userPayload in payloadUser['payload']) {
-            String? status = userPayload['status'];
-            if (status == 'CREATED') {
-              return Colors.green.withOpacity(0.2);
-            } else if (status == 'REJECTED') {
-              return Colors.red.withOpacity(0.2);
-            }
-          }
+        // Directly access the status field of PayloadUser
+        String? status = payloadUser.status;
+        if (status == 'CREATED') {
+          return Colors.green;
+        } else if (status == 'APPROVED'){
+          return Colors.green;
+        } else if (status == 'REJECTED') {
+          return Colors.red;
         }
       }
     }
     return Colors.transparent; // Default color if no relevant status is found
   }
 }
+
+/*class Utils {
+  static Color determineRowColor(List<PayloadUser>? payload) {
+    if (payload == null || payload.isEmpty) {
+      print('Payload is null or empty');
+      return Colors.transparent;
+    }
+
+    for (var payloadUser in payload) {
+      // Directly access the status field from PayloadUser
+      String? status = payloadUser.status;
+      print('Found status: $status');
+
+      // Determine color based on status
+      if (status == 'CREATED') {
+        return Colors.green;
+      } else if (status == 'REJECTED') {
+        return Colors.red;
+      }
+    }
+
+    print('No matching status found');
+    return Colors.transparent;
+  }
+}*/

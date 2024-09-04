@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/src/material/colors.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -265,15 +266,16 @@ class _PageContentState extends State<PageContent> {
                     DataColumn(label: Text('Action')),
                   ],
                   rows: accounts.map((account) {
+                    // Ensure that 'payload' is correctly cast to List<PayloadUser>?
+                    List<PayloadUser>? payload = account['payload'] as List<PayloadUser>?;
+
                     // Determine the color based on the status field within the payload
-                    Color rowColor = Utils.determineRowColor(account['payload']);
+                    Color rowColor = Utils.determineRowColor(payload);
 
                     return DataRow(
-                      color: WidgetStateProperty.resolveWith<Color?>(
-                            (Set<WidgetState> states) {
-                          return rowColor; // Use the determined color
-                        },
-                      ),
+                      color: MaterialStateProperty.resolveWith<Color?>((Set<MaterialState> states) {
+                        return rowColor; // Use the determined color
+                      }),
                       cells: [
                         DataCell(Text(account['SN']!)),
                         DataCell(
@@ -351,7 +353,7 @@ class _PageContentState extends State<PageContent> {
                               Navigator.of(context).pop();
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green,
+                              backgroundColor: Colors.blue, // Change to the color of your choice
                             ),
                             child: Text(
                               'Select',

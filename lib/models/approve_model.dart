@@ -640,8 +640,8 @@ class Access {
 }
 
 
-class UserGroup {
-  UserGroup({
+class UserGroups {
+  UserGroups({
     this.id,
     this.name,
   });
@@ -649,8 +649,8 @@ class UserGroup {
   String? id;
   String? name;
 
-  factory UserGroup.fromMap(Map<String, dynamic> json) =>
-      UserGroup(
+  factory UserGroups.fromMap(Map<String, dynamic> json) =>
+      UserGroups(
         id: json["id"] == null ? null : json["id"],
         name: json["name"] == null ? null : json["name"],
       );
@@ -662,27 +662,7 @@ class UserGroup {
       };
 }
 
-class UserGroups {
-  UserGroups({
-    this.userGroups,
-  });
 
-  List<UserGroup>? userGroups;
-
-  factory UserGroups.fromMap(Map<String, dynamic> json) =>
-      UserGroups(
-        userGroups: json["userGroups"] == null
-            ? null
-            : List<UserGroup>.from(json["userGroups"].map((x) => UserGroup.fromMap(x))),
-      );
-
-  Map<String, dynamic> toMap() =>
-      {
-        "userGroups": userGroups == null
-            ? null
-            : List<dynamic>.from(userGroups!.map((x) => x.toMap())),
-      };
-}
 
 class Settings {
   Settings({
@@ -1019,28 +999,9 @@ class KeyedAuthority {
   };
 }
 
+
+
 class PayloadUser {
-  List<Userpayload>? payload;
-
-  PayloadUser({this.payload});
-
-  factory PayloadUser.fromMap(Map<String, dynamic> json) {
-    return PayloadUser(
-      payload: json['payload'] != null
-          ? List<Userpayload>.from(
-          (json['payload'] as List<dynamic>).map((e) => Userpayload.fromMap(e as Map<String, dynamic>)))
-          : null,
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      "payload": payload?.map((x) => x.toMap()).toList(),
-    };
-  }
-}
-
-class Userpayload {
   final List<Operation>? operations;
   final UserCredentials? userCredentials;
   final List<dynamic>? attributeValues;
@@ -1051,11 +1012,12 @@ class Userpayload {
   final String? name;
   final String? firstName;
   String? status;
-  final List<UserGroup>? userGroups;
+  final List<UserGroups>? userGroups;
   final String? email;
   String? password;
+   String? reason;
 
-  Userpayload({
+  PayloadUser({
     this.attributeValues,
     this.dataViewOrganisationUnits,
     this.phoneNumber,
@@ -1069,10 +1031,11 @@ class Userpayload {
     this.email,
     this.password,
     this.status,
+    this.reason,
   });
 
-  factory Userpayload.fromMap(Map<String, dynamic> json) {
-    return Userpayload(
+  factory PayloadUser.fromMap(Map<String, dynamic> json) {
+    return PayloadUser(
       attributeValues: json["attributeValues"] != null
           ? List<dynamic>.from(json["attributeValues"])
           : null,
@@ -1086,12 +1049,13 @@ class Userpayload {
       status: json["status"] as String?,
       name: json["name"] as String?,
       password: json["password"] as String?,
+      reason: json["reason"] as String?,
       firstName: json["firstName"] as String?,
       userCredentials: json["userCredentials"] != null
           ? UserCredentials.fromMap(json["userCredentials"] as Map<String, dynamic>)
           : null,
       userGroups: json["userGroups"] != null
-          ? List<UserGroup>.from(json["userGroups"].map((x) => UserGroup.fromMap(x as Map<String, dynamic>)))
+          ? List<UserGroups>.from(json["userGroups"].map((x) => UserGroups.fromMap(x as Map<String, dynamic>)))
           : null,
       operations: json["operations"] != null
           ? List<Operation>.from(json["operations"].map((x) => Operation.fromMap(x as Map<String, dynamic>)))
@@ -1109,6 +1073,7 @@ class Userpayload {
       if (firstName != null) "firstName": firstName,
       if (name != null) "name": name,
       if (password != null) "password": password,
+      if (reason != null) "reason": reason,
       if (email != null) "email": email,
       if (status != null) "status": status,
       if (userCredentials != null) "userCredentials": userCredentials!.toMap(),

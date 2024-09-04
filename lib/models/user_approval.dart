@@ -598,4 +598,6 @@ class Users {
   Map<String, dynamic> toMap() => {
     "users": users == null ? {} : Map<String, dynamic>.from(users!),
   };
+
 }
+

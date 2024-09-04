@@ -66,6 +66,7 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                               : _searchResult.length,
                           itemBuilder: (context, index) {
                             final messageData = value.userApproval[index];
+
                             return Row(
                               children: [
                                 Flexible(
@@ -94,8 +95,9 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                             );
 
 
+
                           },
-                        ),
+                       ),
                       ],
                     ),
                   );

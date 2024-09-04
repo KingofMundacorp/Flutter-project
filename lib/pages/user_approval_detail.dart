@@ -474,6 +474,8 @@ String _suggestAlternativeUsername(dynamic baseUsername, dynamic firstName, dyna
         actions: [
           TextButton(
             onPressed: () {
+              userPayload?.userCredentials?.username = username;
+              userPayload?.userCredentials?.password = "Hmis@2024";
               userPayload?.username = username;
               userPayload?.password = "Hmis@2024";
               print('User created with username: ${userPayload?.username}');
@@ -561,7 +563,6 @@ void _showMessage(BuildContext context, String messageon) {
             TextButton(
               child: Text(isAccept ? 'Accept' : 'Reject'),
               onPressed: () {
-                context.go('/home/user_account');
                 _loading(isAccept);
               },
             ),

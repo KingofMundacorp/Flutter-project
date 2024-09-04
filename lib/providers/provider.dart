@@ -185,7 +185,6 @@ class MessageModel with ChangeNotifier {
     _isLoading = true;
    for (var payload in userApproval.userPayload!) {
     var id = userApproval.id!.substring(0, 15);
-    var idi = userApproval.id;
     var username = payload.username;
     var phoneNumber = payload.phoneNumber;
     var email = payload.email;
@@ -202,47 +201,44 @@ class MessageModel with ChangeNotifier {
     print(username);
     try {
       final res = await d2repository.httpClient.get(
-          'messageConversations?messageType=TICKET&filter=subject:ilike:${id}');
+          'messageConversations?messageType=TICKET&filter=subject:ilike:$id');
 
       String convId;
       if (res.body['messageConversations'] != null && res.body['messageConversations'].isNotEmpty) {
         // A conversation exists, get its ID
         convId = res.body['messageConversations'][0]['id'].toString();
-
       } else {
         // No conversation found, create a new one
-        print("No message conversation found for id: ${id}. Creating a new conversation.");
+        print("No message conversation found for id: $id. Creating a new conversation.");
 
         final createRes = await d2repository.httpClient.post(
           'messageConversations',
           {
-            "subject": "New Conversation for User ID ${id}",
-            "users": [
-              {
-                "id": userApproval.id
-              }
-            ],
+            "subject": "New Conversation for User ID $id",
+            // Assuming you need to add users to the conversation
             "messageType": "TICKET",
-
+            "messages": [
+              {
+                "text": "Initial message for new conversation.",
+              }
+            ]
           },
         );
-        // Extract the ID of the newly created conversation
+
+                // Extract the ID of the newly created conversation
         convId = createRes.body['id'].toString();
       }
 
-      // Now proceed with the logic using the convId
       if (message == null) {
         print('This is inside if statement');
         try {
-          await d2repository.httpClient.get('dataStore/dhis2-user-support/${idi}');
-          await d2repository.httpClient.post('user', json.encode({"userCredentials":{"cogsDimensionConstraints":[],"catDimensionConstraints":[],"username":"${{username}}","password":"Hmis@2024","userRoles":[userRolesid]},"surname":"${surname}","firstName":"${firstname}","email":"${email}","phoneNumber":"${phoneNumber}","organisationUnits":[organisationUnitsid],"dataViewOrganisationUnits":[dataOrganisationUnitsid],"userGroups":[userGroupsid],"attributeValues":[]}));
-          await d2repository.httpClient.post(userApproval.url!, userApproval.userPayload!);
+          await d2repository.httpClient.get('dataStore/dhis2-user-support/${userApproval.id}');
+          await d2repository.httpClient.post('users', jsonEncode(userApproval.userPayload?.toString()));
           await d2repository.httpClient.post('messageConversations/${convId}', 'The following are the accounts created \n \n 1. user details  - ${phoneNumber}  is: username=  ${username} and password = Hmis@2024');
           await d2repository.httpClient.post('messageConversations/${convId}/status?messageConversationStatus=SOLVED', '');
-          await d2repository.httpClient.post('messageConversations', json.encode({"subject":"HMIS DHIS2 ACCOUNT","users":[{"id":"${userApproval.id}","username":"${username}","type":"user"}],"userGroups":[],"text":"Your creadentials are: \n Username: ${username} \n\n                    Password: Hmis@2024 \n\n\n                    MoH requires you to change password after login.\n                    The account will be disabled if it is not used for 3 months consecutively"}));
-         
+          await d2repository.httpClient.post(('messageConversations'), ({"subject":"HMIS DHIS2 ACCOUNT","users":[{"id":"hey","username":"${username}","type":"user"}],"userGroups":[],"text":"Your creadentials are: \n Username: ${username} \n\n                    Password: Hmis@2024 \n\n\n                    MoH requires you to change password after login.\n                    The account will be disabled if it is not used for 3 months consecutively"}));
+          await d2repository.httpClient.delete('dataStore/dhis2-user-support', userApproval.id.toString());
         } catch (e) {
-          // Handle any errors that occur during the requests
           print("An error occurred: $e");
         }
       } else {

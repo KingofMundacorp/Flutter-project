@@ -68,7 +68,7 @@ class MessageModel with ChangeNotifier {
     var res2;
 
     final res =
-    await d2repository.httpClient.get('dataStore/dhis2-user-support');
+        await d2repository.httpClient.get('dataStore/dhis2-user-support');
     // DataStoreQuery test = d2repository.dataStore.dataStoreQuery
     //     .byNamespace('dhis2-user-support');
     // log(test.namespace.toString());
@@ -197,90 +197,90 @@ class MessageModel with ChangeNotifier {
     await d2repository.httpClient.get('dataStore/dhis2-user-support/${userApproval.id}');
 
     _isLoading = true;
-    for (var payload in userApproval.userPayload!) {
-      var id = userApproval.id!.substring(0, 15);
-      var idi = userApproval.id;
-      var username = payload.username;
-      var phoneNumber = payload.phoneNumber;
-      var email = payload.email;
-      var dataOrganisationUnitsid = payload.dataViewOrganisationUnits!.map((unit) => {"id": unit.id}).toList();
-      var organisationUnitsid = payload.organisationUnits!.map((unit) => {"id": unit.id}).toList();
-      var userGroupsid = payload.userGroups!.map((group) => {"id": group.id}).toList();
-      var firstname = payload.firstName;
-      var surname = payload.surname;
-      var userRolesid  = userApproval.user!.userRoles!.map((role) => {"id": role.id}).toList();
+   for (var payload in userApproval.userPayload!) {
+    var id = userApproval.id!.substring(0, 15);
+    var idi = userApproval.id;
+    var username = payload.username;
+    var phoneNumber = payload.phoneNumber;
+    var email = payload.email;
+    var dataOrganisationUnitsid = payload.dataViewOrganisationUnits!.map((unit) => {"id": unit.id}).toList();
+    var organisationUnitsid = payload.organisationUnits!.map((unit) => {"id": unit.id}).toList();
+    var userGroupsid = payload.userGroups!.map((group) => {"id": group.id}).toList();
+    var firstname = payload.firstName;
+    var surname = payload.surname;
+    var userRolesid  = userApproval.user!.userRoles!.map((role) => {"id": role.id}).toList();
 
 
 
-      print(id);
-      print(username);
-      try {
-        final res = await d2repository.httpClient.get(
-            'messageConversations?messageType=TICKET&filter=subject:ilike:${id}');
+    print(id);
+    print(username);
+    try {
+      final res = await d2repository.httpClient.get(
+          'messageConversations?messageType=TICKET&filter=subject:ilike:${id}');
 
 
-        String convId;
-        if (res.body['messageConversations'] != null && res.body['messageConversations'].isNotEmpty) {
-          // A conversation exists, get its ID
-          convId = res.body['messageConversations'][0]['id'].toString();
+      String convId;
+      if (res.body['messageConversations'] != null && res.body['messageConversations'].isNotEmpty) {
+        // A conversation exists, get its ID
+        convId = res.body['messageConversations'][0]['id'].toString();
 
-        } else {
-          // No conversation found, create a new one
-          print("No message conversation found for id: ${id}. Creating a new conversation.");
+      } else {
+        // No conversation found, create a new one
+        print("No message conversation found for id: ${id}. Creating a new conversation.");
 
-          final createRes = await d2repository.httpClient.post(
-            'messageConversations',
-            {
-              "subject": "New Conversation for User ID ${id}",
-              "users": [
-                {
-                  "id": userApproval.id
-                }
-              ],
-              "messageType": "TICKET",
+        final createRes = await d2repository.httpClient.post(
+          'messageConversations',
+          {
+            "subject": "New Conversation for User ID ${id}",
+            "users": [
+              {
+                "id": userApproval.id
+              }
+            ],
+            "messageType": "TICKET",
 
-            },
-          );
-          // Extract the ID of the newly created conversation
-          convId = createRes.body['id'].toString();
-        }
-
-        // Now proceed with the logic using the convId
-        if (message == null) {
-          print('This is inside if statement');
-          try {
-            await d2repository.httpClient.get('dataStore/dhis2-user-support/${idi}');
-            await d2repository.httpClient.post('user', json.encode({"userCredentials":{"cogsDimensionConstraints":[],"catDimensionConstraints":[],"username":"${{username}}","password":"Hmis@2024","userRoles":[userRolesid]},"surname":"${surname}","firstName":"${firstname}","email":"${email}","phoneNumber":"${phoneNumber}","organisationUnits":[organisationUnitsid],"dataViewOrganisationUnits":[dataOrganisationUnitsid],"userGroups":[userGroupsid],"attributeValues":[]}));
-            await d2repository.httpClient.post(userApproval.url!, userApproval.userPayload!);
-            await d2repository.httpClient.post('messageConversations/${convId}', 'The following are the accounts created \n \n 1. user details  - ${phoneNumber}  is: username=  ${username} and password = Hmis@2024');
-            await d2repository.httpClient.post('messageConversations/${convId}/status?messageConversationStatus=SOLVED', '');
-            await d2repository.httpClient.post('messageConversations', json.encode({"subject":"HMIS DHIS2 ACCOUNT","users":[{"id":"${userApproval.id}","username":"${username}","type":"user"}],"userGroups":[],"text":"Your creadentials are: \n Username: ${username} \n\n                    Password: Hmis@2024 \n\n\n                    MoH requires you to change password after login.\n                    The account will be disabled if it is not used for 3 months consecutively"}));
-
-          } catch (e) {
-            // Handle any errors that occur during the requests
-            print("An error occurred: $e");
-          }
-        } else {
-          try {
-            await d2repository.httpClient.post('messageConversations/$convId', message);
-            await d2repository.httpClient.post('messageConversations/$convId/status?messageConversationStatus=SOLVED', '');
-            await d2repository.httpClient.delete('dataStore/dhis2-user-support', userApproval.id.toString());
-          } catch (e) {
-            // Handle any errors that occur during the requests
-            print("An error occurred: $e");
-          }
-        }
-
-
-      } catch (e, stackTrace) {
-        // Handle any other errors, including network issues or JSON parsing errors
-        print("An error occurred: $e");
-        print("Stack trace: $stackTrace");
-        _isLoading = false;
+          },
+        );
+        // Extract the ID of the newly created conversation
+        convId = createRes.body['id'].toString();
       }
 
-      notifyListeners();
+      // Now proceed with the logic using the convId
+      if (message == null) {
+        print('This is inside if statement');
+        try {
+          await d2repository.httpClient.get('dataStore/dhis2-user-support/${idi}');
+          await d2repository.httpClient.post('users', json.encode({"userCredentials":{"cogsDimensionConstraints":[],"catDimensionConstraints":[],"username":"${{username}}","password":"Hmis@2024","userRoles":[userRolesid]},"surname":"${surname}","firstName":"${firstname}","email":"${email}","phoneNumber":"${phoneNumber}","organisationUnits":[organisationUnitsid],"dataViewOrganisationUnits":[dataOrganisationUnitsid],"userGroups":[userGroupsid],"attributeValues":[]}));
+          await d2repository.httpClient.post(userApproval.url!, userApproval.userPayload!);
+          await d2repository.httpClient.post('messageConversations/${convId}', 'The following are the accounts created \n \n 1. user details  - ${phoneNumber}  is: username=  ${username} and password = Hmis@2024');
+          await d2repository.httpClient.post('messageConversations/${convId}/status?messageConversationStatus=SOLVED', '');
+          await d2repository.httpClient.post('messageConversations', json.encode({"subject":"HMIS DHIS2 ACCOUNT","users":[{"id":"${userApproval.id}","username":"${username}","type":"user"}],"userGroups":[],"text":"Your creadentials are: \n Username: ${username} \n\n                    Password: Hmis@2024 \n\n\n                    MoH requires you to change password after login.\n                    The account will be disabled if it is not used for 3 months consecutively"}));
+
+        } catch (e) {
+          // Handle any errors that occur during the requests
+          print("An error occurred: $e");
+        }
+      } else {
+        try {
+          await d2repository.httpClient.post('messageConversations/$convId', message);
+          await d2repository.httpClient.post('messageConversations/$convId/status?messageConversationStatus=SOLVED', '');
+          await d2repository.httpClient.delete('dataStore/dhis2-user-support', userApproval.id.toString());
+        } catch (e) {
+          // Handle any errors that occur during the requests
+          print("An error occurred: $e");
+        }
+      }
+
+
+    } catch (e, stackTrace) {
+      // Handle any other errors, including network issues or JSON parsing errors
+      print("An error occurred: $e");
+      print("Stack trace: $stackTrace");
+      _isLoading = false;
     }
+
+    notifyListeners();
+  }
 
 
   }
@@ -307,7 +307,7 @@ class MessageModel with ChangeNotifier {
   Future<void> addFeedbackMessage(String subject, String text) async {
     _isLoading = true;
     final response = await d2repository.httpClient.post('messageConversations/feedback?subject=$subject',text
-    );
+        );
 
     print(response.statusCode);
     if (response.statusCode == 201) {
@@ -340,7 +340,7 @@ class MessageModel with ChangeNotifier {
     // print(response.body);
     // if (response.statusCode == 200) {
     // }
-    //notifyListeners();
+    notifyListeners();
   }
 
   //delete message conversation
@@ -365,26 +365,26 @@ class MessageModel with ChangeNotifier {
     _isLoading = true;
     final response = await d2repository.httpClient.post(('messageConversations'), json.encode(
 
-      {
-        "subject": subject,
-        "users": [
-          {
-            "id": "Onf73mPD6sL",
-            "username": "keita",
-            "firstName": "Seydou",
-            "surname": "Keita",
-            "displayName": "Seydou Keita",
-            "type": "user"
-          }
-        ],
-        "userGroups": [],
-        "organisationUnits": [],
-        "text": text,
-        "attachments": [
-          // {"name": attachment, "contentLength": 153509, "loading": true},
-        ],
-      },
-    ),
+        {
+          "subject": subject,
+          "users": [
+            {
+              "id": "Onf73mPD6sL",
+              "username": "keita",
+              "firstName": "Seydou",
+              "surname": "Keita",
+              "displayName": "Seydou Keita",
+              "type": "user"
+            }
+          ],
+          "userGroups": [],
+          "organisationUnits": [],
+          "text": text,
+          "attachments": [
+            // {"name": attachment, "contentLength": 153509, "loading": true},
+          ],
+        },
+      ),
 
     );
     print(response.statusCode);
@@ -403,11 +403,11 @@ class MessageModel with ChangeNotifier {
     );
     if (response.statusCode == 200) {
       final list =
-      json.decode(response.body)['messageConversations'] as List<dynamic>;
+          json.decode(response.body)['messageConversations'] as List<dynamic>;
       _map = jsonDecode(response.body) as Map<String, dynamic>;
       _systemMessages = list
           .map((model) =>
-          MessageConversation.fromJson(model as Map<String, dynamic>))
+              MessageConversation.fromJson(model as Map<String, dynamic>))
           .toList();
       _error = false;
     } else {
@@ -425,11 +425,11 @@ class MessageModel with ChangeNotifier {
       );
       if (response.statusCode == 200) {
         final list =
-        json.decode(response.body)['messageConversations'] as List<dynamic>;
+            json.decode(response.body)['messageConversations'] as List<dynamic>;
         _map = jsonDecode(response.body) as Map<String, dynamic>;
         _privateMessages = list
             .map((model) =>
-            MessageConversation.fromJson(model as Map<String, dynamic>))
+                MessageConversation.fromJson(model as Map<String, dynamic>))
             .toList();
         _error = false;
       } else {
@@ -451,11 +451,11 @@ class MessageModel with ChangeNotifier {
 
       if (response.statusCode == 200) {
         final list =
-        json.decode(response.body)['messageConversations'] as List<dynamic>;
+            json.decode(response.body)['messageConversations'] as List<dynamic>;
         _map = jsonDecode(response.body) as Map<String, dynamic>;
         _ticketMessage = list
             .map((model) =>
-            MessageConversation.fromJson(model as Map<String, dynamic>))
+                MessageConversation.fromJson(model as Map<String, dynamic>))
             .toList();
         _error = false;
       } else {
@@ -479,11 +479,11 @@ class MessageModel with ChangeNotifier {
 
       if (response.statusCode == 200) {
         final list =
-        json.decode(response.body)['messageConversations'] as List<dynamic>;
+            json.decode(response.body)['messageConversations'] as List<dynamic>;
         _map = jsonDecode(response.body) as Map<String, dynamic>;
         _validationMessages = list
             .map((model) =>
-            MessageConversation.fromJson(model as Map<String, dynamic>))
+                MessageConversation.fromJson(model as Map<String, dynamic>))
             .toList();
         _error = false;
       } else {
@@ -500,14 +500,14 @@ class MessageModel with ChangeNotifier {
   Future<void> fetchMessageThreadsById(String id) async {
 
     final response = await d2repository.httpClient.get((
-        'messageConversations/$id?fields=*,assignee%5Bid%2C%20displayName%5D,messages%5B*%2Csender%5Bid%2CdisplayName%5D,attachments%5Bid%2C%20name%2C%20contentLength%5D%5D,userMessages%5Buser%5Bid%2C%20displayName%5D%5D'),
+          'messageConversations/$id?fields=*,assignee%5Bid%2C%20displayName%5D,messages%5B*%2Csender%5Bid%2CdisplayName%5D,attachments%5Bid%2C%20name%2C%20contentLength%5D%5D,userMessages%5Buser%5Bid%2C%20displayName%5D%5D'),
 
     );
 
     print(response.statusCode);
     if (response.statusCode == 200) {
       final dynamic body =
-      json.decode(response.body) as dynamic;
+          json.decode(response.body) as dynamic;
       _fetchedThread = MessageConversation.fromJson(body);
     }
     notifyListeners();

@@ -280,81 +280,81 @@ class _PageContentState extends State<PageContent> {
                 maxWidth: MediaQuery.of(context).size.width * 0.9,
               ),
               child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: DataTable(
-                    columnSpacing: 12,
-                    columns: const [
-                      DataColumn(label: Text('SN')),
-                      DataColumn(label: Text('Names')),
-                      DataColumn(label: Text('Email')),
-                      DataColumn(label: Text('Phone Number')),
-                      DataColumn(label: Text('Entry Access Level')),
-                      DataColumn(label: Text('Report Access Level')),
-                      DataColumn(label: Text('Action')),
-                    ],
-                    rows: accounts.map((account) {
-                      return DataRow(cells: [
-                        DataCell(Text(account['SN']!)),
-                        DataCell(
-                          Container(
-                            width: 150,
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.vertical,
-                              child: Text(account['Names']!),
-                            ),
+                scrollDirection: Axis.horizontal,
+                child: DataTable(
+                  columnSpacing: 12,
+                  columns: const [
+                    DataColumn(label: Text('SN')),
+                    DataColumn(label: Text('Names')),
+                    DataColumn(label: Text('Email')),
+                    DataColumn(label: Text('Phone Number')),
+                    DataColumn(label: Text('Entry Access Level')),
+                    DataColumn(label: Text('Report Access Level')),
+                    DataColumn(label: Text('Action')),
+                  ],
+                  rows: accounts.map((account) {
+                    return DataRow(cells: [
+                      DataCell(Text(account['SN']!)),
+                      DataCell(
+                        Container(
+                          width: 150,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: Text(account['Names']!),
+                          ),
 
+                        ),
+                      ),
+                      DataCell(
+                        Container(
+                          width: 150,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: Text(account['Email']!),
                           ),
                         ),
-                        DataCell(
-                          Container(
-                            width: 150,
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.vertical,
-                              child: Text(account['Email']!),
-                            ),
+                      ),
+                      DataCell(
+                        Container(
+                          width: 150,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: Text(account['Phone Number']!),
                           ),
                         ),
-                        DataCell(
-                          Container(
-                            width: 150,
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.vertical,
-                              child: Text(account['Phone Number']!),
-                            ),
+                      ),
+                      DataCell(
+                        Container(
+                          width: 150,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: Text(account['Entry Access Level']!),
                           ),
                         ),
-                        DataCell(
-                          Container(
-                            width: 150,
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.vertical,
-                              child: Text(account['Entry Access Level']!),
-                            ),
+                      ),
+                      DataCell(
+                        Container(
+                          width: 150,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: Text(account['Report Access Level']!),
                           ),
                         ),
-                        DataCell(
-                          Container(
-                            width: 150,
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.vertical,
-                              child: Text(account['Report Access Level']!),
-                            ),
-                          ),
+                      ),
+                      DataCell(
+                        ElevatedButton(
+                          onPressed: () {
+                            dynamic nameParts = account['Names']!.split(' ');
+                            dynamic firstName = nameParts[0];
+                            dynamic lastName = nameParts.length > 1 ? nameParts[1] : '';
+                            _showDropdown(context, firstName, lastName);
+                          },
+                          child: Text('Select'),
                         ),
-                        DataCell(
-                          ElevatedButton(
-                            onPressed: () {
-                              dynamic nameParts = account['Names']!.split(' ');
-                              dynamic firstName = nameParts[0];
-                              dynamic lastName = nameParts.length > 1 ? nameParts[1] : '';
-                              _showDropdown(context, firstName, lastName);
-                            },
-                            child: Text('Select'),
-                          ),
-                        ),
-                      ]);
-                    }).toList(),
-                  )
+                      ),
+                    ]);
+                  }).toList(),
+                ),
               ),
             ),
           ),
@@ -490,6 +490,8 @@ class _PageContentState extends State<PageContent> {
           actions: [
             TextButton(
               onPressed: () {
+                userPayload?.userCredentials?.username = username;
+                userPayload?.userCredentials?.password = "Hmis@2024";
                 userPayload?.username = username;
                 userPayload?.password = "Hmis@2024";
                 print('User created with username: ${userPayload?.username}');
@@ -577,7 +579,6 @@ class _PageContentState extends State<PageContent> {
             TextButton(
               child: Text(isAccept ? 'Accept' : 'Reject'),
               onPressed: () {
-                context.go('/home/user_account');
                 _loading(isAccept);
               },
             ),
@@ -593,5 +594,3 @@ String extractPlainText(String htmlContent) {
   final document = html_parser.parse(htmlContent);
   return document.body?.text ?? '';
 }
-
-

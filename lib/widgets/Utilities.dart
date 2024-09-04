@@ -1,6 +1,6 @@
 
-
 import 'dart:ui';
+
 
 import 'package:flutter/material.dart';
 
@@ -19,9 +19,11 @@ class Utils {
               return Colors.red.withOpacity(0.2);
             }
           }
+
         }
       }
     }
     return Colors.transparent; // Default color if no relevant status is found
   }
 }
+

@@ -9,10 +9,12 @@ import 'package:http/http.dart' as http;
 import 'package:d2_touch/shared/utilities/http_client.util.dart';
 import 'package:user_support_mobile/constants/d2-repository.dart';
 
+import '../widgets/Utilities.dart';
 import '/constants/constants.dart';
 import '/models/message_conversation.dart';
 import '/models/user.dart';
 import '../models/approve_model.dart';
+import '../pages/user_approval_detail.dart';
 
 
 class MessageModel with ChangeNotifier {
@@ -28,8 +30,12 @@ class MessageModel with ChangeNotifier {
   late MessageConversation _reply;
   Map<String, dynamic> _map = {};
   bool _error = false;
-  final String _errorMessage = '';
+  String _errorMessage = '';
   bool _isLoading = false;
+  bool _isConfirmed = false;
+  bool _isDuplicate = false;
+
+
 
   Map<String, dynamic> get map => _map;
   bool get error => _error;
@@ -46,7 +52,12 @@ class MessageModel with ChangeNotifier {
   List<MessageConversation> get validationMessage => _validationMessages;
   MessageConversation get userReply => _reply;
   MessageConversation get fetchedThread => _fetchedThread;
-
+  bool get isConfirmed => _isConfirmed;
+  set isConfirmed(bool value) {
+    _isConfirmed = value;
+    notifyListeners();
+  }
+  bool get isDuplicate => _isDuplicate;
   // new codes
 
   Future<void> get fetchDataApproval async {
@@ -134,6 +145,7 @@ class MessageModel with ChangeNotifier {
     log('this is initially called');
 
     List<UserModel> userApprovalList = []; // This will only hold items where actionType is null.
+
     var res2;
 
     final res = await d2repository.httpClient.get('dataStore/dhis2-user-support');
@@ -154,6 +166,7 @@ class MessageModel with ChangeNotifier {
                   userModel.message?.message != 'No Subject' &&
                   userModel.message?.subject?.split("-").last != 'No Display' &&
                   userModel.actionType == null) { // Only add if actionType is null
+
                 userApprovalList.add(userModel);
               }
             } else {
@@ -166,6 +179,7 @@ class MessageModel with ChangeNotifier {
               userModel.message?.message != 'No Subject' &&
               userModel.message?.subject?.split("-").last != 'No Display' &&
               userModel.actionType == null) { // Only add if actionType is null
+
             userApprovalList.add(userModel);
           }
         } else {
@@ -174,14 +188,14 @@ class MessageModel with ChangeNotifier {
       }
     }
 
-    // Set the final list only with items where actionType is null
+
     _userApproval = userApprovalList;
     notifyListeners();
   }
 
-
   Future<void> approvalUserRequest(UserModel userApproval, {String? message}) async {
     await d2repository.httpClient.get('dataStore/dhis2-user-support/${userApproval.id}');
+
     _isLoading = true;
    for (var payload in userApproval.userPayload!) {
     var id = userApproval.id!.substring(0, 15);
@@ -202,6 +216,7 @@ class MessageModel with ChangeNotifier {
     try {
       final res = await d2repository.httpClient.get(
           'messageConversations?messageType=TICKET&filter=subject:ilike:$id');
+
 
       String convId;
       if (res.body['messageConversations'] != null && res.body['messageConversations'].isNotEmpty) {
@@ -252,6 +267,7 @@ class MessageModel with ChangeNotifier {
         }
       }
 
+
     } catch (e, stackTrace) {
       // Handle any other errors, including network issues or JSON parsing errors
       print("An error occurred: $e");
@@ -262,8 +278,8 @@ class MessageModel with ChangeNotifier {
     notifyListeners();
   }
 
-  }
 
+  }
 
 
   //send message to the message conversation
@@ -273,6 +289,7 @@ class MessageModel with ChangeNotifier {
     }
     final response = await d2repository.httpClient.post('messageConversations/$id?internal=false',message
      
+
     );
 
     if (response.statusCode == 200) {
@@ -287,6 +304,7 @@ class MessageModel with ChangeNotifier {
     _isLoading = true;
     final response = await d2repository.httpClient.post('messageConversations/feedback?subject=$subject',text
         );
+
     print(response.statusCode);
     if (response.statusCode == 201) {
       _isLoading = false;
@@ -300,6 +318,7 @@ class MessageModel with ChangeNotifier {
   //post message read
   Future<void> messageRead(String id) async {
     final response = await d2repository.httpClient.post('messageConversations/read',jsonEncode([id])
+
     );
     print(response.body);
     if (response.statusCode == 200) {
@@ -310,8 +329,10 @@ class MessageModel with ChangeNotifier {
 
   //post message unread
   Future<void> messageUnread(String id) async {
+
     final response = await d2repository.httpClient.post('messageConversations/unread',jsonEncode([id])
     );
+
     // print(response.body);
     // if (response.statusCode == 200) {
     // }
@@ -321,6 +342,7 @@ class MessageModel with ChangeNotifier {
   //delete message conversation
   Future<void> deleteMessage(String messageId) async {
     final response = await d2repository.httpClient.delete('messageConversations/$messageId/xE7jOejl9FI',messageId
+
     );
     print(messageId);
     print(response.statusCode);
@@ -338,6 +360,7 @@ class MessageModel with ChangeNotifier {
       String attachment, String text, String subject) async {
     _isLoading = true;
     final response = await d2repository.httpClient.post(('messageConversations'), json.encode(
+
         {
           "subject": subject,
           "users": [
@@ -372,6 +395,7 @@ class MessageModel with ChangeNotifier {
   Future<void> get fetchSystemMessage async {
     final response = await d2repository.httpClient.get(('messageConversations?filter=messageType%3Aeq%3ASYSTEM&fields=id,displayName,subject,messageType,lastSender%5Bid%2C%20displayName%5D,assignee%5Bid%2C%20displayName%5D,status,priority,lastUpdated,read,lastMessage,followUp&order=lastMessage%3Adesc'),
     
+
     );
     if (response.statusCode == 200) {
       final list =
@@ -393,6 +417,7 @@ class MessageModel with ChangeNotifier {
     try {
       final response = await d2repository.httpClient.get(('messageConversations?filter=messageType%3Aeq%3APRIVATE&pageSize=35&page=1&fields=id,displayName,subject,messageType,lastSender%5Bid%2C%20displayName%5D,assignee%5Bid%2C%20displayName%5D,status,priority,lastUpdated,read,lastMessage,followUp&order=lastMessage%3Adesc'),
         
+
       );
       if (response.statusCode == 200) {
         final list =
@@ -417,6 +442,7 @@ class MessageModel with ChangeNotifier {
     try {
       final response = await d2repository.httpClient.get(('messageConversations?filter=messageType%3Aeq%3ATICKET&pageSize=35&page=1&fields=id,displayName,subject,messageType,lastSender%5Bid%2C%20displayName%5D,assignee%5Bid%2C%20displayName%5D,status,priority,lastUpdated,read,lastMessage,followUp&order=lastMessage%3Adesc'),
        
+
       );
 
       if (response.statusCode == 200) {
@@ -443,6 +469,7 @@ class MessageModel with ChangeNotifier {
     try {
       final response = await d2repository.httpClient.get(('messageConversations?filter=messageType%3Aeq%3AVALIDATION_RESULT&fields=id,displayName,subject,messageType,lastSender%5Bid%2C%20displayName%5D,assignee%5Bid%2C%20displayName%5D,status,priority,lastUpdated,read,lastMessage,followUp&order=lastMessage%3Adesc'),
         
+
       );
       print(response.statusCode);
 
@@ -467,8 +494,10 @@ class MessageModel with ChangeNotifier {
 
   //fetch message conversation by id
   Future<void> fetchMessageThreadsById(String id) async {
+
     final response = await d2repository.httpClient.get((
           'messageConversations/$id?fields=*,assignee%5Bid%2C%20displayName%5D,messages%5B*%2Csender%5Bid%2CdisplayName%5D,attachments%5Bid%2C%20name%2C%20contentLength%5D%5D,userMessages%5Buser%5Bid%2C%20displayName%5D%5D'),
+
     );
 
     print(response.statusCode);
@@ -478,8 +507,12 @@ class MessageModel with ChangeNotifier {
       _fetchedThread = MessageConversation.fromJson(body);
     }
     notifyListeners();
-    //delete message conversation
+    //delete message conversation*/
   }
+
+
+
+
 
   void initialValue() {
     // _allMessageConversation = [];

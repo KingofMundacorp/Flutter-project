@@ -1,12 +1,15 @@
 import 'dart:io';
+
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:user_support_mobile/constants/d2-repository.dart';
 import 'package:flutter/material.dart';
+
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import '../widgets/Utilities.dart';
 import 'user_approval_screen.dart';
 import '../models/approve_model.dart';
 import '../providers/provider.dart';
@@ -19,6 +22,7 @@ class UserApprovalDetailPage extends StatefulWidget {
   final UserModel? userApproval;
   final List<Userpayload>? userPayload;
   
+
 
   @override
   UserApprovalDetailPageState createState() => UserApprovalDetailPageState();
@@ -68,6 +72,7 @@ class UserApprovalDetailPageState extends State<UserApprovalDetailPage> {
       .toList() ?? [];
 
   return [...dataViewOrganisationUnitNames, ...childrenNames].join(', ');
+
   }
 
   @override
@@ -88,6 +93,7 @@ class PageContent extends StatefulWidget {
   final Userpayload? userPayload;
   final List<dynamic> Function()? parseMessages;
 
+
   @override
   State<PageContent> createState() => _PageContentState();
 }
@@ -100,6 +106,11 @@ class _PageContentState extends State<PageContent> {
   bool isVisible = true;
   bool isButtonEnabled = false;
   final TextEditingController _textEditingController = TextEditingController();
+  bool _isDropdownShown = false; // Tracks whether the dropdown is shown
+  Map<String, dynamic> _selectedAccount = {}; // Holds the selected account details
+  Color _selectButtonColor = Color(0xFF235EA0); // Initial color of the select button
+  Map<String, bool> _rejectedAccounts = {};
+  Map<String, bool> _confirmedAccounts = {};
 
   @override
   Widget build(BuildContext context) {
@@ -145,6 +156,7 @@ class _PageContentState extends State<PageContent> {
                       ),
                       Html(
                         data: widget.userApproval!.message!.message!,
+
                         style: {
                           'body': Style(
                             color: Colors.black,
@@ -161,15 +173,16 @@ class _PageContentState extends State<PageContent> {
                         child: Row(
                           children: [
                             AbsorbPointer(
-                              absorbing: false,
+                              absorbing: _isDropdownShown, // Disable button if dropdown is shown
                               child: ElevatedButton(
                                 style: ButtonStyle(
-                                  backgroundColor: MaterialStateProperty.all(
-                                    Color(0xFF235EA0),
+                                  backgroundColor: WidgetStateProperty.all(
+                                    _selectButtonColor,
                                   ),
                                 ),
                                 onPressed: () {
                                   final accounts = widget.parseMessages!();
+
                                   _showApprovalTableDialog(accounts);
                                 },
                                 child: Padding(
@@ -188,8 +201,8 @@ class _PageContentState extends State<PageContent> {
                               absorbing: false,
                               child: OutlinedButton(
                                 style: ButtonStyle(
-                                  backgroundColor:
-                                  MaterialStateProperty.all(Colors.red),
+                                  backgroundColor: MaterialStateProperty.all(
+                                      Colors.red),
                                 ),
                                 onPressed: () {
                                   showDataAlert(context);
@@ -234,6 +247,7 @@ class _PageContentState extends State<PageContent> {
     try {
       await context.read<MessageModel>().approvalUserRequest(
         widget.userApproval!,
+
         message: isAccept ? null : _textEditingController.text.trim(),
       );
 
@@ -250,6 +264,7 @@ class _PageContentState extends State<PageContent> {
       EasyLoading.dismiss();
     }
   }
+
 
   void _showApprovalTableDialog(List<dynamic> accounts) {
   showDialog(
@@ -287,6 +302,7 @@ class _PageContentState extends State<PageContent> {
                           scrollDirection: Axis.vertical,
                           child: Text(account['Names']!),
                         ),
+
                       ),
                     ),
                     DataCell(
@@ -339,6 +355,7 @@ class _PageContentState extends State<PageContent> {
                   ]);
                 }).toList(),
               ),
+<<<<<<< HEAD
             ),
           ),
         ),
@@ -567,6 +584,7 @@ void _showMessage(BuildContext context, String messageon) {
               },
             ),
           ],
+
         );
       },
     );
@@ -577,4 +595,5 @@ void _showMessage(BuildContext context, String messageon) {
   final document = html_parser.parse(htmlContent);
   return document.body?.text ?? '';
 }
+
 

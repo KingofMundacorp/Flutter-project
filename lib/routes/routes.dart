@@ -19,7 +19,6 @@ import '../pages/system_page.dart';
 import '../pages/ticket_page.dart';
 import '../pages/validation_page.dart';
 import '../pages/data_approval_screen.dart';
-import '../pages/user_approval_screen.dart';
 
 final GoRouter router = GoRouter(
   routes: <RouteBase>[
@@ -32,97 +31,98 @@ final GoRouter router = GoRouter(
     ),
     GoRoute(path: '/sync', builder: (context, state) {
       return HomeMetadataSync(
-      loggedInUser: state.extra as User,
-    );
+        loggedInUser: state.extra as User,
+      );
     }),
     GoRoute(
         path: '/home',
         builder: (context, state) => const HomePage(),
         routes: [
-                GoRoute(
-                  path: 'dataset',
-                  builder: (BuildContext context, GoRouterState state) {
-                    return const DatasetScreen();
-                  },
-                ),
-                GoRoute(
-                  path: 'user_account',
-                  builder: (BuildContext context, GoRouterState state) {
-                    return const UserAccountScreen();
-                  },
-                ),
-                GoRoute(
-                  path: 'compose',
-                  builder: (BuildContext context, GoRouterState state) {
-                    return const ComposePage();
-                  },
-                ),
-                GoRoute(
-                  path: 'inbox/:isAuth',
-                  builder: (BuildContext context, GoRouterState state) {
-                    final bool isAuth = state.extra! as bool;
-                    return const InboxPage();
-                  },
-                ),
-                GoRoute(
-                  path: 'system',
-                  builder: (BuildContext context, GoRouterState state) {
-                    return const SystemPage();
-                  },
-                ),
-                GoRoute(
-                  path: 'validation',
-                  builder: (BuildContext context, GoRouterState state) {
-                    return const ValidationPage();
-                  },
-                ),
-                GoRoute(
-                  path: 'ticket',
-                  builder: (BuildContext context, GoRouterState state) {
-                    return const TicketPage();
-                  },
-                ),
-                GoRoute(
-                  name: 'login',
-                  path: 'login',
-                  builder: (BuildContext context, GoRouterState state) {
-                    return LoginPage();
-                  },
-                ),
-                GoRoute(
-                  path: 'composePainter',
-                  builder: (BuildContext context, GoRouterState state) {
-                    return const ComposePainter();
-                  },
-                ),
-                GoRoute(
-                  path: 'dataApproval',
-                  builder: (BuildContext context, GoRouterState state) {
-                    return const DataApprovalScreen();
-                  },
-                ),
-                GoRoute(
-                  path: 'userApproval',
-                  builder: (BuildContext context, GoRouterState state) {
-                    return const UserApprovalScreen();
-                  },
-                ),
-                GoRoute(
-                    path: 'request_details',
-                    builder: (context, state) {
-                      final dataApproval = state.extra as ApproveModel;
-                      return DataApprovalDetailPage(
-                        dataApproval: dataApproval,
-                      );
-                    }),
-                GoRoute(
-                    path: 'user_account_details',
-                    builder: (context, state) {
-                      final userApproval = state.extra as UserModel;
-                      return UserApprovalDetailPage(
-                        userApproval: userApproval,
-                      );
-                    }),
+          GoRoute(
+            path: 'dataset',
+            builder: (BuildContext context, GoRouterState state) {
+              return const DatasetScreen();
+            },
+          ),
+          GoRoute(
+            path: 'user_account',
+            builder: (BuildContext context, GoRouterState state) {
+              return const UserAccountScreen();
+            },
+          ),
+          GoRoute(
+            path: 'compose',
+            builder: (BuildContext context, GoRouterState state) {
+              return const ComposePage();
+            },
+          ),
+          GoRoute(
+            path: 'inbox/:isAuth',
+            builder: (BuildContext context, GoRouterState state) {
+              final bool isAuth = state.extra! as bool;
+              return const InboxPage();
+            },
+          ),
+          GoRoute(
+            path: 'system',
+            builder: (BuildContext context, GoRouterState state) {
+              return const SystemPage();
+            },
+          ),
+          GoRoute(
+            path: 'validation',
+            builder: (BuildContext context, GoRouterState state) {
+              return const ValidationPage();
+            },
+          ),
+          GoRoute(
+            path: 'ticket',
+            builder: (BuildContext context, GoRouterState state) {
+              return const TicketPage();
+            },
+          ),
+          GoRoute(
+            name: 'login',
+            path: 'login',
+            builder: (BuildContext context, GoRouterState state) {
+              return LoginPage();
+            },
+          ),
+          GoRoute(
+            path: 'composePainter',
+            builder: (BuildContext context, GoRouterState state) {
+              return const ComposePainter();
+            },
+          ),
+          GoRoute(
+            path: 'dataApproval',
+            builder: (BuildContext context, GoRouterState state) {
+              return const DataApprovalScreen();
+            },
+          ),
+          GoRoute(
+            path: 'userApproval',
+            builder: (BuildContext context, GoRouterState state) {
+              return const UserApprovalScreen();
+            },
+          ),
+          GoRoute(
+              path: 'request_details',
+              builder: (context, state) {
+                final dataApproval = state.extra as ApproveModel;
+                return DataApprovalDetailPage(
+                  dataApproval: dataApproval,
+                );
+              }),
+          GoRoute(
+              path: 'user_account_details',
+              builder: (context, state) {
+                final UserModel? userModel = state.extra as UserModel?;
+                return UserApprovalDetailPage(
+                  userApproval: userModel!,
+                  userPayload: userModel.userPayload,
+                );
+              }),
         ]),
   ],
 );

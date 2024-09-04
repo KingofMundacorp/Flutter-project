@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import '../models/approve_model.dart';
 
 class Utils {
-  static Color determineRowColor(List<PayloadUser>? payload) {
-    if (payload != null && payload.isNotEmpty) {
-      for (var payloadUser in payload) {
+  static Color determineRowColor(List<Userpayload>? userPayload) {
+    if (userPayload != null && userPayload.isNotEmpty) {
+      for (var userpayload in userPayload) {
         // Directly access the status field of PayloadUser
-        String? status = payloadUser.status;
+        String? status = userpayload.status;
         if (status == 'CREATED') {
           return Colors.green;
         } else if (status == 'APPROVED'){

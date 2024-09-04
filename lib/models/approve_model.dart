@@ -4,6 +4,10 @@
 
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
+import 'package:user_support_mobile/controller/controllers.dart';
+import 'package:user_support_mobile/models/user_approval.dart';
+
 ApproveModel approveModelFromMap(String str) =>
     ApproveModel.fromMap(json.decode(str));
 
@@ -249,7 +253,7 @@ class UserModel {
     this.id,
     this.action,
     this.user,
-    this.payload,
+    this.userPayload,
     this.method,
     this.replyMessage,
     this.ticketNumber,
@@ -264,11 +268,13 @@ class UserModel {
     this.messageConversation,
     this.shouldAlert,
     this.privateMessage,
+    this.rowColor,
   });
 
   String? id;
   UserModel3? user;
-  dynamic payload;
+  List<Userpayload>? userPayload;
+  Color? rowColor;
   String? ticketNumber;
   String? type;
   String? status;
@@ -291,7 +297,12 @@ class UserModel {
     status: json["status"] == null ? null : json["status"],
     user: json["user"] == null ? null : UserModel3.fromMap(json["user"]),
     method: json["method"] == null ? null : json["method"],
-    payload: json["payload"] == null ? null : _parsePayload(json["payload"]),
+    //payload: json["payload"] == null ? null : List<PayloadUser>.from(json["payload"].map((x) => PayloadUser.fromMap(x))),
+    userPayload: json["payload"] != null
+        ? (json["payload"] as List<dynamic>)
+        .map((e) => Userpayload.fromMap(e as Map<String, dynamic>))
+        .toList()
+        : null,
     url: json["url"] == null ? null : json["url"],
     timeSinceResponseSent: json["timeSinceResponseSent"] == null
         ? null
@@ -311,17 +322,10 @@ class UserModel {
     replyMessage: json["replyMessage"] == null ? null : json["replyMessage"],
     ticketNumber: json["ticketNumber"] == null ? null : json["ticketNumber"],
     messageBody: json["messageBody"] == null ? null : MessageBody.fromMap(json["messageBody"]),
+    rowColor: Colors.transparent,
   );
 
-   static dynamic _parsePayload(dynamic payload){
-    if (payload is List) {
-      return List<PayloadUser>.from(payload.map((x)=> PayloadUser.fromMap(x as Map<String, dynamic>)));
-    }else if (payload is Map) {
-      return PayloadUser.fromMap(payload as Map<String, dynamic>);
-    } else {
-      return null;
-    }
-  }
+
 
   Map<String, dynamic> toMap() => {
     "id": id == null ? null : id,
@@ -336,7 +340,7 @@ class UserModel {
     timeSinceResponseSent == null ? null : timeSinceResponseSent,
     "message": message == null ? null : message!.toMap(),
     "user": user == null ? null : user!.toMap(),
-    "payload": payload == null ? null : _serializablePayload(payload),
+    "payload": userPayload == null ? null : List<dynamic>.from(userPayload!.map((x) => x.toMap()).toList()),
     "messageConversation":
     messageConversation == null ? null : messageConversation!.toMap(),
     "privateMessage":
@@ -347,15 +351,7 @@ class UserModel {
     "messageBody": messageBody == null ? null : messageBody!.toMap(),
   };
 
-  static dynamic _serializablePayload(dynamic payload){
-    if(payload is List<PayloadUser>) {
-      return List<dynamic>.from(payload.map((x)=> x.toMap()));
-    } else if (payload is PayloadUser){
-      return payload.toMap();
-    } else {
-      return null;
-    }
-  }
+
 }
 
 class PrivateMessage {
@@ -819,7 +815,8 @@ class UserCredentials {
     this.sharing,
     this.twoFA,
     this.userRoles,
-    this.username
+    this.username,
+    this.password,
   });
 
   bool? disabled;
@@ -829,6 +826,7 @@ class UserCredentials {
   bool? invitation;
   String? username;
   String? id;
+  String? password;
   String? lastLogin;
   String? passwordLastUpdated;
   List<String>? previousPasswords;
@@ -843,6 +841,7 @@ class UserCredentials {
         id: json["id"] == null ? null : json["id"],
         lastLogin: json["lastLogin"] == null ? null : json["lastLogin"],
         username: json["username"] == null ? null : json["username"],
+        password: json["password"] == null ? null : json["password"],
         selfRegistered: json["id"] == null ? null : json["selfRegistered"],
         externalAuth: json["externalAuth"] == null ? null : json["externalAuth"],
         disabled: json["disabled"] == null ? null : json["disabled"],
@@ -865,6 +864,7 @@ class UserCredentials {
       {
         "id": id == null ? null : id,
         "username": username == null ? null : username,
+        "password": password == null ? null : password,
         "lastLogin": lastLogin == null ? null : lastLogin,
         "invitation": invitation == null ? null : invitation,
         "twoFA": twoFA == null ? null : twoFA,
@@ -932,38 +932,14 @@ class InnerObject {
 
 class UserRoles {
   UserRoles({
-    this.userRoles,
-  });
-
-  List<UserRole>? userRoles;
-
-  factory UserRoles.fromMap(Map<String, dynamic> json) =>
-      UserRoles(
-
-        userRoles: json["userRoles"] == null
-            ? null
-            : List<UserRole>.from(
-            json["userRoles"].map((x) => UserRole.fromMap(x))),
-      );
-
-  Map<String, dynamic> toMap() =>
-      {
-        "userRoles": userRoles == null
-            ? null
-            : List<dynamic>.from(userRoles!.map((x) => x.toMap())),
-
-      };
-}
-class UserRole {
-  UserRole({
     this.id,
   });
 
   String? id;
 
 
-  factory UserRole.fromMap(Map<String, dynamic> json) =>
-      UserRole(
+  factory UserRoles.fromMap(Map<String, dynamic> json) =>
+      UserRoles(
         id: json["id"] == null ? null : json["id"],
       );
 
@@ -1021,21 +997,26 @@ class KeyedAuthority {
   };
 }
 
-class PayloadUser {
-  final List<Operation>? operations;
-  final UserCredentials? userCredentials;
-  final List<dynamic>? attributeValues;
-  final List<String>? dataViewOrganisationUnits;
-  final String? phoneNumber;
-  final String? referenceId;
-  final String? surname;
-  final String? name;
-  final String? firstName;
-  final List<UserGroup>? userGroups;
+class Userpayload {
+   List<Operation>? operations;
+   UserCredentials? userCredentials;
+   List<dynamic>? attributeValues;
+   List<DataViewOrganisationUnit>? dataViewOrganisationUnits;
+   List<OrganisationUnit>? organisationUnits;
+   String? phoneNumber;
+   String? referenceId;
+   String? surname;
+   String? username;
+   String? firstName;
+   String? status;
+   List<UserGroup>? userGroups;
+   String? email;
+   String? password;
 
-  PayloadUser({
+  Userpayload({
     this.attributeValues,
     this.dataViewOrganisationUnits,
+    this.organisationUnits,
     this.phoneNumber,
     this.referenceId,
     this.surname,
@@ -1043,66 +1024,78 @@ class PayloadUser {
     this.userGroups,
     this.operations,
     this.firstName,
-    this.name,
+    this.username,
+    this.email,
+    this.password,
+    this.status,
   });
 
-  factory PayloadUser.fromMap(Map<String, dynamic> json) {
-    return PayloadUser(
+  factory Userpayload.fromMap(Map<String, dynamic> json) {
+    return Userpayload(
       attributeValues: json["attributeValues"] != null
-          ? List<dynamic>.from(json["attributeValues"].map((x) => x))
+          ? List<dynamic>.from(json["attributeValues"])
           : null,
       dataViewOrganisationUnits: json["dataViewOrganisationUnits"] != null
-          ? List<String>.from(json["dataViewOrganisationUnits"].map((x) => x.toString()))
+          ? List<DataViewOrganisationUnit>.from(json["dataViewOrganisationUnits"].map((x) => DataViewOrganisationUnit.fromMap(x as Map<String, dynamic>)))
           : null,
-
+      organisationUnits: json["organisationUnits"] != null
+          ? List<OrganisationUnit>.from(json["organisationUnits"].map((x) => OrganisationUnit.fromMap(x as Map<String, dynamic>)))
+          : null,
       phoneNumber: json["phoneNumber"] as String?,
       referenceId: json["referenceId"] as String?,
       surname: json["surname"] as String?,
-      name: json["name"] as String?,
-      firstName: json["firsName"] as String?,
+      email: json["email"] as String?,
+      status: json["status"] as String?,
+      username: json["username"] as String?,
+      password: json["password"] as String?,
+      firstName: json["firstName"] as String?,
       userCredentials: json["userCredentials"] != null
-          ? UserCredentials.fromMap(json["userCredentials"])
+          ? UserCredentials.fromMap(json["userCredentials"] as Map<String, dynamic>)
           : null,
       userGroups: json["userGroups"] != null
-          ? List<UserGroup>.from(json["userGroups"].map((x) => UserGroup.fromMap(x)))
+          ? List<UserGroup>.from(json["userGroups"].map((x) => UserGroup.fromMap(x as Map<String, dynamic>)))
           : null,
       operations: json["operations"] != null
-          ? (json["operations"] as List).map((i) => Operation.fromMap(i)).toList()
+          ? List<Operation>.from(json["operations"].map((x) => Operation.fromMap(x as Map<String, dynamic>)))
           : null,
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      if (attributeValues != null) "attributeValues": List<dynamic>.from(attributeValues!.map((x) => x)),
-      if (dataViewOrganisationUnits != null) "dataViewOrganisationUnits": List<dynamic>.from(dataViewOrganisationUnits!),
-      if (phoneNumber != null) "phoneNumber": phoneNumber!,
-      if (referenceId != null) "referenceId": referenceId!,
-      if (surname != null) "surname": surname!,
-      if (firstName != null) "firstName": firstName!,
-      if (name != null) "name": name!,
+      if (attributeValues != null) "attributeValues": attributeValues,
+      if (dataViewOrganisationUnits != null) "dataViewOrganisationUnits": dataViewOrganisationUnits!.map((x) => x.toMap()).toList(),
+       if (organisationUnits != null) "organisationUnits": organisationUnits!.map((x) => x.toMap()).toList(),
+      if (phoneNumber != null) "phoneNumber": phoneNumber,
+      if (referenceId != null) "referenceId": referenceId,
+      if (surname != null) "surname": surname,
+      if (firstName != null) "firstName": firstName,
+      if (username != null) "username": username,
+      if (password != null) "password": password,
+      if (email != null) "email": email,
+      if (status != null) "status": status,
       if (userCredentials != null) "userCredentials": userCredentials!.toMap(),
-      if (userGroups != null) "userGroups": List<dynamic>.from(userGroups!.map((x) => x.toMap())),
-      if (operations != null) "payload": {"operations": operations!.map((operation) => operation.toMap()).toList()},
-
+      if (userGroups != null) "userGroups": userGroups!.map((x) => x.toMap()).toList(),
+      if (operations != null) "operations": operations!.map((x) => x.toMap()).toList(),
     };
   }
 }
 
 
 
+
 class OrganisationUnit {
-  final String id;
-  final int level;
-  final String name;
-  final String path;
-  final List<OrganisationUnit>? children;
+   String? id;
+   int? level;
+   String? name;
+   String? path;
+   List<OrganisationUnit>? children;
 
   OrganisationUnit({
-    required this.id,
-    required this.level,
-    required this.name,
-    required this.path,
+    this.id,
+    this.level,
+    this.name,
+    this.path,
     this.children,
   });
 
@@ -1125,11 +1118,45 @@ class OrganisationUnit {
   };
 }
 
+class DataViewOrganisationUnit {
+   String? id;
+   int? level;
+   String? name;
+   String? path;
+   List<DataViewOrganisationUnit>? children;
+
+  DataViewOrganisationUnit({
+    this.id,
+    this.level,
+    this.name,
+    this.path,
+    this.children,
+  });
+
+  factory DataViewOrganisationUnit.fromMap(Map<String, dynamic> json) => DataViewOrganisationUnit(
+    id: json["id"],
+    level: json["level"],
+    name: json["name"],
+    path: json["path"],
+    children: json["children"] != null
+        ? List<DataViewOrganisationUnit>.from(json["children"].map((x) => DataViewOrganisationUnit.fromMap(x)))
+        : null,
+  );
+
+  Map<String, dynamic> toMap() => {
+    "id": id,
+    "level": level,
+    "name": name,
+    "path": path,
+    if (children != null) "children": List<dynamic>.from(children!.map((x) => x.toMap())),
+  };
+}
+
 class Parent {
-  final String id;
+   String? id;
 
   Parent({
-    required this.id,
+    this.id,
   });
 
   factory Parent.fromMap(Map<String, dynamic> json) => Parent(
@@ -1142,9 +1169,9 @@ class Parent {
 }
 
 class Operation {
-  final String? op;
-  final String? path;
-  final dynamic value;
+   String? op;
+   String? path;
+   dynamic value;
 
   Operation({
     this.op,

@@ -65,7 +65,7 @@ class MessageConversation {
   // final List<dynamic> attributeValues;
   // final List<dynamic> userAccesses;
   final List<Message>? messages;
-  factory MessageConversation.fromJson(Map<String, dynamic> json) {
+  factory MessageConversation.fromJson(dynamic json) {
     return MessageConversation(
       href: json['href'].toString(),
       messageCount: json["messageCount"].toString(),

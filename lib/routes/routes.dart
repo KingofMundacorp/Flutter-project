@@ -19,7 +19,6 @@ import '../pages/system_page.dart';
 import '../pages/ticket_page.dart';
 import '../pages/validation_page.dart';
 import '../pages/data_approval_screen.dart';
-import '../pages/user_approval_screen.dart';
 
 final GoRouter router = GoRouter(
   routes: <RouteBase>[
@@ -118,9 +117,10 @@ final GoRouter router = GoRouter(
                 GoRoute(
                     path: 'user_account_details',
                     builder: (context, state) {
-                      final userApproval = state.extra as UserModel;
+                      final UserModel? userModel = state.extra as UserModel?;
                       return UserApprovalDetailPage(
-                        userApproval: userApproval,
+                        userApproval: userModel!,
+                        userPayload: userModel.userPayload,
                       );
                     }),
         ]),

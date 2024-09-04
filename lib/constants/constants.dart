@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-const String baseUrl = "https://admin:district@play.dhis2.org/demo/api";
-
 const List<Map<String, dynamic>> menuItems = [
   {
     'name': 'Menu',

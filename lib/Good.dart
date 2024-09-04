@@ -1,74 +1,49 @@
 import 'dart:io';
-import 'dart:convert';
 
-import 'package:flutter/material.dart';
-import 'package:user_support_mobile/constants/d2-repository.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'user_approval_screen.dart';
 import '../models/approve_model.dart';
 import '../providers/provider.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:html/parser.dart' as html_parser;
 
 class UserApprovalDetailPage extends StatefulWidget {
-  const UserApprovalDetailPage({Key? key, required this.userApproval, required this.userPayload})
+  const UserApprovalDetailPage({Key? key, required this.userApproval})
       : super(key: key);
-  final UserModel? userApproval;
-  final List<Userpayload>? userPayload;
-  
+  final UserModel userApproval; // Changed to UserModel
 
   @override
   UserApprovalDetailPageState createState() => UserApprovalDetailPageState();
 }
 
 class UserApprovalDetailPageState extends State<UserApprovalDetailPage> {
-  List<dynamic> _parseMessages() {
-    return _addAccountData(widget.userApproval);
+
+List<Map<String, String>> _parseMessages(String htmlMessage) {
+  final plainText = extractPlainText(htmlMessage); // Extract plain text from HTML
+  final List<Map<String, String>> accounts = [];
+  final RegExp regex = RegExp(
+    r'Names:\s*(.+?)\s*Email:\s*(.+?)\s*Phone number\s*:\s*(.+?)\s*User role\s*->\s*(.+?)\s*User group\s*->\s*(.+?)\s*Entry access level\s*->\s*(.+?)\s*and Report access level\s*->\s*(.+?)(?=\d|$)', 
+    multiLine: true
+  );
+
+  final matches = regex.allMatches(plainText);
+  for (final match in matches) {
+    accounts.add({
+      'SN': (accounts.length + 1).toString(), // Serial number based on the length
+      'Names': match.group(1) ?? '',
+      'Email': match.group(2) ?? '',
+      'Phone Number': match.group(3) ?? '',
+      'User Role': match.group(4) ?? '',
+      'User Group': match.group(5) ?? '',
+      'Entry Access Level': match.group(6) ?? '',
+      'Report Access Level': match.group(7) ?? '',
+    });
   }
 
-  List<dynamic> _addAccountData(UserModel? userModel) {
-    final List<dynamic> account = [];
-    if (userModel?.userPayload != null) {
-      for (var payload in userModel!.userPayload!) {
-        account.add({
-          'SN': (account.length + 1).toString(),
-          'Names': '${payload.firstName ?? ''} ${payload.surname ?? ''}',
-          'Email': payload.email ?? '',
-          'Phone Number': payload.phoneNumber ?? '',
-          'Entry Access Level': _getDataEntryAccessLevel(payload),
-          'Report Access Level': _getReportAccessLevel(payload),
-        });
-      }
-    }
-    return account;
-  }
-
- String _getDataEntryAccessLevel(Userpayload payload) {
-  final organisationUnitNames = payload.organisationUnits
-      ?.map((unit) => unit.name)
-      .toList() ?? [];
-
-  final childrenNames = payload.organisationUnits
-      ?.expand((unit) => unit.children?.map((child) => child.name) ?? <String>[])
-      .toList() ?? [];
-
-  return [...organisationUnitNames, ...childrenNames].join(', ');
- }
-
-  String _getReportAccessLevel(Userpayload payload) {
-    final dataViewOrganisationUnitNames = payload.dataViewOrganisationUnits
-      ?.map((unit) => unit.name)
-      .toList() ?? [];
-
-  final childrenNames = payload.dataViewOrganisationUnits
-      ?.expand((unit) => unit.children?.map((child) => child.name) ?? <String>[])
-      .toList() ?? [];
-
-  return [...dataViewOrganisationUnitNames, ...childrenNames].join(', ');
-  }
+  return accounts;
+}
 
   @override
   Widget build(BuildContext context) {
@@ -81,12 +56,10 @@ class UserApprovalDetailPageState extends State<UserApprovalDetailPage> {
   }
 }
 
-
 class PageContent extends StatefulWidget {
-  const PageContent({Key? key, this.userApproval, this.userPayload, this.parseMessages}) : super(key: key);
-  final UserModel? userApproval;
-  final Userpayload? userPayload;
-  final List<dynamic> Function()? parseMessages;
+  const PageContent({Key? key, required this.userApproval, required this.parseMessages}) : super(key: key);
+  final UserModel userApproval;
+  final List<Map<String, String>> Function(String) parseMessages;
 
   @override
   State<PageContent> createState() => _PageContentState();
@@ -94,8 +67,6 @@ class PageContent extends StatefulWidget {
 
 class _PageContentState extends State<PageContent> {
   File? file;
-  UserModel? userApproval;
-  Userpayload? userPayload;
   String? selectedUser;
   bool isVisible = true;
   bool isButtonEnabled = false;
@@ -131,7 +102,7 @@ class _PageContentState extends State<PageContent> {
                   child: ListView(
                     children: [
                       Html(
-                        data: widget.userApproval!.message!.subject!.split("-").last,
+                        data: widget.userApproval.message!.subject!.split("-").last,
                         style: {
                           'body': Style(
                             color: Colors.black,
@@ -144,7 +115,7 @@ class _PageContentState extends State<PageContent> {
                         height: 20,
                       ),
                       Html(
-                        data: widget.userApproval!.message!.message!,
+                        data: widget.userApproval.message!.message!,
                         style: {
                           'body': Style(
                             color: Colors.black,
@@ -169,7 +140,7 @@ class _PageContentState extends State<PageContent> {
                                   ),
                                 ),
                                 onPressed: () {
-                                  final accounts = widget.parseMessages!();
+                                  final accounts = widget.parseMessages(widget.userApproval.message!.message!);
                                   _showApprovalTableDialog(accounts);
                                 },
                                 child: Padding(
@@ -225,7 +196,7 @@ class _PageContentState extends State<PageContent> {
     );
   }
 
-  void _loading(bool isAccept) async {
+  void _loading({bool isAccept = false}) async {
     EasyLoading.show(
       status: 'loading...',
       maskType: EasyLoadingMaskType.black,
@@ -233,7 +204,7 @@ class _PageContentState extends State<PageContent> {
 
     try {
       await context.read<MessageModel>().approvalUserRequest(
-        widget.userApproval!,
+        widget.userApproval,
         message: isAccept ? null : _textEditingController.text.trim(),
       );
 
@@ -251,7 +222,7 @@ class _PageContentState extends State<PageContent> {
     }
   }
 
-  void _showApprovalTableDialog(List<dynamic> accounts) {
+  void _showApprovalTableDialog(List<Map<String, String>> accounts) {
   showDialog(
     context: context,
     builder: (context) {
@@ -261,8 +232,8 @@ class _PageContentState extends State<PageContent> {
           scrollDirection: Axis.vertical,
           child: ConstrainedBox(
             constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.6,
-              maxWidth: MediaQuery.of(context).size.width * 0.9,
+              maxHeight: MediaQuery.of(context).size.height * 0.6, // Adjust height as needed
+              maxWidth: MediaQuery.of(context).size.width * 0.9,   // Adjust width as needed
             ),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -273,6 +244,8 @@ class _PageContentState extends State<PageContent> {
                   DataColumn(label: Text('Names')),
                   DataColumn(label: Text('Email')),
                   DataColumn(label: Text('Phone Number')),
+                  DataColumn(label: Text('User Role')),
+                  DataColumn(label: Text('User Group')),
                   DataColumn(label: Text('Entry Access Level')),
                   DataColumn(label: Text('Report Access Level')),
                   DataColumn(label: Text('Action')),
@@ -282,7 +255,7 @@ class _PageContentState extends State<PageContent> {
                     DataCell(Text(account['SN']!)),
                     DataCell(
                       Container(
-                        width: 150,
+                        width: 150, // Set width to your fixed length
                         child: SingleChildScrollView(
                           scrollDirection: Axis.vertical,
                           child: Text(account['Names']!),
@@ -291,7 +264,7 @@ class _PageContentState extends State<PageContent> {
                     ),
                     DataCell(
                       Container(
-                        width: 150, 
+                        width: 150, // Set width to your fixed length
                         child: SingleChildScrollView(
                           scrollDirection: Axis.vertical,
                           child: Text(account['Email']!),
@@ -300,16 +273,34 @@ class _PageContentState extends State<PageContent> {
                     ),
                     DataCell(
                       Container(
-                        width: 150,
+                        width: 150, // Set width to your fixed length
                         child: SingleChildScrollView(
                           scrollDirection: Axis.vertical,
                           child: Text(account['Phone Number']!),
                         ),
                       ),
                     ),
-                   DataCell(
+                    DataCell(
                       Container(
-                        width: 150,
+                        width: 150, // Set width to your fixed length
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.vertical,
+                          child: Text(account['User Role']!),
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Container(
+                        width: 150, // Set width to your fixed length
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.vertical,
+                          child: Text(account['User Group']!),
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Container(
+                        width: 150, // Set width to your fixed length
                         child: SingleChildScrollView(
                           scrollDirection: Axis.vertical,
                           child: Text(account['Entry Access Level']!),
@@ -318,7 +309,7 @@ class _PageContentState extends State<PageContent> {
                     ),
                     DataCell(
                       Container(
-                        width: 150, 
+                        width: 150, // Set width to your fixed length
                         child: SingleChildScrollView(
                           scrollDirection: Axis.vertical,
                           child: Text(account['Report Access Level']!),
@@ -327,12 +318,9 @@ class _PageContentState extends State<PageContent> {
                     ),
                     DataCell(
                       ElevatedButton(
-                         onPressed: () {
-                                    dynamic nameParts = account['Names']!.split(' ');
-                                    dynamic firstName = nameParts[0];
-                                    dynamic lastName = nameParts.length > 1 ? nameParts[1] : '';
-                                 _showDropdown(context, firstName, lastName);
-                                },
+                        onPressed: () {
+                          
+                        },
                         child: Text('Select'),
                       ),
                     ),
@@ -344,165 +332,13 @@ class _PageContentState extends State<PageContent> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(context).pop(), // Close the dialog
             child: Text('Cancel'),
           ),
         ],
       );
     },
   );
-}
-
-void _showDropdown(BuildContext context, dynamic firstName, dynamic lastName) {
-  TextEditingController usernameController = TextEditingController();
-  dynamic proposedUsername = _generateProposedUsername(firstName, lastName);
-  usernameController.text = proposedUsername;
-
-  void _checkDuplicate(dynamic username) async {
-    try {
-      final response = await d2repository.httpClient.get(
-        'users?filter=userCredentials.username:eq:${proposedUsername}&fields=id'
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['users'].isEmpty) {
-        
-          _showMessage(context, "No duplicate username found.");
-        } else {
-        
-          proposedUsername = _suggestAlternativeUsername(proposedUsername, firstName, username);
-          usernameController.text = proposedUsername;
-          _checkDuplicate(proposedUsername);
-        }
-      } else {
-    
-        _showMessage(context, "Error checking duplicate username.");
-      }
-    } catch (e) {
-    
-      _showMessage(context, "An error occurred: ${e.toString()}");
-    }
-  }
-
-  _checkDuplicate(proposedUsername);
-
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('Username'),
-        content: Container(
-          width: MediaQuery.of(context).size.width * 0.9,
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                TextField(
-                  controller: usernameController,
-                  decoration: InputDecoration(labelText: 'Username'),
-                ),
-                SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    _checkDuplicate(usernameController.text);
-                  },
-                  child: Text('Check Duplicate'),
-                ),
-                SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        showDataAlert(context);
-                      },
-                      child: Text('Reject'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                      ),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        _confirmUsername(context, usernameController.text);
-                      },
-                      child: Text('Confirm'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    },
-  );
-}
-
-
-String _generateProposedUsername(dynamic firstName, dynamic lastName) {
-  return firstName[0].toLowerCase() + lastName.toLowerCase();
-
-}
-
-String _suggestAlternativeUsername(dynamic baseUsername, dynamic firstName, dynamic existingUsernames) {
-  String suggestion = baseUsername;
-
-  for (int i = 1; i <= firstName.length; i++) {
-    suggestion = baseUsername + firstName.substring(0, i).toLowerCase();
-    if (!existingUsernames.containsKey(suggestion)) {
-      return suggestion;
-    }
-  }
-
-  int number = 1;
-  while (existingUsernames.containsKey(suggestion)) {
-    suggestion = baseUsername + number.toString();
-    number++;
-  }
-
-  return suggestion;
- }
-
- void _confirmUsername(BuildContext context, dynamic username) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('Confirmation'),
-        content: Text('Are you sure you want to create a user with username $username?'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              userPayload?.username = username;
-              userPayload?.password = "Hmis@2024";
-              print('User created with username: ${userPayload?.username}');
-              Navigator.of(context).pop();
-              Navigator.of(context).pop();
-              _createUser(username);
-            },
-            child: Text('Yes'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: Text('No'),
-          ),
-        ],
-      );
-    },
-  );
-}
-
- void _createUser(String username, {bool isAccept = true}) {
-  print('User created with username: ${userPayload?.username}');
-  _loading(isAccept);
-}
-
-
-void _showMessage(BuildContext context, String messageon) {
-  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(messageon)));
 }
 
   void showDataAlert(BuildContext context, {bool isAccept = false}) {
@@ -561,8 +397,8 @@ void _showMessage(BuildContext context, String messageon) {
             TextButton(
               child: Text(isAccept ? 'Accept' : 'Reject'),
               onPressed: () {
-                context.go('/home/user_account');
-                _loading(isAccept);
+                Navigator.of(context).pop(); // Close the dialog
+                _loading(isAccept: isAccept);
               },
             ),
           ],
@@ -572,8 +408,7 @@ void _showMessage(BuildContext context, String messageon) {
   }
 }
 
- String extractPlainText(String htmlContent) {
+String extractPlainText(String htmlContent) {
   final document = html_parser.parse(htmlContent);
   return document.body?.text ?? '';
 }
-

@@ -6,6 +6,10 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
+import 'package:user_support_mobile/controller/controllers.dart';
+import 'package:user_support_mobile/models/user_approval.dart';
+
+
 ApproveModel approveModelFromMap(String str) =>
     ApproveModel.fromMap(json.decode(str));
 
@@ -251,7 +255,8 @@ class UserModel {
     this.id,
     this.action,
     this.user,
-    this.payload,
+    this.userPayload,
+
     this.method,
     this.replyMessage,
     this.ticketNumber,
@@ -271,7 +276,8 @@ class UserModel {
 
   String? id;
   UserModel3? user;
-  List<PayloadUser>? payload;
+  List<Userpayload>? userPayload;
+
   Color? rowColor;
   String? ticketNumber;
   String? type;
@@ -296,11 +302,11 @@ class UserModel {
     user: json["user"] == null ? null : UserModel3.fromMap(json["user"]),
     method: json["method"] == null ? null : json["method"],
     //payload: json["payload"] == null ? null : List<PayloadUser>.from(json["payload"].map((x) => PayloadUser.fromMap(x))),
-    payload: json["payload"] != null
+    userPayload: json["payload"] != null
         ? (json["payload"] as List<dynamic>)
-        .map((e) => PayloadUser.fromMap(e as Map<String, dynamic>))
-        .toList()
-        : null,
+        .map((e) => Userpayload.fromMap(e as Map<String, dynamic>))
+        .toList() // Convert Iterable to List<Userpayload>
+        : [], //
     url: json["url"] == null ? null : json["url"],
     timeSinceResponseSent: json["timeSinceResponseSent"] == null
         ? null
@@ -338,7 +344,8 @@ class UserModel {
     timeSinceResponseSent == null ? null : timeSinceResponseSent,
     "message": message == null ? null : message!.toMap(),
     "user": user == null ? null : user!.toMap(),
-    "payload": payload == null ? null : List<dynamic>.from(payload!.map((x) => x.toMap())),
+    "payload": userPayload == null ? null : List<dynamic>.from(userPayload!.map((x) => x.toMap()).toList()),
+
     "messageConversation":
     messageConversation == null ? null : messageConversation!.toMap(),
     "privateMessage":
@@ -357,7 +364,7 @@ class PrivateMessage {
     this.subject,
     this.text,
     this.users,
-   });
+  });
 
   String? subject;
   String? text;
@@ -385,7 +392,7 @@ class MessageBody {
     this.text,
     this.userGroups,
     this.users,
-});
+  });
 
   List<String>? attachments;
   List<String>? organisationUnits;
@@ -527,9 +534,9 @@ class UserModel3 {
         ? null
         : List<String>.from(json["authorities"].map((x) => x.toString())),
 
-      favorites: json["favorites"] == null
-          ? null
-          : List<String>.from(json["favorites"].map((x) => x.toString())),
+    favorites: json["favorites"] == null
+        ? null
+        : List<String>.from(json["favorites"].map((x) => x.toString())),
 
     dataSets: json["dataSets"] == null
         ? null
@@ -639,9 +646,9 @@ class Access {
   };
 }
 
+class UserGroup {
+  UserGroup({
 
-class UserGroups {
-  UserGroups({
     this.id,
     this.name,
   });
@@ -649,8 +656,9 @@ class UserGroups {
   String? id;
   String? name;
 
-  factory UserGroups.fromMap(Map<String, dynamic> json) =>
-      UserGroups(
+  factory UserGroup.fromMap(Map<String, dynamic> json) =>
+      UserGroup(
+
         id: json["id"] == null ? null : json["id"],
         name: json["name"] == null ? null : json["name"],
       );
@@ -662,6 +670,28 @@ class UserGroups {
       };
 }
 
+
+class UserGroups {
+  UserGroups({
+    this.userGroups,
+  });
+
+  List<UserGroup>? userGroups;
+
+  factory UserGroups.fromMap(Map<String, dynamic> json) =>
+      UserGroups(
+        userGroups: json["userGroups"] == null
+            ? null
+            : List<UserGroup>.from(json["userGroups"].map((x) => UserGroup.fromMap(x))),
+      );
+
+  Map<String, dynamic> toMap() =>
+      {
+        "userGroups": userGroups == null
+            ? null
+            : List<dynamic>.from(userGroups!.map((x) => x.toMap())),
+      };
+}
 
 
 class Settings {
@@ -910,38 +940,15 @@ class InnerObject {
 
 class UserRoles {
   UserRoles({
-    this.userRoles,
-  });
 
-  List<UserRole>? userRoles;
-
-  factory UserRoles.fromMap(Map<String, dynamic> json) =>
-      UserRoles(
-
-        userRoles: json["userRoles"] == null
-            ? null
-            : List<UserRole>.from(
-            json["userRoles"].map((x) => UserRole.fromMap(x))),
-      );
-
-  Map<String, dynamic> toMap() =>
-      {
-        "userRoles": userRoles == null
-            ? null
-            : List<dynamic>.from(userRoles!.map((x) => x.toMap())),
-
-      };
-}
-class UserRole {
-  UserRole({
     this.id,
   });
 
   String? id;
 
+  factory UserRoles.fromMap(Map<String, dynamic> json) =>
+      UserRoles(
 
-  factory UserRole.fromMap(Map<String, dynamic> json) =>
-      UserRole(
         id: json["id"] == null ? null : json["id"],
       );
 
@@ -1000,26 +1007,27 @@ class KeyedAuthority {
 }
 
 
-
-class PayloadUser {
-  final List<Operation>? operations;
-  final UserCredentials? userCredentials;
-  final List<dynamic>? attributeValues;
-  final List<String>? dataViewOrganisationUnits;
-  final String? phoneNumber;
-  final String? referenceId;
-  final String? surname;
-  final String? name;
-  final String? firstName;
+class Userpayload {
+  List<Operation>? operations;
+  UserCredentials? userCredentials;
+  List<dynamic>? attributeValues;
+  List<DataViewOrganisationUnit>? dataViewOrganisationUnits;
+  List<OrganisationUnit>? organisationUnits;
+  String? phoneNumber;
+  String? referenceId;
+  String? surname;
+  String? username;
+  String? firstName;
   String? status;
-  final List<UserGroups>? userGroups;
-  final String? email;
+  List<UserGroup>? userGroups;
+  String? email;
   String? password;
-   String? reason;
 
-  PayloadUser({
+  Userpayload({
     this.attributeValues,
     this.dataViewOrganisationUnits,
+    this.organisationUnits,
+
     this.phoneNumber,
     this.referenceId,
     this.surname,
@@ -1027,35 +1035,39 @@ class PayloadUser {
     this.userGroups,
     this.operations,
     this.firstName,
-    this.name,
+    this.username,
     this.email,
     this.password,
     this.status,
-    this.reason,
   });
 
-  factory PayloadUser.fromMap(Map<String, dynamic> json) {
-    return PayloadUser(
+  factory Userpayload.fromMap(Map<String, dynamic> json) {
+    return Userpayload(
+
       attributeValues: json["attributeValues"] != null
           ? List<dynamic>.from(json["attributeValues"])
           : null,
       dataViewOrganisationUnits: json["dataViewOrganisationUnits"] != null
-          ? List<String>.from(json["dataViewOrganisationUnits"].map((x) => x.toString()))
+          ? List<DataViewOrganisationUnit>.from(json["dataViewOrganisationUnits"].map((x) => DataViewOrganisationUnit.fromMap(x as Map<String, dynamic>)))
+          : null,
+      organisationUnits: json["organisationUnits"] != null
+          ? List<OrganisationUnit>.from(json["organisationUnits"].map((x) => OrganisationUnit.fromMap(x as Map<String, dynamic>)))
           : null,
       phoneNumber: json["phoneNumber"] as String?,
       referenceId: json["referenceId"] as String?,
       surname: json["surname"] as String?,
       email: json["email"] as String?,
       status: json["status"] as String?,
-      name: json["name"] as String?,
+      username: json["username"] as String?,
       password: json["password"] as String?,
-      reason: json["reason"] as String?,
+
       firstName: json["firstName"] as String?,
       userCredentials: json["userCredentials"] != null
           ? UserCredentials.fromMap(json["userCredentials"] as Map<String, dynamic>)
           : null,
       userGroups: json["userGroups"] != null
-          ? List<UserGroups>.from(json["userGroups"].map((x) => UserGroups.fromMap(x as Map<String, dynamic>)))
+          ? List<UserGroup>.from(json["userGroups"].map((x) => UserGroup.fromMap(x as Map<String, dynamic>)))
+
           : null,
       operations: json["operations"] != null
           ? List<Operation>.from(json["operations"].map((x) => Operation.fromMap(x as Map<String, dynamic>)))
@@ -1066,14 +1078,16 @@ class PayloadUser {
   Map<String, dynamic> toMap() {
     return {
       if (attributeValues != null) "attributeValues": attributeValues,
-      if (dataViewOrganisationUnits != null) "dataViewOrganisationUnits": dataViewOrganisationUnits,
+      if (dataViewOrganisationUnits != null) "dataViewOrganisationUnits": dataViewOrganisationUnits!.map((x) => x.toMap()).toList(),
+      if (organisationUnits != null) "organisationUnits": organisationUnits!.map((x) => x.toMap()).toList(),
+
       if (phoneNumber != null) "phoneNumber": phoneNumber,
       if (referenceId != null) "referenceId": referenceId,
       if (surname != null) "surname": surname,
       if (firstName != null) "firstName": firstName,
-      if (name != null) "name": name,
+      if (username != null) "username": username,
       if (password != null) "password": password,
-      if (reason != null) "reason": reason,
+
       if (email != null) "email": email,
       if (status != null) "status": status,
       if (userCredentials != null) "userCredentials": userCredentials!.toMap(),
@@ -1087,17 +1101,18 @@ class PayloadUser {
 
 
 class OrganisationUnit {
-  final String id;
-  final int level;
-  final String name;
-  final String path;
-  final List<OrganisationUnit>? children;
+  String? id;
+  int? level;
+  String? name;
+  String? path;
+  List<OrganisationUnit>? children;
 
   OrganisationUnit({
-    required this.id,
-    required this.level,
-    required this.name,
-    required this.path,
+    this.id,
+    this.level,
+    this.name,
+    this.path,
+
     this.children,
   });
 
@@ -1120,11 +1135,46 @@ class OrganisationUnit {
   };
 }
 
+class DataViewOrganisationUnit {
+  String? id;
+  int? level;
+  String? name;
+  String? path;
+  List<DataViewOrganisationUnit>? children;
+
+  DataViewOrganisationUnit({
+    this.id,
+    this.level,
+    this.name,
+    this.path,
+    this.children,
+  });
+
+  factory DataViewOrganisationUnit.fromMap(Map<String, dynamic> json) => DataViewOrganisationUnit(
+    id: json["id"],
+    level: json["level"],
+    name: json["name"],
+    path: json["path"],
+    children: json["children"] != null
+        ? List<DataViewOrganisationUnit>.from(json["children"].map((x) => DataViewOrganisationUnit.fromMap(x)))
+        : null,
+  );
+
+  Map<String, dynamic> toMap() => {
+    "id": id,
+    "level": level,
+    "name": name,
+    "path": path,
+    if (children != null) "children": List<dynamic>.from(children!.map((x) => x.toMap())),
+  };
+}
+
 class Parent {
-  final String id;
+  String? id;
 
   Parent({
-    required this.id,
+    this.id,
+
   });
 
   factory Parent.fromMap(Map<String, dynamic> json) => Parent(
@@ -1137,9 +1187,10 @@ class Parent {
 }
 
 class Operation {
-  final String? op;
-  final String? path;
-  final dynamic value;
+
+  String? op;
+  String? path;
+  dynamic value;
 
   Operation({
     this.op,
@@ -1162,4 +1213,6 @@ class Operation {
       if (value != null) "value": value,
     };
   }
+
 }
+

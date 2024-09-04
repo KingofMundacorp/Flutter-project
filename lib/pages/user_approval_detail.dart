@@ -355,8 +355,7 @@ class _PageContentState extends State<PageContent> {
                   ]);
                 }).toList(),
               ),
-<<<<<<< HEAD
-            ),
+              ),
           ),
         ),
         actions: [

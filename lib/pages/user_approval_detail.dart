@@ -1,28 +1,24 @@
+import 'dart:convert';
 import 'dart:io';
 
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:user_support_mobile/constants/d2-repository.dart';
-import 'package:flutter/material.dart';
-
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import '../widgets/Utilities.dart';
-import 'user_approval_screen.dart';
-import '../models/approve_model.dart';
-import '../providers/provider.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:html/parser.dart' as html_parser;
+
+import '../models/approve_model.dart';
+import '../providers/provider.dart';
+import '../widgets/Utilities.dart';
+import 'user_approval_screen.dart';
+import 'package:user_support_mobile/constants/d2-repository.dart';
 
 class UserApprovalDetailPage extends StatefulWidget {
   const UserApprovalDetailPage({Key? key, required this.userApproval, required this.userPayload})
       : super(key: key);
   final UserModel? userApproval;
   final List<Userpayload>? userPayload;
-  
-
 
   @override
   UserApprovalDetailPageState createState() => UserApprovalDetailPageState();
@@ -42,6 +38,7 @@ class UserApprovalDetailPageState extends State<UserApprovalDetailPage> {
           'Names': '${payload.firstName ?? ''} ${payload.surname ?? ''}',
           'Email': payload.email ?? '',
           'Phone Number': payload.phoneNumber ?? '',
+          'payloadStatus': payload.status ?? '',
           'Entry Access Level': _getDataEntryAccessLevel(payload),
           'Report Access Level': _getReportAccessLevel(payload),
         });
@@ -50,29 +47,28 @@ class UserApprovalDetailPageState extends State<UserApprovalDetailPage> {
     return account;
   }
 
- String _getDataEntryAccessLevel(Userpayload payload) {
-  final organisationUnitNames = payload.organisationUnits
-      ?.map((unit) => unit.name)
-      .toList() ?? [];
+  String _getDataEntryAccessLevel(Userpayload payload) {
+    final organisationUnitNames = payload.organisationUnits
+        ?.map((unit) => unit.name)
+        .toList() ?? [];
 
-  final childrenNames = payload.organisationUnits
-      ?.expand((unit) => unit.children?.map((child) => child.name) ?? <String>[])
-      .toList() ?? [];
+    final childrenNames = payload.organisationUnits
+        ?.expand((unit) => unit.children?.map((child) => child.name) ?? <String>[])
+        .toList() ?? [];
 
-  return [...organisationUnitNames, ...childrenNames].join(', ');
- }
+    return [...organisationUnitNames, ...childrenNames].join(', ');
+  }
 
   String _getReportAccessLevel(Userpayload payload) {
     final dataViewOrganisationUnitNames = payload.dataViewOrganisationUnits
-      ?.map((unit) => unit.name)
-      .toList() ?? [];
+        ?.map((unit) => unit.name)
+        .toList() ?? [];
 
-  final childrenNames = payload.dataViewOrganisationUnits
-      ?.expand((unit) => unit.children?.map((child) => child.name) ?? <String>[])
-      .toList() ?? [];
+    final childrenNames = payload.dataViewOrganisationUnits
+        ?.expand((unit) => unit.children?.map((child) => child.name) ?? <String>[])
+        .toList() ?? [];
 
-  return [...dataViewOrganisationUnitNames, ...childrenNames].join(', ');
-
+    return [...dataViewOrganisationUnitNames, ...childrenNames].join(', ');
   }
 
   @override
@@ -80,19 +76,18 @@ class UserApprovalDetailPageState extends State<UserApprovalDetailPage> {
     return Scaffold(
       body: PageContent(
         userApproval: widget.userApproval,
+        userPayload: widget.userPayload,
         parseMessages: _parseMessages,
       ),
     );
   }
 }
 
-
 class PageContent extends StatefulWidget {
   const PageContent({Key? key, this.userApproval, this.userPayload, this.parseMessages}) : super(key: key);
   final UserModel? userApproval;
-  final Userpayload? userPayload;
+  final List<Userpayload>? userPayload;
   final List<dynamic> Function()? parseMessages;
-
 
   @override
   State<PageContent> createState() => _PageContentState();
@@ -101,7 +96,7 @@ class PageContent extends StatefulWidget {
 class _PageContentState extends State<PageContent> {
   File? file;
   UserModel? userApproval;
-  Userpayload? userPayload;
+  List<Userpayload>? userPayload;
   String? selectedUser;
   bool isVisible = true;
   bool isButtonEnabled = false;
@@ -142,7 +137,7 @@ class _PageContentState extends State<PageContent> {
                   child: ListView(
                     children: [
                       Html(
-                        data: widget.userApproval!.message!.subject!.split("-").last,
+                        data: widget.userApproval?.message?.subject?.split("-").last ?? '',
                         style: {
                           'body': Style(
                             color: Colors.black,
@@ -155,8 +150,7 @@ class _PageContentState extends State<PageContent> {
                         height: 20,
                       ),
                       Html(
-                        data: widget.userApproval!.message!.message!,
-
+                        data: widget.userApproval?.message?.message ?? '',
                         style: {
                           'body': Style(
                             color: Colors.black,
@@ -176,12 +170,12 @@ class _PageContentState extends State<PageContent> {
                               absorbing: _isDropdownShown, // Disable button if dropdown is shown
                               child: ElevatedButton(
                                 style: ButtonStyle(
-                                  backgroundColor: WidgetStateProperty.all(
+                                  backgroundColor: MaterialStateProperty.all(
                                     _selectButtonColor,
                                   ),
                                 ),
                                 onPressed: () {
-                                  final accounts = widget.parseMessages!();
+                                  final accounts = widget.parseMessages?.call() ?? [];
 
                                   _showApprovalTableDialog(accounts);
                                 },
@@ -238,7 +232,7 @@ class _PageContentState extends State<PageContent> {
     );
   }
 
-  void _loading(bool isAccept) async {
+  Future <void> _loading(bool isAccept) async {
     EasyLoading.show(
       status: 'loading...',
       maskType: EasyLoadingMaskType.black,
@@ -247,7 +241,6 @@ class _PageContentState extends State<PageContent> {
     try {
       await context.read<MessageModel>().approvalUserRequest(
         widget.userApproval!,
-
         message: isAccept ? null : _textEditingController.text.trim(),
       );
 
@@ -264,7 +257,6 @@ class _PageContentState extends State<PageContent> {
       EasyLoading.dismiss();
     }
   }
-
 
   void _showApprovalTableDialog(List<dynamic> accounts) {
   showDialog(
@@ -293,69 +285,98 @@ class _PageContentState extends State<PageContent> {
                   DataColumn(label: Text('Action')),
                 ],
                 rows: accounts.map((account) {
-                  return DataRow(cells: [
-                    DataCell(Text(account['SN']!)),
-                    DataCell(
-                      Container(
-                        width: 150,
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.vertical,
-                          child: Text(account['Names']!),
-                        ),
+                  final payloadStatus = account['payloadStatus'];
+                  Color? rowColor;
 
-                      ),
+                  // Set row color based on the payloadStatus
+                  if (payloadStatus == 'CREATED') {
+                    rowColor = Colors.green.withOpacity(0.2); // Light green for created
+                  } else if (payloadStatus == 'REJECTED') {
+                    rowColor = Colors.red.withOpacity(0.2); // Light red for rejected
+                  } else {
+                    rowColor = Colors.transparent; // Normal for null or no status
+                  }
+
+                  return DataRow(
+                    color: MaterialStateProperty.resolveWith<Color?>(
+                      (Set<MaterialState> states) {
+                        return rowColor; // Apply the row color
+                      },
                     ),
-                    DataCell(
-                      Container(
-                        width: 150, 
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.vertical,
-                          child: Text(account['Email']!),
+                    cells: [
+                      DataCell(Text(account['SN'] ?? '')),
+                      DataCell(
+                        Container(
+                          width: 150,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: Text(account['Names'] ?? ''),
+                          ),
                         ),
                       ),
-                    ),
-                    DataCell(
-                      Container(
-                        width: 150,
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.vertical,
-                          child: Text(account['Phone Number']!),
+                      DataCell(
+                        Container(
+                          width: 150,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: Text(account['Email'] ?? ''),
+                          ),
                         ),
                       ),
-                    ),
-                   DataCell(
-                      Container(
-                        width: 150,
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.vertical,
-                          child: Text(account['Entry Access Level']!),
+                      DataCell(
+                        Container(
+                          width: 150,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: Text(account['Phone Number'] ?? ''),
+                          ),
                         ),
                       ),
-                    ),
-                    DataCell(
-                      Container(
-                        width: 150, 
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.vertical,
-                          child: Text(account['Report Access Level']!),
+                      DataCell(
+                        Container(
+                          width: 150,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: Text(account['Entry Access Level'] ?? ''),
+                          ),
                         ),
                       ),
-                    ),
-                    DataCell(
-                      ElevatedButton(
-                         onPressed: () {
-                                    dynamic nameParts = account['Names']!.split(' ');
-                                    dynamic firstName = nameParts[0];
-                                    dynamic lastName = nameParts.length > 1 ? nameParts[1] : '';
-                                 _showDropdown(context, firstName, lastName);
-                                },
-                        child: Text('Select'),
+                      DataCell(
+                        Container(
+                          width: 150,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: Text(account['Report Access Level'] ?? ''),
+                          ),
+                        ),
                       ),
-                    ),
-                  ]);
+                     DataCell(
+                     payloadStatus == 'CREATED'
+                      ? Text(
+                        'Created',
+                        style: TextStyle(color: const Color.fromARGB(255, 3, 56, 4)),
+                         )
+                       : payloadStatus == 'REJECTED'
+                          ? Text(
+                              'Rejected',
+                         style: TextStyle(color: const Color.fromARGB(255, 91, 13, 7)),
+                            )
+                          : ElevatedButton(
+                            onPressed: () {
+                             final nameParts = (account['Names'] ?? '').split(' ');
+                             final firstName = nameParts.isNotEmpty ? nameParts[0] : '';
+                             final lastName = nameParts.length > 1 ? nameParts[1] : '';
+                             _showDropdown(context, firstName, lastName);
+                             },
+                             child: Text('Select'),
+                            ),
+                           ),
+
+                    ],
+                  );
                 }).toList(),
               ),
-              ),
+            ),
           ),
         ),
         actions: [
@@ -369,159 +390,153 @@ class _PageContentState extends State<PageContent> {
   );
 }
 
-void _showDropdown(BuildContext context, dynamic firstName, dynamic lastName) {
-  TextEditingController usernameController = TextEditingController();
-  dynamic proposedUsername = _generateProposedUsername(firstName, lastName);
-  usernameController.text = proposedUsername;
+  void _showDropdown(BuildContext context, String firstName, String lastName) {
+    final usernameController = TextEditingController();
+    String proposedUsername = _generateProposedUsername(firstName, lastName);
+    usernameController.text = proposedUsername;
 
-  void _checkDuplicate(dynamic username) async {
-    try {
-      final response = await d2repository.httpClient.get(
-        'users?filter=userCredentials.username:eq:${proposedUsername}&fields=id'
-      );
+    void _checkDuplicate(String username) async {
+      
+        final response = await d2repository.httpClient.get(
+          'users?filter=userCredentials.username:eq:$username&fields=id',
+        );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['users'].isEmpty) {
-        
-          _showMessage(context, "No duplicate username found.");
+        if (response.statusCode == 200) {
+          List<dynamic> data = response.body['users']??['0']??['id'].toList();
+          if (data.isEmpty) {
+            // No duplicate username found
+            _showMessage(context, "No duplicate username found.");
+          } else {
+            // Suggest an alternative username
+            proposedUsername = _suggestAlternativeUsername(proposedUsername, firstName, username);
+            usernameController.text = proposedUsername;
+            _checkDuplicate(proposedUsername);
+          }
         } else {
-        
-          proposedUsername = _suggestAlternativeUsername(proposedUsername, firstName, username);
-          usernameController.text = proposedUsername;
-          _checkDuplicate(proposedUsername);
+          // Handle error response
+          _showMessage(context, "Error checking duplicate username.");
         }
-      } else {
-    
-        _showMessage(context, "Error checking duplicate username.");
       }
-    } catch (e) {
     
-      _showMessage(context, "An error occurred: ${e.toString()}");
-    }
-  }
 
-  _checkDuplicate(proposedUsername);
-
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('Username'),
-        content: Container(
-          width: MediaQuery.of(context).size.width * 0.9,
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                TextField(
-                  controller: usernameController,
-                  decoration: InputDecoration(labelText: 'Username'),
-                ),
-                SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    _checkDuplicate(usernameController.text);
-                  },
-                  child: Text('Check Duplicate'),
-                ),
-                SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        showDataAlert(context);
-                      },
-                      child: Text('Reject'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Username Details'),
+          content: Container(
+            width: MediaQuery.of(context).size.width * 0.9,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  TextField(
+                    controller: usernameController,
+                    decoration: InputDecoration(labelText: 'Username (Ensure five or more Characters)'),
+                  ),
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      _checkDuplicate(usernameController.text);
+                    },
+                    child: Text('Check Duplicate'),
+                  ),
+                  SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          showDataAlert(context);
+                        },
+                        child: Text('Reject'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                        ),
                       ),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        _confirmUsername(context, usernameController.text);
-                      },
-                      child: Text('Confirm'),
-                    ),
-                  ],
-                ),
-              ],
+                      ElevatedButton(
+                        onPressed: () {
+                          _checkDuplicate(usernameController.text);
+                          _confirmUsername(context, usernameController.text);
+                        },
+                        child: Text('Confirm'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      );
-    },
-  );
-}
+        );
+      },
+    );
+  }
 
+  String _generateProposedUsername(String firstName, String lastName) {
+    return firstName[0].toLowerCase() + lastName.toLowerCase();
+  }
 
-String _generateProposedUsername(dynamic firstName, dynamic lastName) {
-  return firstName[0].toLowerCase() + lastName.toLowerCase();
+  String _suggestAlternativeUsername(String baseUsername, String firstName, String existingUsernames) {
+    String suggestion = baseUsername;
 
-}
-
-String _suggestAlternativeUsername(dynamic baseUsername, dynamic firstName, dynamic existingUsernames) {
-  String suggestion = baseUsername;
-
-  for (int i = 1; i <= firstName.length; i++) {
-    suggestion = baseUsername + firstName.substring(0, i).toLowerCase();
-    if (!existingUsernames.containsKey(suggestion)) {
-      return suggestion;
+    for (int i = 1; i <= firstName.length; i++) {
+      suggestion = baseUsername + firstName.substring(0, i).toLowerCase();
+      if (!existingUsernames.contains(suggestion)) {
+        return suggestion;
+      }
     }
+
+    int number = 1;
+    while (existingUsernames.contains(suggestion)) {
+      suggestion = baseUsername + number.toString();
+      number++;
+    }
+
+    return suggestion;
   }
 
-  int number = 1;
-  while (existingUsernames.containsKey(suggestion)) {
-    suggestion = baseUsername + number.toString();
-    number++;
+  void _confirmUsername(BuildContext context, String username) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirmation'),
+          content: Text('Are you sure you want to create a user with username $username?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                _createUser(username);
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text('Yes'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text('No'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
-  return suggestion;
- }
+  Future <void> _createUser(String username, {bool isAccept = true}) async {
+    if (widget.userPayload != null && widget.userPayload!.isNotEmpty) {
+      widget.userPayload![0].username = username;
+      widget.userPayload![0].password = "Hmis@2024";
+      print('User created with username: ${widget.userPayload![0].username}');
+    }
+    await _loading(isAccept);
+    Navigator.of(context).pop();
+    Navigator.of(context).pop();
+    Navigator.of(context).pop();
+  }
 
- void _confirmUsername(BuildContext context, dynamic username) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('Confirmation'),
-        content: Text('Are you sure you want to create a user with username $username?'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              userPayload?.userCredentials?.username = username;
-              userPayload?.userCredentials?.password = "Hmis@2024";
-              userPayload?.username = username;
-              userPayload?.password = "Hmis@2024";
-              print('User created with username: ${userPayload?.username}');
-              Navigator.of(context).pop();
-              Navigator.of(context).pop();
-              _createUser(username);
-            },
-            child: Text('Yes'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: Text('No'),
-          ),
-        ],
-      );
-    },
-  );
-}
-
- void _createUser(String username, {bool isAccept = true}) {
-  print('User created with username: ${userPayload?.username}');
-  _loading(isAccept);
-}
-
-
-void _showMessage(BuildContext context, String messageon) {
-  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(messageon)));
-}
+  void _showMessage(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
 
   void showDataAlert(BuildContext context, {bool isAccept = false}) {
     showDialog(
@@ -580,19 +595,18 @@ void _showMessage(BuildContext context, String messageon) {
               child: Text(isAccept ? 'Accept' : 'Reject'),
               onPressed: () {
                 _loading(isAccept);
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
               },
             ),
           ],
-
         );
       },
     );
   }
 }
 
- String extractPlainText(String htmlContent) {
+String extractPlainText(String htmlContent) {
   final document = html_parser.parse(htmlContent);
   return document.body?.text ?? '';
 }
-
-

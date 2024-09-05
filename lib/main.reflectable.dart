@@ -526,11 +526,11 @@ final _data = <r.Reflectable, r.ReflectorData>{
                   ({id, name, orgUnit, parent, user, type, dirty}) => b
                       ? prefix5.UserOrganisationUnit(
                           parent: parent,
+                          type: type,
                           dirty: dirty,
                           id: id,
                           name: name,
                           orgUnit: orgUnit,
-                          type: type,
                           user: user)
                       : null,
               r'fromJson': (bool b) => (json) =>
@@ -5378,14 +5378,14 @@ final _data = <r.Reflectable, r.ReflectorData>{
             const <Object>[const prefix30.Column(nullable: true)]),
         r.VariableMirrorImpl(
             r'type',
-            134349829,
+            67240965,
             4,
             const prefix0.AnnotationReflection(),
             -1,
-            58,
-            58,
+            57,
+            57,
             const <int>[],
-            const <Object>[const prefix30.Column()]),
+            const <Object>[const prefix30.Column(nullable: true)]),
         r.VariableMirrorImpl(
             r'user',
             67141637,
@@ -12020,12 +12020,12 @@ final _data = <r.Reflectable, r.ReflectorData>{
             #user),
         r.ParameterMirrorImpl(
             r'type',
-            134358022,
+            67253254,
             426,
             const prefix0.AnnotationReflection(),
             -1,
-            58,
-            58,
+            57,
+            57,
             const <int>[],
             const [],
             null,

@@ -166,7 +166,7 @@ class MessageModel with ChangeNotifier {
           if (userModel.message?.message != null &&
               userModel.message?.message != 'No Subject' &&
               userModel.message?.subject?.split("-").last != 'No Display' &&
-              userModel.actionType == null) { // Only add if actionType is null
+              userModel.actionType == null) {
             userApprovalList.add(userModel);
           }
         } else {
@@ -255,6 +255,7 @@ class MessageModel with ChangeNotifier {
             "method": userApproval.method,
             "payload": userPayloadString,
             "replyMessage": userApproval.replyMessage,
+            "shouldAlert": false,
             "ticketNumber": userApproval.ticketNumber,
             "url": userApproval.url,
             "user": userString,
@@ -283,11 +284,6 @@ class MessageModel with ChangeNotifier {
         }
       } else {
         try {
-          SelectedPayload.status = "REJECTED";
-          SelectedPayload.reason = message;
-          SelectedPayload.password = null;
-          SelectedPayload.username = null;
-          SelectedPayload.userCredentials!.username = null;
 
           final url = Uri.parse('http://41.59.227.69/tland-upgrade/api/dataStore/dhis2-user-support/${userApproval.id}');
           String basicAuth = 'Basic ' + base64Encode(utf8.encode('pt2024:Hmis@2024'));
@@ -299,11 +295,14 @@ class MessageModel with ChangeNotifier {
           var body = jsonEncode({
             "action": userApproval.action,
             "id": userApproval.id,
+            "actionType": userApproval.actionType,
             "message": messageString,
             "method": userApproval.method,
             "payload": userPayloadString,
             "replyMessage": userApproval.replyMessage,
+            "shouldAlert": false,
             "ticketNumber": userApproval.ticketNumber,
+            "status": userApproval.status,
             "url": userApproval.url,
             "user": userString,
           });

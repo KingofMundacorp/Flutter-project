@@ -303,10 +303,12 @@ class UserModel {
     method: json["method"] == null ? null : json["method"],
     //payload: json["payload"] == null ? null : List<PayloadUser>.from(json["payload"].map((x) => PayloadUser.fromMap(x))),
     userPayload: json["payload"] != null
-        ? (json["payload"] as List<dynamic>)
-        .map((e) => Userpayload.fromMap(e as Map<String, dynamic>))
-        .toList() // Convert Iterable to List<Userpayload>
-        : [], //
+      ? (json["payload"] is List
+          ? (json["payload"] as List<dynamic>)
+              .map((e) => Userpayload.fromMap(e as Map<String, dynamic>))
+              .toList()
+          : [Userpayload.fromMap(json["payload"] as Map<String, dynamic>)])
+      : [],
     url: json["url"] == null ? null : json["url"],
     timeSinceResponseSent: json["timeSinceResponseSent"] == null
         ? null
@@ -344,7 +346,9 @@ class UserModel {
     timeSinceResponseSent == null ? null : timeSinceResponseSent,
     "message": message == null ? null : message!.toMap(),
     "user": user == null ? null : user!.toMap(),
-    "payload": userPayload == null ? null : List<dynamic>.from(userPayload!.map((x) => x.toMap()).toList()),
+    "payload": userPayload == null
+            ? null
+            : List<dynamic>.from(userPayload!.map((x) => x.toMap()).toList()),
 
     "messageConversation":
     messageConversation == null ? null : messageConversation!.toMap(),

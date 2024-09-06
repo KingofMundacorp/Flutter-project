@@ -238,7 +238,7 @@ class _PageContentState extends State<PageContent> {
 
   Future<void> _rejectAllPayloads(BuildContext context, List<Userpayload> payloads) async{
   for (var payload in payloads) {
-    showDataAlert(context, payload);
+    showDataAlert(context, payload, true);
   }
 }
 
@@ -459,7 +459,7 @@ class _PageContentState extends State<PageContent> {
                     children: [
                       ElevatedButton(
                         onPressed: () {
-                          showDataAlert(context, SelectedPayload);
+                          showDataAlert(context, SelectedPayload, false);
                         },
                         child: Text('Reject'),
                         style: ElevatedButton.styleFrom(
@@ -548,7 +548,7 @@ class _PageContentState extends State<PageContent> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
-  void showDataAlert(BuildContext context, Userpayload SelectedPayload, {bool isAccept = false}) async {
+  Future  <void> showDataAlert(BuildContext context, Userpayload SelectedPayload, bool isRejectAll, {bool isAccept = false}) async {
     showDialog(
       context: context,
       builder: (context) {
@@ -567,7 +567,6 @@ class _PageContentState extends State<PageContent> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  if (!isAccept)
                     Container(
                       padding: const EdgeInsets.all(8.0),
                       child: TextField(
@@ -575,7 +574,7 @@ class _PageContentState extends State<PageContent> {
                         minLines: 3,
                         maxLines: 5,
                         decoration: InputDecoration(
-                          labelText: 'Provide a reason for rejection',
+                          labelText: isRejectAll? 'Provide a reason for rejection of ALL requests' : 'Provide a reason for rejection of request',
                           border: OutlineInputBorder(),
                         ),
                       ),
@@ -586,8 +585,8 @@ class _PageContentState extends State<PageContent> {
                   Container(
                     padding: const EdgeInsets.all(8.0),
                     child: Text(
-                      isAccept
-                          ? 'Are you sure you want to accept the request?'
+                      isRejectAll
+                          ? 'Are you sure you want to reject the of ALL request?'
                           : 'Are you sure you want to reject the request?',
                       style: TextStyle(fontSize: 16),
                     ),
@@ -602,8 +601,20 @@ class _PageContentState extends State<PageContent> {
               onPressed: () => Navigator.of(context).pop(),
             ),
             TextButton(
-              child: Text(isAccept ? 'Accept' : 'Reject'),
+              child: Text(isRejectAll ? 'Reject ALL' : 'Reject'),
               onPressed: () {
+                if(isRejectAll = true){
+                         userApproval.actionType = "REJECTED";
+                         userApproval.status ="REJECTED";
+                         userApproval.replyMessage = _textEditingController.text.trim();
+                }
+                else{
+                            SelectedPayload.status = "REJECTED";
+                            SelectedPayload.reason = _textEditingController.text.trim();
+                            SelectedPayload.password = null;
+                            SelectedPayload.username = null;
+                            SelectedPayload.userCredentials!.username = null;
+                }
                 _loading(isAccept, SelectedPayload);
                 Navigator.of(context).pop();
               },

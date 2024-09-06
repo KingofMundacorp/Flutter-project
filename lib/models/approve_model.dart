@@ -1022,12 +1022,13 @@ class Userpayload {
    List<UserGroup>? userGroups;
    String? email;
    String? password;
+   String? reason;
 
   Userpayload({
     this.attributeValues,
     this.dataViewOrganisationUnits,
     this.organisationUnits,
-
+    this.reason,
     this.phoneNumber,
     this.referenceId,
     this.surname,
@@ -1060,7 +1061,7 @@ class Userpayload {
       status: json["status"] as String?,
       username: json["username"] as String?,
       password: json["password"] as String?,
-
+      reason: json["reason"] as String?,
       firstName: json["firstName"] as String?,
       userCredentials: json["userCredentials"] != null
           ? UserCredentials.fromMap(json["userCredentials"] as Map<String, dynamic>)
@@ -1087,7 +1088,7 @@ class Userpayload {
       if (firstName != null) "firstName": firstName,
       if (username != null) "username": username,
       if (password != null) "password": password,
-
+      if (reason != null) "reason": reason,
       if (email != null) "email": email,
       if (status != null) "status": status,
       if (userCredentials != null) "userCredentials": userCredentials!.toMap(),

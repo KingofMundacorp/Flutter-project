@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -17,7 +16,7 @@ import 'package:user_support_mobile/constants/d2-repository.dart';
 class UserApprovalDetailPage extends StatefulWidget {
   const UserApprovalDetailPage({Key? key, required this.userApproval, required this.userPayload})
       : super(key: key);
-  final UserModel? userApproval;
+  final UserModel userApproval;
   final List<Userpayload>? userPayload;
 
   @override
@@ -84,8 +83,8 @@ class UserApprovalDetailPageState extends State<UserApprovalDetailPage> {
 }
 
 class PageContent extends StatefulWidget {
-  const PageContent({Key? key, this.userApproval, this.userPayload, this.parseMessages}) : super(key: key);
-  final UserModel? userApproval;
+  const PageContent({Key? key, required this.userApproval, this.userPayload, this.parseMessages}) : super(key: key);
+  final UserModel userApproval;
   final List<Userpayload>? userPayload;
   final List<dynamic> Function()? parseMessages;
 
@@ -95,17 +94,21 @@ class PageContent extends StatefulWidget {
 
 class _PageContentState extends State<PageContent> {
   File? file;
-  UserModel? userApproval;
+  late UserModel userApproval;
   List<Userpayload>? userPayload;
   String? selectedUser;
   bool isVisible = true;
   bool isButtonEnabled = false;
   final TextEditingController _textEditingController = TextEditingController();
-  bool _isDropdownShown = false; // Tracks whether the dropdown is shown
-  Map<String, dynamic> _selectedAccount = {}; // Holds the selected account details
-  Color _selectButtonColor = Color(0xFF235EA0); // Initial color of the select button
-  Map<String, bool> _rejectedAccounts = {};
-  Map<String, bool> _confirmedAccounts = {};
+  bool _isDropdownShown = false;
+  Color _selectButtonColor = Color(0xFF235EA0);
+
+  @override
+  void initState() {
+    super.initState();
+    userApproval = widget.userApproval;
+    userPayload = widget.userPayload;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -137,7 +140,7 @@ class _PageContentState extends State<PageContent> {
                   child: ListView(
                     children: [
                       Html(
-                        data: widget.userApproval?.message?.subject?.split("-").last ?? '',
+                        data: widget.userApproval.message?.subject?.split("-").last ?? '',
                         style: {
                           'body': Style(
                             color: Colors.black,
@@ -150,7 +153,7 @@ class _PageContentState extends State<PageContent> {
                         height: 20,
                       ),
                       Html(
-                        data: widget.userApproval?.message?.message ?? '',
+                        data: widget.userApproval.message?.message ?? '',
                         style: {
                           'body': Style(
                             color: Colors.black,
@@ -176,7 +179,6 @@ class _PageContentState extends State<PageContent> {
                                 ),
                                 onPressed: () {
                                   final accounts = widget.parseMessages?.call() ?? [];
-
                                   _showApprovalTableDialog(accounts);
                                 },
                                 child: Padding(
@@ -199,7 +201,9 @@ class _PageContentState extends State<PageContent> {
                                       Colors.red),
                                 ),
                                 onPressed: () {
-                                  showDataAlert(context);
+                                   if (userApproval.userPayload != null && userApproval.userPayload!.isNotEmpty) {
+                                   _rejectAllPayloads(context, userApproval.userPayload!);
+                                  }
                                 },
                                 child: Padding(
                                   padding: EdgeInsets.all(10.0),
@@ -232,15 +236,23 @@ class _PageContentState extends State<PageContent> {
     );
   }
 
-  Future <void> _loading(bool isAccept) async {
+  Future<void> _rejectAllPayloads(BuildContext context, List<Userpayload> payloads) async{
+  for (var payload in payloads) {
+    showDataAlert(context, payload);
+  }
+}
+
+  Future<void> _loading(bool isAccept, Userpayload selectedPayload) async {
     EasyLoading.show(
       status: 'loading...',
       maskType: EasyLoadingMaskType.black,
     );
+    String? name = '${selectedPayload.firstName} ${selectedPayload.surname}';
 
     try {
       await context.read<MessageModel>().approvalUserRequest(
-        widget.userApproval!,
+        widget.userApproval,
+        name,
         message: isAccept ? null : _textEditingController.text.trim(),
       );
 
@@ -258,7 +270,7 @@ class _PageContentState extends State<PageContent> {
     }
   }
 
-  void _showApprovalTableDialog(List<dynamic> accounts) {
+  Future <void> _showApprovalTableDialog(List<dynamic> accounts) async{
   showDialog(
     context: context,
     builder: (context) {
@@ -366,7 +378,7 @@ class _PageContentState extends State<PageContent> {
                              final nameParts = (account['Names'] ?? '').split(' ');
                              final firstName = nameParts.isNotEmpty ? nameParts[0] : '';
                              final lastName = nameParts.length > 1 ? nameParts[1] : '';
-                             _showDropdown(context, firstName, lastName);
+                             _showDropdown(context, firstName, lastName, widget.userApproval);
                              },
                              child: Text('Select'),
                             ),
@@ -390,30 +402,30 @@ class _PageContentState extends State<PageContent> {
   );
 }
 
-  void _showDropdown(BuildContext context, String firstName, String lastName) {
+  void _showDropdown(BuildContext context, String firstName, String lastName, UserModel userApproval) async {
     final usernameController = TextEditingController();
     String proposedUsername = _generateProposedUsername(firstName, lastName);
     usernameController.text = proposedUsername;
+     var SelectedPayload = userApproval.userPayload!.firstWhere(
+     (payloadu) => '${payloadu.firstName} ${payloadu.surname}' == '$firstName $lastName',);
 
-    void _checkDuplicate(String username) async {
+    Future <void> _checkDuplicate(String username) async {
       
         final response = await d2repository.httpClient.get(
           'users?filter=userCredentials.username:eq:$username&fields=id',
         );
 
         if (response.statusCode == 200) {
-          List<dynamic> data = response.body['users']??['0']??['id'].toList();
+          List<dynamic> data = response.body['users']??[0]??['id'].toList();
           if (data.isEmpty) {
-            // No duplicate username found
-            _showMessage(context, "No duplicate username found.");
+            EasyLoading.showSuccess('No Duplicate User found');
           } else {
-            // Suggest an alternative username
             proposedUsername = _suggestAlternativeUsername(proposedUsername, firstName, username);
             usernameController.text = proposedUsername;
             _checkDuplicate(proposedUsername);
           }
         } else {
-          // Handle error response
+
           _showMessage(context, "Error checking duplicate username.");
         }
       }
@@ -423,7 +435,7 @@ class _PageContentState extends State<PageContent> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Username Details'),
+          title: Text('Username Details for $firstName $lastName'),
           content: Container(
             width: MediaQuery.of(context).size.width * 0.9,
             child: SingleChildScrollView(
@@ -447,7 +459,7 @@ class _PageContentState extends State<PageContent> {
                     children: [
                       ElevatedButton(
                         onPressed: () {
-                          showDataAlert(context);
+                          showDataAlert(context, SelectedPayload);
                         },
                         child: Text('Reject'),
                         style: ElevatedButton.styleFrom(
@@ -455,9 +467,9 @@ class _PageContentState extends State<PageContent> {
                         ),
                       ),
                       ElevatedButton(
-                        onPressed: () {
-                          _checkDuplicate(usernameController.text);
-                          _confirmUsername(context, usernameController.text);
+                        onPressed: () async {
+                          await _checkDuplicate(usernameController.text);
+                          _confirmUsername(context, usernameController.text, SelectedPayload);
                         },
                         child: Text('Confirm'),
                       ),
@@ -476,7 +488,7 @@ class _PageContentState extends State<PageContent> {
     return firstName[0].toLowerCase() + lastName.toLowerCase();
   }
 
-  String _suggestAlternativeUsername(String baseUsername, String firstName, String existingUsernames) {
+  String _suggestAlternativeUsername(String baseUsername, String firstName, String existingUsernames){
     String suggestion = baseUsername;
 
     for (int i = 1; i <= firstName.length; i++) {
@@ -495,7 +507,7 @@ class _PageContentState extends State<PageContent> {
     return suggestion;
   }
 
-  void _confirmUsername(BuildContext context, String username) {
+  void _confirmUsername(BuildContext context, String username, Userpayload SelectedPayload) async {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -505,7 +517,7 @@ class _PageContentState extends State<PageContent> {
           actions: [
             TextButton(
               onPressed: () {
-                _createUser(username);
+                _createUser(username, SelectedPayload);
                 Navigator.of(context).pop(); // Close the dialog
               },
               child: Text('Yes'),
@@ -522,15 +534,13 @@ class _PageContentState extends State<PageContent> {
     );
   }
 
-  Future <void> _createUser(String username, {bool isAccept = true}) async {
+  Future <void> _createUser(String username, Userpayload SelectedPayload, {bool isAccept = true}) async {
     if (widget.userPayload != null && widget.userPayload!.isNotEmpty) {
-      widget.userPayload![0].username = username;
-      widget.userPayload![0].password = "Hmis@2024";
-      print('User created with username: ${widget.userPayload![0].username}');
+      SelectedPayload.username = username;
+      SelectedPayload.password = "Hmis@2024";
+      print('User created with username: ${SelectedPayload.username}');
     }
-    await _loading(isAccept);
-    Navigator.of(context).pop();
-    Navigator.of(context).pop();
+    await _loading(isAccept, SelectedPayload);
     Navigator.of(context).pop();
   }
 
@@ -538,7 +548,7 @@ class _PageContentState extends State<PageContent> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
-  void showDataAlert(BuildContext context, {bool isAccept = false}) {
+  void showDataAlert(BuildContext context, Userpayload SelectedPayload, {bool isAccept = false}) async {
     showDialog(
       context: context,
       builder: (context) {
@@ -594,8 +604,7 @@ class _PageContentState extends State<PageContent> {
             TextButton(
               child: Text(isAccept ? 'Accept' : 'Reject'),
               onPressed: () {
-                _loading(isAccept);
-                Navigator.of(context).pop();
+                _loading(isAccept, SelectedPayload);
                 Navigator.of(context).pop();
               },
             ),

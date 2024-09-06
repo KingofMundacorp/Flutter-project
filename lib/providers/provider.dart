@@ -13,6 +13,7 @@ import '/constants/constants.dart';
 import '/models/message_conversation.dart';
 import '/models/user.dart';
 import '../models/approve_model.dart';
+import '../pages/user_approval_detail.dart';
 
 
 class MessageModel with ChangeNotifier {
@@ -180,22 +181,27 @@ class MessageModel with ChangeNotifier {
   }
 
 
-  Future<void> approvalUserRequest(UserModel userApproval, {String? message}) async {
-    await d2repository.httpClient.get('dataStore/dhis2-user-support/${userApproval.id}');
-    _isLoading = true;
-   for (var payload in userApproval.userPayload!) {
-    var id = userApproval.id!.substring(0, 15);
-    var username = payload.username;
-    var phoneNumber = payload.phoneNumber;
-    var email = payload.email;
-    var dataOrganisationUnits = payload.dataViewOrganisationUnits!.map((unit) => {"id": unit.id}).toList();
-    var organisationUnits = payload.organisationUnits!.map((unit) => {"id": unit.id}).toList();
-    var userGroups = payload.userGroups!.map((group) => {"id": group.id}).toList();
-    var firstname = payload.firstName;
-    var surname = payload.surname;
-    var userRoles = userApproval.user!.userRoles!.map((role) => {"id": role.id}).toList();
-    
+ Future<void> approvalUserRequest(UserModel userApproval, String? Name, {String? message}) async {
+  await d2repository.httpClient.get('dataStore/dhis2-user-support/${userApproval.id}');
+  _isLoading = true;
 
+  // Check if userPayload is not null and has at least one element
+  String? name = Name;
+  if (userApproval.userPayload != null && userApproval.userPayload!.isNotEmpty) {
+    var SelectedPayload = userApproval.userPayload!.firstWhere(
+    (payload) => '${payload.firstName} ${payload.surname}' == name,
+    );
+  
+    var id = userApproval.message!.subject!.substring(0, 15);
+    var username = SelectedPayload.username;
+    var phoneNumber = SelectedPayload.phoneNumber;
+    var email = SelectedPayload.email;
+    var dataOrganisationUnits = SelectedPayload.dataViewOrganisationUnits!.map((unit) => {"id": unit.id}).toList();
+    var organisationUnits = SelectedPayload.organisationUnits!.map((unit) => {"id": unit.id}).toList();
+    var userGroups = SelectedPayload.userGroups!.map((group) => {"id": group.id}).toList();
+    var firstname = SelectedPayload.firstName;
+    var surname = SelectedPayload.surname;
+    var userRoles = userApproval.user!.userRoles!.map((role) => {"id": role.id}).toList();
 
     print(id);
     print(username);
@@ -206,63 +212,139 @@ class MessageModel with ChangeNotifier {
       var convId = res.body['messageConversations'][0]['id'].toString();
       print(convId);
       var hello = {
-      "userCredentials": {
-        "cogsDimensionConstraints": [],
-        "catDimensionConstraints": [],
-        "username": username,
-        "password": "Hmis@2024",
-        "userRoles": userRoles
-      },
-      "surname": surname,
-      "firstName": firstname,
-      "email": email,
-      "phoneNumber": phoneNumber,
-      "organisationUnits": organisationUnits,
-      "dataViewOrganisationUnits": dataOrganisationUnits,
-      "userGroups": userGroups,
-      "attributeValues": []
-    };
+        "userCredentials": {
+          "cogsDimensionConstraints": [],
+          "catDimensionConstraints": [],
+          "username": username,
+          "password": "Hmis@2024",
+          "userRoles": userRoles
+        },
+        "surname": surname,
+        "firstName": firstname,
+        "email": email,
+        "phoneNumber": phoneNumber,
+        "organisationUnits": organisationUnits,
+        "dataViewOrganisationUnits": dataOrganisationUnits,
+        "userGroups": userGroups,
+        "attributeValues": []
+      };
 
-     String jsonS = jsonEncode(hello);
-
+      String jsonS = jsonEncode(hello);
 
       if (message == null) {
         print('This is inside if statement');
         try {
-          await d2repository.httpClient.get('dataStore/dhis2-user-support/${userApproval.id}');
           final res = await d2repository.httpClient.post('users', jsonS);
           String userid = res.body['response']['uid'].toString();
-          await d2repository.httpClient.post('messageConversations/${convId}', 'The following are the accounts created \n \n 1. user details  - ${phoneNumber}  is: username=  ${username} and password = Hmis@2024');
+
+          SelectedPayload.status = "CREATED";
+          SelectedPayload.userCredentials!.username = username;
+          SelectedPayload.password = "Hmis@2024";
+
+          final url = Uri.parse('http://41.59.227.69/tland-upgrade/api/dataStore/dhis2-user-support/${userApproval.id}');
+          String basicAuth = 'Basic ' + base64Encode(utf8.encode('pt2024:Hmis@2024'));
+
+          var messageString = userApproval.message?.toMap();
+          var userString = userApproval.user?.toMap();
+          var userPayloadString = userApproval.userPayload?.map((payload) => payload.toMap()).toList();
+
+          var body = jsonEncode({
+            "action": userApproval.action,
+            "id": userApproval.id,
+            "message": messageString,
+            "method": userApproval.method,
+            "payload": userPayloadString,
+            "replyMessage": userApproval.replyMessage,
+            "ticketNumber": userApproval.ticketNumber,
+            "url": userApproval.url,
+            "user": userString,
+          });
+
+          await http.put(
+            url,
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Authorization': basicAuth,
+            },
+            body: body,
+          );
+          await d2repository.httpClient.post('messageConversations/${convId}', 'ACCOUNT CREATED FOR ${SelectedPayload.firstName} ${SelectedPayload.surname} \n \n The following are the accounts created \n \n 1. user details  - ${phoneNumber}  is: username=  ${username} and password = Hmis@2024');
           await d2repository.httpClient.post('messageConversations/${convId}/status?messageConversationStatus=SOLVED', '');
-          await d2repository.httpClient.post(('messageConversations'), ({"subject":"HMIS DHIS2 ACCOUNT","users":[{"id":"${userid}","username":"${username}","type":"user"}],"userGroups":[],"text":"Your creadentials are: \n Username: ${username} \n\n                    Password: Hmis@2024 \n\n\n                    MoH requires you to change password after login.\n                    The account will be disabled if it is not used for 3 months consecutively"}));
+          await d2repository.httpClient.post(('messageConversations'), ({"subject":"HMIS DHIS2 ACCOUNT","users":[{"id":"${userid}","username":"${username}","type":"user"}],"userGroups":[],"text":"Your credentials are: \n Username: ${username} \n\n                    Password: Hmis@2024 \n\n\n                    MoH requires you to change password after login.\n                    The account will be disabled if it is not used for 3 months consecutively"}));
+          bool allCreatedOrRejected = userApproval.userPayload!.every((payload) =>
+          payload.status == "CREATED" || payload.status == "REJECTED");
+
+          if (allCreatedOrRejected) {
           await d2repository.httpClient.delete('dataStore/dhis2-user-support', userApproval.id.toString());
-          payload.status = 'CREATED';
+          }
         } catch (e) {
           print("An error occurred: $e");
         }
       } else {
         try {
-          await d2repository.httpClient.post('messageConversations/$convId', message);
+          SelectedPayload.status = "REJECTED";
+          SelectedPayload.reason = message;
+          SelectedPayload.password = null;
+          SelectedPayload.username = null;
+          SelectedPayload.userCredentials!.username = null;
+
+          final url = Uri.parse('http://41.59.227.69/tland-upgrade/api/dataStore/dhis2-user-support/${userApproval.id}');
+          String basicAuth = 'Basic ' + base64Encode(utf8.encode('pt2024:Hmis@2024'));
+
+          var messageString = userApproval.message?.toMap();
+          var userString = userApproval.user?.toMap();
+          var userPayloadString = userApproval.userPayload?.map((payload) => payload.toMap()).toList();
+
+          var body = jsonEncode({
+            "action": userApproval.action,
+            "id": userApproval.id,
+            "message": messageString,
+            "method": userApproval.method,
+            "payload": userPayloadString,
+            "replyMessage": userApproval.replyMessage,
+            "ticketNumber": userApproval.ticketNumber,
+            "url": userApproval.url,
+            "user": userString,
+          });
+
+          await http.put(
+            url,
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Authorization': basicAuth,
+            },
+            body: body,
+          );
+          await d2repository.httpClient.post('messageConversations/$convId', 'ACCOUNT REJECTED FOR ${SelectedPayload.firstName} ${SelectedPayload.surname} due to \n \n $message');
           await d2repository.httpClient.post('messageConversations/$convId/status?messageConversationStatus=SOLVED', '');
+          bool allCreatedOrRejected = userApproval.userPayload!.every((payload) => 
+          payload.status == "CREATED" || payload.status == "REJECTED");
+
+          if (allCreatedOrRejected) {
           await d2repository.httpClient.delete('dataStore/dhis2-user-support', userApproval.id.toString());
-          payload.status = 'REJECTED';
+          }
         } catch (e) {
           // Handle any errors that occur during the requests
           print("An error occurred: $e");
         }
       }
-
     } catch (e, stackTrace) {
       // Handle any other errors, including network issues or JSON parsing errors
       print("An error occurred: $e");
       print("Stack trace: $stackTrace");
-      _isLoading = false;
     }
 
-    notifyListeners();
+    _isLoading = false;
+  } else {
+    print('No user payload available.');
+    _isLoading = false;
   }
 
-  }
+  notifyListeners();
+}
+
 
 
 

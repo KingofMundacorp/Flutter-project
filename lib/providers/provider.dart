@@ -132,10 +132,7 @@ class MessageModel with ChangeNotifier {
   }
   
   Future<void> approvalActRequest(UserModel userApproval) async {
-
-    final url = Uri.parse('http://41.59.227.69/tland-upgrade/api/dataStore/dhis2-user-support/${userApproval.id}');
-    String basicAuth = 'Basic ' + base64Encode(utf8.encode('pt2024:Hmis@2024'));
-
+    
     _isLoading = true;
     var id = userApproval.id!.substring(0, 15);
     print(id);
@@ -145,34 +142,22 @@ class MessageModel with ChangeNotifier {
 
     if ( userApproval.type == "deactivate") {
           await Future.wait([
-        http.put(url,
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-              'Authorization': basicAuth,
-            },
-            body: {"disabled":true},
-          ),
+        d2repository.httpClient.post(userApproval.url!, {}),
         d2repository.httpClient.post('messageConversations/${convId}','Ombi lako limeshughulikiwa karibu!'),
         d2repository.httpClient.post('messageConversations/${convId}/status?messageConversationStatus=SOLVED',''),
         d2repository.httpClient.delete('dataStore/dhis2-user-support', userApproval.id.toString()),
       ]).whenComplete(() => _isLoading = false);}
 
      else if ( userApproval.type == "activate") {await Future.wait([
-        http.put(url,
-         headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-              'Authorization': basicAuth,
-            },
-        body: {"disabled":false},
-          ),
+        d2repository.httpClient.post(userApproval.url!, {}),
         d2repository.httpClient.post('messageConversations/${convId}','Ombi lako limeshughulikiwa karibu!'),
         d2repository.httpClient.post('messageConversations/${convId}/status?messageConversationStatus=SOLVED',''),
         d2repository.httpClient.delete('dataStore/dhis2-user-support', userApproval.id.toString()),
       ]).whenComplete(() => _isLoading = false);
 
       }
+
+      notifyListeners();
   }
   
   Future<void> get fetchUserApproval async {

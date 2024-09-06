@@ -205,9 +205,11 @@ class MessageModel with ChangeNotifier {
 
     print(id);
     print(username);
+    final url = Uri.parse('http://41.59.227.69/tland-upgrade/api/dataStore/dhis2-user-support/${userApproval.id}');
+    String basicAuth = 'Basic ' + base64Encode(utf8.encode('pt2024:Hmis@2024'));
+
     try {
-      final res = await d2repository.httpClient.get(
-        'messageConversations?messageType=TICKET&filter=subject:ilike:${id}');
+      final res = await d2repository.httpClient.get('messageConversations?messageType=TICKET&filter=subject:ilike:${id}');
 
       var convId = res.body['messageConversations'][0]['id'].toString();
       print(convId);
@@ -232,18 +234,15 @@ class MessageModel with ChangeNotifier {
       String jsonS = jsonEncode(hello);
 
       if (message == null) {
-        print('This is inside if statement');
-        try {
+        if (userApproval.type == null) {
+         print('This is inside if statement');
+         try {
           final res = await d2repository.httpClient.post('users', jsonS);
           String userid = res.body['response']['uid'].toString();
 
           SelectedPayload.status = "CREATED";
           SelectedPayload.userCredentials!.username = username;
           SelectedPayload.password = "Hmis@2024";
-
-          final url = Uri.parse('http://41.59.227.69/tland-upgrade/api/dataStore/dhis2-user-support/${userApproval.id}');
-          String basicAuth = 'Basic ' + base64Encode(utf8.encode('pt2024:Hmis@2024'));
-
           var messageString = userApproval.message?.toMap();
           var userString = userApproval.user?.toMap();
           var userPayloadString = userApproval.userPayload?.map((payload) => payload.toMap()).toList();
@@ -279,15 +278,43 @@ class MessageModel with ChangeNotifier {
           if (allCreatedOrRejected) {
           await d2repository.httpClient.delete('dataStore/dhis2-user-support', userApproval.id.toString());
           }
-        } catch (e) {
+         } catch (e) {
           print("An error occurred: $e");
+          }
+        } else if ( userApproval.type == "deactivate") {
+          await Future.wait([
+        http.put(url,
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Authorization': basicAuth,
+            },
+            body: {"disabled":true},
+          ),
+        d2repository.httpClient.post('messageConversations/${convId}','Ombi lako limeshughulikiwa karibu!'),
+        d2repository.httpClient.post('messageConversations/${convId}/status?messageConversationStatus=SOLVED',''),
+        d2repository.httpClient.delete('dataStore/dhis2-user-support', userApproval.id.toString()),
+      ]).whenComplete(() => _isLoading = false);
+
         }
+        else if ( userApproval.type == "activate") {await Future.wait([
+        http.put(url,
+         headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Authorization': basicAuth,
+            },
+        body: {"disabled":false},
+          ),
+        d2repository.httpClient.post('messageConversations/${convId}','Ombi lako limeshughulikiwa karibu!'),
+        d2repository.httpClient.post('messageConversations/${convId}/status?messageConversationStatus=SOLVED',''),
+        d2repository.httpClient.delete('dataStore/dhis2-user-support', userApproval.id.toString()),
+      ]).whenComplete(() => _isLoading = false);
+
+      }
+
       } else {
         try {
-
-          final url = Uri.parse('http://41.59.227.69/tland-upgrade/api/dataStore/dhis2-user-support/${userApproval.id}');
-          String basicAuth = 'Basic ' + base64Encode(utf8.encode('pt2024:Hmis@2024'));
-
           var messageString = userApproval.message?.toMap();
           var userString = userApproval.user?.toMap();
           var userPayloadString = userApproval.userPayload?.map((payload) => payload.toMap()).toList();

@@ -208,7 +208,7 @@ class _PageContentState extends State<PageContent> {
                                 child: Padding(
                                   padding: EdgeInsets.all(10.0),
                                   child: Text(
-                                    'Reject',
+                                    'Reject ALL',
                                     style: TextStyle(
                                       color: Colors.white,
                                     ),

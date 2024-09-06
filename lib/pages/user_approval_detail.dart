@@ -413,7 +413,7 @@ class _PageContentState extends State<PageContent> {
      var SelectedPayload = userApproval.userPayload!.firstWhere(
      (payloadu) => '${payloadu.firstName} ${payloadu.surname}' == '$firstName $lastName',);
 
-    Future <void> _checkDuplicate(String username) async {
+    Future <void> _checkExistingUsername(String username) async {
       
         final response = await d2repository.httpClient.get(
           'users?filter=userCredentials.username:eq:$username&fields=id',
@@ -422,15 +422,15 @@ class _PageContentState extends State<PageContent> {
         if (response.statusCode == 200) {
           List<dynamic> data = response.body['users']??[0]??['id'].toList();
           if (data.isEmpty) {
-            EasyLoading.showSuccess('No Duplicate User found');
+            EasyLoading.showSuccess('No Existing Username found');
           } else {
             proposedUsername = _suggestAlternativeUsername(proposedUsername, firstName, username);
             usernameController.text = proposedUsername;
-            _checkDuplicate(proposedUsername);
+            _checkExistingUsername(proposedUsername);
           }
         } else {
 
-          _showMessage(context, "Error checking duplicate username.");
+          _showMessage(context, "Error checking existing username.");
         }
       }
     
@@ -453,7 +453,7 @@ class _PageContentState extends State<PageContent> {
                   SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () {
-                      _checkDuplicate(usernameController.text);
+                      
                     },
                     child: Text('Check Duplicate'),
                   ),
@@ -472,7 +472,7 @@ class _PageContentState extends State<PageContent> {
                       ),
                       ElevatedButton(
                         onPressed: () async {
-                          await _checkDuplicate(usernameController.text);
+                          await _checkExistingUsername(usernameController.text);
                           _confirmUsername(context, usernameController.text, SelectedPayload);
                         },
                         child: Text('Confirm'),

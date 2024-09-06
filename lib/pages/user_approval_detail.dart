@@ -178,8 +178,12 @@ class _PageContentState extends State<PageContent> {
                                   ),
                                 ),
                                 onPressed: () {
+                                  if(widget.userApproval.type == null){
                                   final accounts = widget.parseMessages?.call() ?? [];
-                                  _showApprovalTableDialog(accounts);
+                                  _showApprovalTableDialog(accounts);}
+                                  else if (widget.userApproval.type == "deactivate" || widget.userApproval.type == "activate"){
+                                    context.read<MessageModel>().approvalActRequest(widget.userApproval);
+                                  }
                                 },
                                 child: Padding(
                                   padding: const EdgeInsets.all(10.0),

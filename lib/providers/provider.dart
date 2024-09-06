@@ -130,7 +130,51 @@ class MessageModel with ChangeNotifier {
 
     notifyListeners();
   }
+  
+  Future<void> approvalActRequest(UserModel userApproval) async {
 
+    final url = Uri.parse('http://41.59.227.69/tland-upgrade/api/dataStore/dhis2-user-support/${userApproval.id}');
+    String basicAuth = 'Basic ' + base64Encode(utf8.encode('pt2024:Hmis@2024'));
+
+    _isLoading = true;
+    var id = userApproval.id!.substring(0, 15);
+    print(id);
+    final res = await d2repository.httpClient.get('messageConversations?messageType=TICKET&filter=subject:ilike:${id}');
+
+    var convId = res.body['messageConversations'][0]['id'].toString();
+
+    if ( userApproval.type == "deactivate") {
+          await Future.wait([
+        http.put(url,
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Authorization': basicAuth,
+            },
+            body: {"disabled":true},
+          ),
+        d2repository.httpClient.post('messageConversations/${convId}','Ombi lako limeshughulikiwa karibu!'),
+        d2repository.httpClient.post('messageConversations/${convId}/status?messageConversationStatus=SOLVED',''),
+        d2repository.httpClient.delete('dataStore/dhis2-user-support', userApproval.id.toString()),
+      ]).whenComplete(() => _isLoading = false);}
+
+     else if ( userApproval.type == "activate") {await Future.wait([
+        http.put(url,
+         headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Authorization': basicAuth,
+            },
+        body: {"disabled":false},
+          ),
+        d2repository.httpClient.post('messageConversations/${convId}','Ombi lako limeshughulikiwa karibu!'),
+        d2repository.httpClient.post('messageConversations/${convId}/status?messageConversationStatus=SOLVED',''),
+        d2repository.httpClient.delete('dataStore/dhis2-user-support', userApproval.id.toString()),
+      ]).whenComplete(() => _isLoading = false);
+
+      }
+  }
+  
   Future<void> get fetchUserApproval async {
     log('this is initially called');
 
@@ -234,7 +278,6 @@ class MessageModel with ChangeNotifier {
       String jsonS = jsonEncode(hello);
 
       if (message == null) {
-        if (userApproval.type == null) {
          print('This is inside if statement');
          try {
           final res = await d2repository.httpClient.post('users', jsonS);
@@ -280,38 +323,8 @@ class MessageModel with ChangeNotifier {
           }
          } catch (e) {
           print("An error occurred: $e");
-          }
-        } else if ( userApproval.type == "deactivate") {
-          await Future.wait([
-        http.put(url,
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-              'Authorization': basicAuth,
-            },
-            body: {"disabled":true},
-          ),
-        d2repository.httpClient.post('messageConversations/${convId}','Ombi lako limeshughulikiwa karibu!'),
-        d2repository.httpClient.post('messageConversations/${convId}/status?messageConversationStatus=SOLVED',''),
-        d2repository.httpClient.delete('dataStore/dhis2-user-support', userApproval.id.toString()),
-      ]).whenComplete(() => _isLoading = false);
-
         }
-        else if ( userApproval.type == "activate") {await Future.wait([
-        http.put(url,
-         headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-              'Authorization': basicAuth,
-            },
-        body: {"disabled":false},
-          ),
-        d2repository.httpClient.post('messageConversations/${convId}','Ombi lako limeshughulikiwa karibu!'),
-        d2repository.httpClient.post('messageConversations/${convId}/status?messageConversationStatus=SOLVED',''),
-        d2repository.httpClient.delete('dataStore/dhis2-user-support', userApproval.id.toString()),
-      ]).whenComplete(() => _isLoading = false);
 
-      }
 
       } else {
         try {

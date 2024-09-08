@@ -303,10 +303,12 @@ class UserModel {
     method: json["method"] == null ? null : json["method"],
     //payload: json["payload"] == null ? null : List<PayloadUser>.from(json["payload"].map((x) => PayloadUser.fromMap(x))),
     userPayload: json["payload"] != null
+        ? (json["payload"] is List
         ? (json["payload"] as List<dynamic>)
         .map((e) => Userpayload.fromMap(e as Map<String, dynamic>))
-        .toList() // Convert Iterable to List<Userpayload>
-        : [], //
+        .toList()
+        : [Userpayload.fromMap(json["payload"] as Map<String, dynamic>)])
+        : [],
     url: json["url"] == null ? null : json["url"],
     timeSinceResponseSent: json["timeSinceResponseSent"] == null
         ? null
@@ -344,7 +346,9 @@ class UserModel {
     timeSinceResponseSent == null ? null : timeSinceResponseSent,
     "message": message == null ? null : message!.toMap(),
     "user": user == null ? null : user!.toMap(),
-    "payload": userPayload == null ? null : List<dynamic>.from(userPayload!.map((x) => x.toMap()).toList()),
+    "payload": userPayload == null
+        ? null
+        : List<dynamic>.from(userPayload!.map((x) => x.toMap()).toList()),
 
     "messageConversation":
     messageConversation == null ? null : messageConversation!.toMap(),
@@ -890,6 +894,43 @@ class UserCredentials {
 
 }
 
+class UserCredentialsPayload {
+  UserCredentialsPayload({
+    this.catDimensionConstraints,
+    this.cogsDimensionConstraints,
+    this.userRoles,
+    this.username,
+    this.password,
+  });
+
+  String? username;
+  String? password;
+  List<String>? catDimensionConstraints;
+  List<String>? cogsDimensionConstraints;
+  List<UserRoles>? userRoles;
+
+  factory UserCredentialsPayload.fromMap(Map<String, dynamic> json) =>
+      UserCredentialsPayload(
+        username: json["username"] == null ? null : json["username"],
+        password: json["password"] == null ? null : json["password"],
+        catDimensionConstraints: json["catDimensionConstraints"] == null ? null : List<String>.from(json["catDimensionConstraints"].map((x) => x.toString())),
+        cogsDimensionConstraints: json["cogsDimensionConstraints"] == null ? null : List<String>.from(json["cogsDimensionConstraints"].map((x) => x.toString())),
+        userRoles: json["userRoles"] == null
+            ? null
+            : List<UserRoles>.from(json["userRoles"].map((x) => UserRoles.fromMap(x))),
+
+      );
+
+  Map<String, dynamic> toMap() =>
+      {
+        "username": username == null ? null : username,
+        "password": password == null ? null : password,
+        "catDimensionConstraints": catDimensionConstraints == null ? null : List<dynamic>.from(catDimensionConstraints!),
+        "cogsDimensionConstraints": cogsDimensionConstraints == null ? null : List<dynamic>.from(cogsDimensionConstraints!),
+        "userRoles": userRoles == null ? null : List<dynamic>.from(userRoles!.map((x) => x.toMap())),
+      };
+
+}
 
 class UserGroupsKeyed {
   UserGroupsKeyed({
@@ -1009,7 +1050,7 @@ class KeyedAuthority {
 
 class Userpayload {
   List<Operation>? operations;
-  UserCredentials? userCredentials;
+  UserCredentialsPayload? userCredentials;
   List<dynamic>? attributeValues;
   List<DataViewOrganisationUnit>? dataViewOrganisationUnits;
   List<OrganisationUnit>? organisationUnits;
@@ -1022,12 +1063,13 @@ class Userpayload {
   List<UserGroup>? userGroups;
   String? email;
   String? password;
+  String? reason;
 
   Userpayload({
     this.attributeValues,
     this.dataViewOrganisationUnits,
     this.organisationUnits,
-
+    this.reason,
     this.phoneNumber,
     this.referenceId,
     this.surname,
@@ -1060,10 +1102,10 @@ class Userpayload {
       status: json["status"] as String?,
       username: json["username"] as String?,
       password: json["password"] as String?,
-
+      reason: json["reason"] as String?,
       firstName: json["firstName"] as String?,
       userCredentials: json["userCredentials"] != null
-          ? UserCredentials.fromMap(json["userCredentials"] as Map<String, dynamic>)
+          ? UserCredentialsPayload.fromMap(json["userCredentials"] as Map<String, dynamic>)
           : null,
       userGroups: json["userGroups"] != null
           ? List<UserGroup>.from(json["userGroups"].map((x) => UserGroup.fromMap(x as Map<String, dynamic>)))
@@ -1087,7 +1129,7 @@ class Userpayload {
       if (firstName != null) "firstName": firstName,
       if (username != null) "username": username,
       if (password != null) "password": password,
-
+      if (reason != null) "reason": reason,
       if (email != null) "email": email,
       if (status != null) "status": status,
       if (userCredentials != null) "userCredentials": userCredentials!.toMap(),
@@ -1215,4 +1257,3 @@ class Operation {
   }
 
 }
-

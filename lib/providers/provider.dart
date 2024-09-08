@@ -9,7 +9,6 @@ import 'package:http/http.dart' as http;
 import 'package:d2_touch/shared/utilities/http_client.util.dart';
 import 'package:user_support_mobile/constants/d2-repository.dart';
 
-import '../widgets/Utilities.dart';
 import '/constants/constants.dart';
 import '/models/message_conversation.dart';
 import '/models/user.dart';
@@ -30,12 +29,8 @@ class MessageModel with ChangeNotifier {
   late MessageConversation _reply;
   Map<String, dynamic> _map = {};
   bool _error = false;
-  String _errorMessage = '';
+  final String _errorMessage = '';
   bool _isLoading = false;
-  bool _isConfirmed = false;
-  bool _isDuplicate = false;
-
-
 
   Map<String, dynamic> get map => _map;
   bool get error => _error;
@@ -52,12 +47,7 @@ class MessageModel with ChangeNotifier {
   List<MessageConversation> get validationMessage => _validationMessages;
   MessageConversation get userReply => _reply;
   MessageConversation get fetchedThread => _fetchedThread;
-  bool get isConfirmed => _isConfirmed;
-  set isConfirmed(bool value) {
-    _isConfirmed = value;
-    notifyListeners();
-  }
-  bool get isDuplicate => _isDuplicate;
+
   // new codes
 
   Future<void> get fetchDataApproval async {
@@ -141,11 +131,39 @@ class MessageModel with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> approvalActRequest(UserModel userApproval) async {
+
+    _isLoading = true;
+    var id = userApproval.id!.substring(0, 15);
+    print(id);
+    final res = await d2repository.httpClient.get('messageConversations?messageType=TICKET&filter=subject:ilike:${id}');
+
+    var convId = res.body['messageConversations'][0]['id'].toString();
+
+    if ( userApproval.type == "deactivate") {
+      await Future.wait([
+        d2repository.httpClient.post(userApproval.url!, {}),
+        d2repository.httpClient.post('messageConversations/${convId}','Ombi lako limeshughulikiwa karibu!'),
+        d2repository.httpClient.post('messageConversations/${convId}/status?messageConversationStatus=SOLVED',''),
+        d2repository.httpClient.delete('dataStore/dhis2-user-support', userApproval.id.toString()),
+      ]).whenComplete(() => _isLoading = false);}
+
+    else if ( userApproval.type == "activate") {await Future.wait([
+      d2repository.httpClient.post(userApproval.url!, {}),
+      d2repository.httpClient.post('messageConversations/${convId}','Ombi lako limeshughulikiwa karibu!'),
+      d2repository.httpClient.post('messageConversations/${convId}/status?messageConversationStatus=SOLVED',''),
+      d2repository.httpClient.delete('dataStore/dhis2-user-support', userApproval.id.toString()),
+    ]).whenComplete(() => _isLoading = false);
+
+    }
+
+    notifyListeners();
+  }
+
   Future<void> get fetchUserApproval async {
     log('this is initially called');
 
     List<UserModel> userApprovalList = []; // This will only hold items where actionType is null.
-
     var res2;
 
     final res = await d2repository.httpClient.get('dataStore/dhis2-user-support');
@@ -166,7 +184,6 @@ class MessageModel with ChangeNotifier {
                   userModel.message?.message != 'No Subject' &&
                   userModel.message?.subject?.split("-").last != 'No Display' &&
                   userModel.actionType == null) { // Only add if actionType is null
-
                 userApprovalList.add(userModel);
               }
             } else {
@@ -178,8 +195,7 @@ class MessageModel with ChangeNotifier {
           if (userModel.message?.message != null &&
               userModel.message?.message != 'No Subject' &&
               userModel.message?.subject?.split("-").last != 'No Display' &&
-              userModel.actionType == null) { // Only add if actionType is null
-
+              userModel.actionType == null) {
             userApprovalList.add(userModel);
           }
         } else {
@@ -188,90 +204,172 @@ class MessageModel with ChangeNotifier {
       }
     }
 
-
+    // Set the final list only with items where actionType is null
     _userApproval = userApprovalList;
     notifyListeners();
   }
 
-  Future<void> approvalUserRequest(UserModel userApproval, {String? message}) async {
-    await d2repository.httpClient.get('dataStore/dhis2-user-support/${userApproval.id}');
 
+  Future<void> approvalUserRequest(UserModel userApproval, String? Name, {String? message}) async {
+    await d2repository.httpClient.get('dataStore/dhis2-user-support/${userApproval.id}');
     _isLoading = true;
-    for (var payload in userApproval.userPayload!) {
-      var id = userApproval.id!.substring(0, 15);
-      var username = payload.username;
-      var phoneNumber = payload.phoneNumber;
+
+    // Check if userPayload is not null and has at least one element
+    String? name = Name;
+    if (userApproval.userPayload != null && userApproval.userPayload!.isNotEmpty) {
+      var SelectedPayload = userApproval.userPayload!.firstWhere(
+            (payload) => '${payload.firstName} ${payload.surname}' == name,
+      );
+
+      var id = userApproval.message!.subject!.substring(0, 15);
+      var username = SelectedPayload.username;
+      var phoneNumber = SelectedPayload.phoneNumber;
+      var email = SelectedPayload.email;
+      var dataOrganisationUnits = SelectedPayload.dataViewOrganisationUnits!.map((unit) => {"id": unit.id}).toList();
+      var organisationUnits = SelectedPayload.organisationUnits!.map((unit) => {"id": unit.id}).toList();
+      var userGroups = SelectedPayload.userGroups!.map((group) => {"id": group.id}).toList();
+      var firstname = SelectedPayload.firstName;
+      var surname = SelectedPayload.surname;
+      var userRoles = userApproval.user!.userRoles!.map((role) => {"id": role.id}).toList();
 
       print(id);
       print(username);
+      final url = Uri.parse('http://41.59.227.69/tland-upgrade/api/dataStore/dhis2-user-support/${userApproval.id}');
+      String basicAuth = 'Basic ' + base64Encode(utf8.encode('pt2024:Hmis@2024'));
+
       try {
-        final res = await d2repository.httpClient.get(
-            'messageConversations?messageType=TICKET&filter=subject:ilike:$id');
+        final res = await d2repository.httpClient.get('messageConversations?messageType=TICKET&filter=subject:ilike:${id}');
 
+        var convId = res.body['messageConversations'][0]['id'].toString();
+        print(convId);
+        var hello = {
+          "userCredentials": {
+            "cogsDimensionConstraints": [],
+            "catDimensionConstraints": [],
+            "username": username,
+            "password": "Hmis@2024",
+            "userRoles": userRoles
+          },
+          "surname": surname,
+          "firstName": firstname,
+          "email": email,
+          "phoneNumber": phoneNumber,
+          "organisationUnits": organisationUnits,
+          "dataViewOrganisationUnits": dataOrganisationUnits,
+          "userGroups": userGroups,
+          "attributeValues": []
+        };
 
-        String convId;
-        if (res.body['messageConversations'] != null && res.body['messageConversations'].isNotEmpty) {
-          // A conversation exists, get its ID
-          convId = res.body['messageConversations'][0]['id'].toString();
-        } else {
-          // No conversation found, create a new one
-          print("No message conversation found for id: $id. Creating a new conversation.");
-
-          final createRes = await d2repository.httpClient.post(
-            'messageConversations',
-            {
-              "subject": "New Conversation for User ID $id",
-              // Assuming you need to add users to the conversation
-              "messageType": "TICKET",
-              "messages": [
-                {
-                  "text": "Initial message for new conversation.",
-                }
-              ]
-            },
-          );
-
-          // Extract the ID of the newly created conversation
-          convId = createRes.body['id'].toString();
-        }
+        String jsonS = jsonEncode(hello);
 
         if (message == null) {
           print('This is inside if statement');
           try {
-            await d2repository.httpClient.get('dataStore/dhis2-user-support/${userApproval.id}');
-            await d2repository.httpClient.post('users', userApproval.userPayload!.map((x)=> x.toMap()));
-            await d2repository.httpClient.post('users', jsonEncode(userApproval.userPayload?.toString()));
-            await d2repository.httpClient.post('messageConversations/${convId}', 'The following are the accounts created \n \n 1. user details  - ${phoneNumber}  is: username=  ${username} and password = Hmis@2024');
+            final res = await d2repository.httpClient.post('users', jsonS);
+            String userid = res.body['response']['uid'].toString();
+
+            SelectedPayload.status = "CREATED";
+            SelectedPayload.userCredentials!.username = username;
+            SelectedPayload.password = "Hmis@2024";
+            var messageString = userApproval.message?.toMap();
+            var userString = userApproval.user?.toMap();
+            var userPayloadString = userApproval.userPayload?.map((payload) => payload.toMap()).toList();
+
+            var body = jsonEncode({
+              "action": userApproval.action,
+              "id": userApproval.id,
+              "message": messageString,
+              "method": userApproval.method,
+              "payload": userPayloadString,
+              "replyMessage": userApproval.replyMessage,
+              "shouldAlert": false,
+              "ticketNumber": userApproval.ticketNumber,
+              "url": userApproval.url,
+              "user": userString,
+            });
+
+            await http.put(
+              url,
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': basicAuth,
+              },
+              body: body,
+            );
+            await d2repository.httpClient.post('messageConversations/${convId}', 'ACCOUNT CREATED FOR ${SelectedPayload.firstName} ${SelectedPayload.surname} \n \n The following are the accounts created \n \n 1. user details  - ${phoneNumber}  is: username=  ${username} and password = Hmis@2024');
             await d2repository.httpClient.post('messageConversations/${convId}/status?messageConversationStatus=SOLVED', '');
-            await d2repository.httpClient.post(('messageConversations'), ({"subject":"HMIS DHIS2 ACCOUNT","users":[{"id":"hey","username":"${username}","type":"user"}],"userGroups":[],"text":"Your creadentials are: \n Username: ${username} \n\n                    Password: Hmis@2024 \n\n\n                    MoH requires you to change password after login.\n                    The account will be disabled if it is not used for 3 months consecutively"}));
-            await d2repository.httpClient.delete('dataStore/dhis2-user-support', userApproval.id.toString());
+            await d2repository.httpClient.post(('messageConversations'), ({"subject":"HMIS DHIS2 ACCOUNT","users":[{"id":"${userid}","username":"${username}","type":"user"}],"userGroups":[],"text":"Your credentials are: \n Username: ${username} \n\n                    Password: Hmis@2024 \n\n\n                    MoH requires you to change password after login.\n                    The account will be disabled if it is not used for 3 months consecutively"}));
+            bool allCreatedOrRejected = userApproval.userPayload!.every((payload) =>
+            payload.status == "CREATED" || payload.status == "REJECTED");
+
+            if (allCreatedOrRejected) {
+              await d2repository.httpClient.delete('dataStore/dhis2-user-support', userApproval.id.toString());
+            }
           } catch (e) {
             print("An error occurred: $e");
           }
+
+
         } else {
           try {
-            await d2repository.httpClient.post('messageConversations/$convId', message);
+            var messageString = userApproval.message?.toMap();
+            var userString = userApproval.user?.toMap();
+            var userPayloadString = userApproval.userPayload?.map((payload) => payload.toMap()).toList();
+
+            var body = jsonEncode({
+              "action": userApproval.action,
+              "id": userApproval.id,
+              "actionType": userApproval.actionType,
+              "message": messageString,
+              "method": userApproval.method,
+              "payload": userPayloadString,
+              "replyMessage": userApproval.replyMessage,
+              "shouldAlert": false,
+              "ticketNumber": userApproval.ticketNumber,
+              "status": userApproval.status,
+              "url": userApproval.url,
+              "user": userString,
+            });
+
+            await http.put(
+              url,
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': basicAuth,
+              },
+              body: body,
+            );
+            await d2repository.httpClient.post('messageConversations/$convId', 'ACCOUNT REJECTED FOR ${SelectedPayload.firstName} ${SelectedPayload.surname} due to \n \n $message');
             await d2repository.httpClient.post('messageConversations/$convId/status?messageConversationStatus=SOLVED', '');
-            await d2repository.httpClient.delete('dataStore/dhis2-user-support', userApproval.id.toString());
+            bool allCreatedOrRejected = userApproval.userPayload!.every((payload) =>
+            payload.status == "CREATED" || payload.status == "REJECTED");
+
+            if (allCreatedOrRejected) {
+              await d2repository.httpClient.delete('dataStore/dhis2-user-support', userApproval.id.toString());
+            }
           } catch (e) {
             // Handle any errors that occur during the requests
             print("An error occurred: $e");
           }
         }
-
-
       } catch (e, stackTrace) {
         // Handle any other errors, including network issues or JSON parsing errors
         print("An error occurred: $e");
         print("Stack trace: $stackTrace");
-        _isLoading = false;
       }
 
-      notifyListeners();
+      _isLoading = false;
+    } else {
+      print('No user payload available.');
+      _isLoading = false;
     }
 
-
+    notifyListeners();
   }
+
+
 
 
   //send message to the message conversation
@@ -280,7 +378,6 @@ class MessageModel with ChangeNotifier {
       _isLoading = true;
     }
     final response = await d2repository.httpClient.post('messageConversations/$id?internal=false',message
-
 
     );
 
@@ -296,7 +393,6 @@ class MessageModel with ChangeNotifier {
     _isLoading = true;
     final response = await d2repository.httpClient.post('messageConversations/feedback?subject=$subject',text
     );
-
     print(response.statusCode);
     if (response.statusCode == 201) {
       _isLoading = false;
@@ -310,7 +406,6 @@ class MessageModel with ChangeNotifier {
   //post message read
   Future<void> messageRead(String id) async {
     final response = await d2repository.httpClient.post('messageConversations/read',jsonEncode([id])
-
     );
     print(response.body);
     if (response.statusCode == 200) {
@@ -321,10 +416,8 @@ class MessageModel with ChangeNotifier {
 
   //post message unread
   Future<void> messageUnread(String id) async {
-
     final response = await d2repository.httpClient.post('messageConversations/unread',jsonEncode([id])
     );
-
     // print(response.body);
     // if (response.statusCode == 200) {
     // }
@@ -334,7 +427,6 @@ class MessageModel with ChangeNotifier {
   //delete message conversation
   Future<void> deleteMessage(String messageId) async {
     final response = await d2repository.httpClient.delete('messageConversations/$messageId/xE7jOejl9FI',messageId
-
     );
     print(messageId);
     print(response.statusCode);
@@ -352,7 +444,6 @@ class MessageModel with ChangeNotifier {
       String attachment, String text, String subject) async {
     _isLoading = true;
     final response = await d2repository.httpClient.post(('messageConversations'), json.encode(
-
       {
         "subject": subject,
         "users": [
@@ -387,7 +478,6 @@ class MessageModel with ChangeNotifier {
   Future<void> get fetchSystemMessage async {
     final response = await d2repository.httpClient.get(('messageConversations?filter=messageType%3Aeq%3ASYSTEM&fields=id,displayName,subject,messageType,lastSender%5Bid%2C%20displayName%5D,assignee%5Bid%2C%20displayName%5D,status,priority,lastUpdated,read,lastMessage,followUp&order=lastMessage%3Adesc'),
 
-
     );
     if (response.statusCode == 200) {
       final list =
@@ -409,7 +499,6 @@ class MessageModel with ChangeNotifier {
     try {
       final response = await d2repository.httpClient.get(('messageConversations?filter=messageType%3Aeq%3APRIVATE&pageSize=35&page=1&fields=id,displayName,subject,messageType,lastSender%5Bid%2C%20displayName%5D,assignee%5Bid%2C%20displayName%5D,status,priority,lastUpdated,read,lastMessage,followUp&order=lastMessage%3Adesc'),
 
-
       );
       if (response.statusCode == 200) {
         final list =
@@ -424,7 +513,7 @@ class MessageModel with ChangeNotifier {
         throw Exception("Failed to Load Data");
       }
     } catch (e) {
-      print('What error is $e');
+      print('What error error is $e');
     }
 
     notifyListeners();
@@ -433,7 +522,6 @@ class MessageModel with ChangeNotifier {
   Future<void> get fetchTicketMessages async {
     try {
       final response = await d2repository.httpClient.get(('messageConversations?filter=messageType%3Aeq%3ATICKET&pageSize=35&page=1&fields=id,displayName,subject,messageType,lastSender%5Bid%2C%20displayName%5D,assignee%5Bid%2C%20displayName%5D,status,priority,lastUpdated,read,lastMessage,followUp&order=lastMessage%3Adesc'),
-
 
       );
 
@@ -461,7 +549,6 @@ class MessageModel with ChangeNotifier {
     try {
       final response = await d2repository.httpClient.get(('messageConversations?filter=messageType%3Aeq%3AVALIDATION_RESULT&fields=id,displayName,subject,messageType,lastSender%5Bid%2C%20displayName%5D,assignee%5Bid%2C%20displayName%5D,status,priority,lastUpdated,read,lastMessage,followUp&order=lastMessage%3Adesc'),
 
-
       );
       print(response.statusCode);
 
@@ -486,25 +573,19 @@ class MessageModel with ChangeNotifier {
 
   //fetch message conversation by id
   Future<void> fetchMessageThreadsById(String id) async {
-
-    final response = await d2repository.httpClient.get((
-        'messageConversations/$id?fields=*,assignee%5Bid%2C%20displayName%5D,messages%5B*%2Csender%5Bid%2CdisplayName%5D,attachments%5Bid%2C%20name%2C%20contentLength%5D%5D,userMessages%5Buser%5Bid%2C%20displayName%5D%5D'),
-
+    /*final response = await d2repository.httpClient.get((
+          'messageConversations/$id?fields=*,assignee%5Bid%2C%20displayName%5D,messages%5B*%2Csender%5Bid%2CdisplayName%5D,attachments%5Bid%2C%20name%2C%20contentLength%5D%5D,userMessages%5Buser%5Bid%2C%20displayName%5D%5D'),
     );
 
-    //print(response.statusCode);
-    //if (response.statusCode == 200) {
-    /*final dynamic body =
-      json.decode(response.body) as dynamic;*/
-     // _fetchedThread = MessageConversation.fromJson(body);
-   // }
-    //notifyListeners();
-    //delete message conversation*/
+    print(response.statusCode);
+    if (response.statusCode == 200) {
+      final dynamic body =
+          json.decode(response.body) as dynamic;
+      _fetchedThread = MessageConversation.fromJson(body);
+    }*/
+    notifyListeners();
+    //delete message conversation
   }
-
-
-
-
 
   void initialValue() {
     // _allMessageConversation = [];

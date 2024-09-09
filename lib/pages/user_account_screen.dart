@@ -73,7 +73,7 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                                       alignment: Alignment.centerLeft,
                                       child: Container(
                                         constraints: BoxConstraints(
-                                          maxWidth: MediaQuery.of(context).size.width * 0.9, // Adjust as needed
+                                          maxWidth: MediaQuery.of(context).size.width * 0.9,
                                         ),
                                         child: MessageBox(
                                           userApproval: messageData,

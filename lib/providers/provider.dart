@@ -234,9 +234,6 @@ class MessageModel with ChangeNotifier {
 
     print(id);
     print(username);
-    final url = Uri.parse('http://41.59.227.69/tland-upgrade/api/dataStore/dhis2-user-support/${userApproval.id}');
-    String basicAuth = 'Basic ' + base64Encode(utf8.encode('pt2024:Hmis@2024'));
-
     try {
       final res = await d2repository.httpClient.get('messageConversations?messageType=TICKET&filter=subject:ilike:${id}');
 
@@ -287,16 +284,7 @@ class MessageModel with ChangeNotifier {
             "url": userApproval.url,
             "user": userString,
           });
-
-          await http.put(
-            url,
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-              'Authorization': basicAuth,
-            },
-            body: body,
-          );
+          await d2repository.httpClient.put('dataStore/dhis2-user-support/${userApproval.id}', body);
           await d2repository.httpClient.post('messageConversations/${convId}', 'ACCOUNT CREATED FOR ${SelectedPayload.firstName} ${SelectedPayload.surname} \n \n The following are the accounts created \n \n 1. user details  - ${phoneNumber}  is: username=  ${username} and password = Hmis@2024');
           await d2repository.httpClient.post('messageConversations/${convId}/status?messageConversationStatus=SOLVED', '');
           await d2repository.httpClient.post(('messageConversations'), ({"subject":"HMIS DHIS2 ACCOUNT","users":[{"id":"${userid}","username":"${username}","type":"user"}],"userGroups":[],"text":"Your credentials are: \n Username: ${username} \n\n                    Password: Hmis@2024 \n\n\n                    MoH requires you to change password after login.\n                    The account will be disabled if it is not used for 3 months consecutively"}));
@@ -332,15 +320,7 @@ class MessageModel with ChangeNotifier {
             "user": userString,
           });
 
-          await http.put(
-            url,
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-              'Authorization': basicAuth,
-            },
-            body: body,
-          );
+          await d2repository.httpClient.put('dataStore/dhis2-user-support/${userApproval.id}', body);
           await d2repository.httpClient.post('messageConversations/$convId', 'ACCOUNT REJECTED FOR ${SelectedPayload.firstName} ${SelectedPayload.surname} due to \n \n $message');
           await d2repository.httpClient.post('messageConversations/$convId/status?messageConversationStatus=SOLVED', '');
           bool allCreatedOrRejected = userApproval.userPayload!.every((payload) => 
@@ -496,7 +476,7 @@ class MessageModel with ChangeNotifier {
 
   //fetch private message conversation
   Future<void> get fetchPrivateMessages async {
-    try {
+   try {
       final response = await d2repository.httpClient.get(('messageConversations?filter=messageType%3Aeq%3APRIVATE&pageSize=35&page=1&fields=id,displayName,subject,messageType,lastSender%5Bid%2C%20displayName%5D,assignee%5Bid%2C%20displayName%5D,status,priority,lastUpdated,read,lastMessage,followUp&order=lastMessage%3Adesc'),
         
       );

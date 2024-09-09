@@ -175,7 +175,7 @@ class _PageContentState extends State<PageContent> {
                         child: Row(
                           children: [
                             AbsorbPointer(
-                              absorbing: _isDropdownShown, // Disable button if dropdown is shown
+                              absorbing: _isDropdownShown,
                               child: ElevatedButton(
                                 style: ButtonStyle(
                                   backgroundColor: MaterialStateProperty.all(
@@ -430,7 +430,6 @@ class _PageContentState extends State<PageContent> {
                   final payloadStatus = account['payloadStatus'];
                   Color? rowColor;
 
-                  // Set row color based on the payloadStatus
                   if (payloadStatus == 'CREATED') {
                     rowColor = Colors.green.withOpacity(0.2);
                   } else if (payloadStatus == 'REJECTED') {
@@ -519,7 +518,7 @@ class _PageContentState extends State<PageContent> {
           content: Container(
             width: MediaQuery.of(context).size.width * 0.9,
             constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.6),
+            maxHeight: MediaQuery.of(context).size.height * 0.4),
             child: Column(
               children: [
                 Expanded(
@@ -584,14 +583,15 @@ class _PageContentState extends State<PageContent> {
     );
   }
 
-  void _showDropdown(BuildContext context, String firstName, String lastName, UserModel userApproval) async {
+  Future <void> _showDropdown(BuildContext context, String firstName, String lastName, UserModel userApproval) async {
     final usernameController = TextEditingController();
     String proposedUsername = _generateProposedUsername(firstName, lastName);
     usernameController.text = proposedUsername;
+    _showDuplicatesButton = false;
     var SelectedPayload = userApproval.userPayload!.firstWhere(
           (payloadu) => '${payloadu.firstName} ${payloadu.surname}' == '$firstName $lastName',);
 
-    Future <void> _checkExistingUsername(String username) async {
+    Future <bool> _checkExistingUsername(String username) async {
       EasyLoading.show(
         status: 'Checking for Existing Username...🔄',
         maskType: EasyLoadingMaskType.black,
@@ -604,14 +604,17 @@ class _PageContentState extends State<PageContent> {
         List<dynamic> data = response.body['users']??[0]??['id'].toList();
         if (data.isEmpty) {
           EasyLoading.showSuccess('No Existing Username found');
+          return false;
         } else {
+          EasyLoading.showSuccess('Existing Username found... Please Change the Username');
           proposedUsername = _suggestAlternativeUsername(proposedUsername, firstName, username);
           usernameController.text = proposedUsername;
-          _checkExistingUsername(proposedUsername);
+          return true;
         }
       } else {
 
         _showMessage(context, "Error checking existing username.");
+        return true;
       }
     }
 
@@ -684,11 +687,11 @@ class _PageContentState extends State<PageContent> {
             if (isDuplicateEmail || isDuplicatePhone) {
               _potentialDuplicates = [...emailUsers, ...phoneUsers];
 
-              EasyLoading.showSuccess('Succeeded check!, duplicates were found'); // Success loading
+              EasyLoading.showSuccess('Succeeded check!, duplicates were found');
               return true;
             }
 
-            EasyLoading.showSuccess('Succeeded check!, No duplicates found!'); // No duplicates
+            EasyLoading.showSuccess('Succeeded check!, No duplicates found!');
             return false;
           } else {
             print('Failed to fetch user data for email or phone number');
@@ -701,7 +704,7 @@ class _PageContentState extends State<PageContent> {
           EasyLoading.showError('Error during duplicate check');
           return false;
         } finally {
-          EasyLoading.dismiss(); // Always dismiss the loader
+          EasyLoading.dismiss();
         }
       } else {
         print("No payload data available.");
@@ -755,8 +758,10 @@ class _PageContentState extends State<PageContent> {
                       ),
                       ElevatedButton(
                         onPressed: () async {
-                          await _checkExistingUsername(usernameController.text);
+                          bool usernameExists = await _checkExistingUsername(usernameController.text);
+                          if (!usernameExists){
                           _confirmUsername(context, usernameController.text, SelectedPayload);
+                          }
                         },
                         child: Text('Confirm'),
                       ),
@@ -794,7 +799,7 @@ class _PageContentState extends State<PageContent> {
     return suggestion;
   }
 
-  void _confirmUsername(BuildContext context, String username, Userpayload SelectedPayload) async {
+  Future<void> _confirmUsername(BuildContext context, String username, Userpayload SelectedPayload) async {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -805,13 +810,13 @@ class _PageContentState extends State<PageContent> {
             TextButton(
               onPressed: () {
                 _createUser(username, SelectedPayload);
-                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop();
               },
               child: Text('Yes'),
             ),
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop();
               },
               child: Text('No'),
             ),

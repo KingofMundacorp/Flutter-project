@@ -162,7 +162,7 @@ class MessageModel with ChangeNotifier {
     );
     log('this is initially called');
 
-    List<UserModel> userApprovalList = []; // This will only hold items where actionType is null.
+    List<UserModel> userApprovalList = [];
     var res2;
 
     final res = await d2repository.httpClient.get('dataStore/dhis2-user-support');
@@ -182,7 +182,7 @@ class MessageModel with ChangeNotifier {
               if (userModel.message?.message != null &&
                   userModel.message?.message != 'No Subject' &&
                   userModel.message?.subject?.split("-").last != 'No Display' &&
-                  userModel.actionType == null) { // Only add if actionType is null
+                  userModel.actionType == null) { 
                 userApprovalList.add(userModel);
               }
             } else {
@@ -202,8 +202,6 @@ class MessageModel with ChangeNotifier {
         }
       }
     }
-
-    // Set the final list only with items where actionType is null
     _userApproval = userApprovalList;
     notifyListeners();
     EasyLoading.dismiss();
@@ -213,8 +211,6 @@ class MessageModel with ChangeNotifier {
  Future<void> approvalUserRequest(UserModel userApproval, String? Name, {String? message}) async {
   await d2repository.httpClient.get('dataStore/dhis2-user-support/${userApproval.id}');
   _isLoading = true;
-
-  // Check if userPayload is not null and has at least one element
   String? name = Name;
   if (userApproval.userPayload != null && userApproval.userPayload!.isNotEmpty) {
     var SelectedPayload = userApproval.userPayload!.firstWhere(
@@ -330,12 +326,10 @@ class MessageModel with ChangeNotifier {
           await d2repository.httpClient.delete('dataStore/dhis2-user-support', userApproval.id.toString());
           }
         } catch (e) {
-          // Handle any errors that occur during the requests
           print("An error occurred: $e");
         }
       }
     } catch (e, stackTrace) {
-      // Handle any other errors, including network issues or JSON parsing errors
       print("An error occurred: $e");
       print("Stack trace: $stackTrace");
     }

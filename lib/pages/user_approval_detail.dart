@@ -279,7 +279,7 @@ class _PageContentState extends State<PageContent> {
     }
   }
 
-  Future <void> _showApprovalTableDialog(List<dynamic> accounts) async{
+  /*Future <void> _showApprovalTableDialog(List<dynamic> accounts) async{
     showDialog(
       context: context,
       builder: (context) {
@@ -397,6 +397,103 @@ class _PageContentState extends State<PageContent> {
                     );
                   }).toList(),
                 ),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Cancel'),
+            ),
+          ],
+        );
+      },
+    );
+  }*/
+  Future<void> _showApprovalTableDialog(List<dynamic> accounts) async {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Review User Details'),
+          content: Container(
+            width: MediaQuery.of(context).size.width * 0.9, // Prevent table from exceeding screen width
+            height: MediaQuery.of(context).size.height * 0.6, // Set maximum height for the dialog content
+            child: SingleChildScrollView(
+              child: ListView.builder(
+                shrinkWrap: true,
+                physics: ClampingScrollPhysics(), // Prevent unnecessary scrolling
+                itemCount: accounts.length,
+                itemBuilder: (context, index) {
+                  final account = accounts[index];
+                  final payloadStatus = account['payloadStatus'];
+                  Color? rowColor;
+
+                  // Set row color based on the payloadStatus
+                  if (payloadStatus == 'CREATED') {
+                    rowColor = Colors.green.withOpacity(0.2); // Light green for created
+                  } else if (payloadStatus == 'REJECTED') {
+                    rowColor = Colors.red.withOpacity(0.2); // Light red for rejected
+                  } else {
+                    rowColor = Colors.transparent; // Default for no status
+                  }
+
+                  return Container(
+                    color: rowColor, // Apply row color
+                    child: ExpansionTile(
+                      title: Text(
+                        '${account['SN'] ?? ''} : ${account['Names'] ?? ''}',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      children: [
+                        SingleChildScrollView( // Make the expanded content scrollable
+                          child: Column(
+                            children: [
+                              ListTile(
+                                title: Text('Email: ${account['Email'] ?? 'N/A'}'),
+                              ),
+                              ListTile(
+                                title: Text('Phone Number: ${account['Phone Number'] ?? 'N/A'}'),
+                              ),
+                              ListTile(
+                                title: Text('Entry Access Level: ${account['Entry Access Level'] ?? 'N/A'}'),
+                              ),
+                              ListTile(
+                                title: Text('Report Access Level: ${account['Report Access Level'] ?? 'N/A'}'),
+                              ),
+                              ListTile(
+                                title: Text(
+                                  'Action:',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                subtitle: payloadStatus == 'CREATED'
+                                    ? Text(
+                                  'Created',
+                                  style: TextStyle(color: const Color.fromARGB(255, 3, 56, 4)),
+                                )
+                                    : payloadStatus == 'REJECTED'
+                                    ? Text(
+                                  'Rejected',
+                                  style: TextStyle(color: const Color.fromARGB(255, 91, 13, 7)),
+                                )
+                                    : ElevatedButton(
+                                        onPressed: () {
+                                          final nameParts = (account['Names'] ?? '').split(' ');
+                                          final firstName = nameParts.isNotEmpty ? nameParts[0] : '';
+                                          final lastName = nameParts.length > 1 ? nameParts[1] : '';
+                                          _showDropdown(context, firstName, lastName, widget.userApproval);
+                                        },
+
+                                     child: Text('Select'),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
             ),
           ),

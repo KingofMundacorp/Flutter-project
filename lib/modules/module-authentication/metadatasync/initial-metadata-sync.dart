@@ -3,7 +3,6 @@
 import 'dart:async';
 
 import 'package:d2_touch/modules/auth/entities/user.entity.dart';
-import 'package:d2_touch/modules/metadata/dataset/entities/data_set.entity.dart';
 import 'package:d2_touch/modules/metadata/program/entities/program.entity.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';

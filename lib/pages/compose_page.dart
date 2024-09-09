@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/provider.dart';
@@ -265,8 +264,8 @@ class _ComposePageState extends State<ComposePage> {
                           child: ElevatedButton(
                             style: ButtonStyle(
                               backgroundColor: isEnableAll
-                                  ? MaterialStateProperty.all(Color(0xFFE0E0E0))
-                                  : MaterialStateProperty.all(
+                                  ? WidgetStateProperty.all(Color(0xFFE0E0E0))
+                                  : WidgetStateProperty.all(
                                       Color(0xFF235EA0)),
                             ),
                             onPressed: () {
@@ -323,8 +322,8 @@ class _ComposePageState extends State<ComposePage> {
                           child: OutlinedButton(
                             style: ButtonStyle(
                               backgroundColor: !isButtonEnabled
-                                  ? MaterialStateProperty.all(Color(0xFFE0E0E0))
-                                  : MaterialStateProperty.all(Colors.white),
+                                  ? WidgetStateProperty.all(Color(0xFFE0E0E0))
+                                  : WidgetStateProperty.all(Colors.white),
                             ),
                             onPressed: () async {
                               setState(() {

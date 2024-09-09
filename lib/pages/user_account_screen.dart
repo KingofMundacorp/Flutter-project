@@ -1,9 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:user_support_mobile/models/message_conversation.dart';
-import 'package:user_support_mobile/pages/user_approval_screen.dart';
 import 'package:user_support_mobile/providers/provider.dart';
 import 'package:user_support_mobile/widgets/message_card.dart';
 import 'package:user_support_mobile/widgets/show_loading.dart';
@@ -82,7 +79,7 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                                           userApproval: messageData,
                                           isUserApproval: true,
                                           lastMessage: DateTime.now().toString(),
-                                          subject: _parseHtmlString(messageData.message?.message ?? 'No Subject'),
+                                          subject: _parseHtmlString(messageData.action ?? 'No Subject'),
                                           displayName: _parseHtmlString(messageData.message?.subject?.split("-").last ?? 'No Display'),
                                           messageId: messageData.id ?? 'No ID',
                                           read: false,

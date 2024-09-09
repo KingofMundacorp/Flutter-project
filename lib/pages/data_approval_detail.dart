@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'data_approval_screen.dart';
 
 import '../models/approve_model.dart';
 import '../providers/provider.dart';
@@ -103,7 +102,7 @@ class _PageContentState extends State<PageContent> {
                               absorbing: false,
                               child: ElevatedButton(
                                 style: ButtonStyle(
-                                  backgroundColor: MaterialStateProperty.all(
+                                  backgroundColor: WidgetStateProperty.all(
                                     Color(0xFF235EA0),
                                   ),
                                 ),
@@ -128,7 +127,7 @@ class _PageContentState extends State<PageContent> {
                               child: OutlinedButton(
                                 style: ButtonStyle(
                                   backgroundColor:
-                                      MaterialStateProperty.all(Colors.red),
+                                      WidgetStateProperty.all(Colors.red),
                                 ),
                                 onPressed: () {
                                   showDataAlert(context);

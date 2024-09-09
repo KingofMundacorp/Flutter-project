@@ -5,7 +5,6 @@ import 'compose_painter.dart';
 import '../widgets/show_loading.dart';
 
 import '../models/message_conversation.dart';
-import '../pages/compose_page.dart';
 import '../providers/provider.dart';
 import '../widgets/drawer_nav.dart';
 import '../widgets/message_card.dart';
@@ -211,17 +210,13 @@ class _SystemPageState extends State<SystemPage> {
               onChanged: (query) {
                 query = query.toLowerCase();
 
-                if (query.trim() != null) {
-                  setState(() {
-                    _searchResult = value.systemMessage.where((element) {
-                      var messageTitle = element.displayName.toLowerCase();
-                      return messageTitle.contains(query);
-                    }).toList();
-                  });
-                } else {
-                  _searchResult = [];
-                }
-              },
+                setState(() {
+                  _searchResult = value.systemMessage.where((element) {
+                    var messageTitle = element.displayName.toLowerCase();
+                    return messageTitle.contains(query);
+                  }).toList();
+                });
+                            },
             ),
           ),
         ],

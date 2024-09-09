@@ -290,9 +290,9 @@ class _MyStatelessWidgetState extends State<MyStatelessWidget> {
                                 child: ElevatedButton(
                                   style: ButtonStyle(
                                     backgroundColor: isEnableAll
-                                        ? MaterialStateProperty.all(
+                                        ? WidgetStateProperty.all(
                                             Color(0xFFE0E0E0))
-                                        : MaterialStateProperty.all(
+                                        : WidgetStateProperty.all(
                                             Color(0xFF235EA0)),
                                   ),
                                   onPressed: () {
@@ -358,9 +358,9 @@ class _MyStatelessWidgetState extends State<MyStatelessWidget> {
                                 child: OutlinedButton(
                                   style: ButtonStyle(
                                     backgroundColor: !isButtonEnabled
-                                        ? MaterialStateProperty.all(
+                                        ? WidgetStateProperty.all(
                                             Color(0xFFE0E0E0))
-                                        : MaterialStateProperty.all(
+                                        : WidgetStateProperty.all(
                                             Colors.white),
                                   ),
                                   onPressed: () async {

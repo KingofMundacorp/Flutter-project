@@ -1,8 +1,6 @@
 import 'user_messages.dart';
 
-import 'access.dart';
 import 'message.dart';
-import 'sharing.dart';
 import 'user.dart';
 
 class MessageConversation {

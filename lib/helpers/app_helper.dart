@@ -4,10 +4,8 @@ import 'dart:convert';
 
 import 'package:d2_touch/modules/auth/entities/user.entity.dart';
 import 'package:d2_touch/modules/data/data_store/entities/data_store.entity.dart';
-import 'package:d2_touch/modules/data/tracker/entities/enrollment.entity.dart';
 import 'package:d2_touch/modules/data/tracker/entities/tracked-entity.entity.dart';
 import 'package:d2_touch/modules/data/tracker/entities/tracked_entity_attribute_value.entity.dart';
-import 'package:d2_touch/modules/data/tracker/models/geometry.dart';
 import 'package:d2_touch/modules/data/tracker/models/tracked_entity_instance_import_summary.model.dart';
 import 'package:d2_touch/modules/metadata/program/entities/program.entity.dart';
 import 'package:d2_touch/modules/metadata/program/entities/program_tracked_entity_attribute.entity.dart';
@@ -22,7 +20,6 @@ import 'package:lottie/lottie.dart';
 // import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:user_support_mobile/constants/d2-repository.dart';
-import 'package:user_support_mobile/helpers/colors.dart';
 
 class AppHelpers {
   static snackBar(String message, Color appColor, Color? textColor,
@@ -578,7 +575,7 @@ class AppHelpers {
                 ),
                 style: ButtonStyle(
                     iconColor:
-                        MaterialStateProperty.all<Color>(Colors.redAccent)),
+                        WidgetStateProperty.all<Color>(Colors.redAccent)),
               ),
               content: ConstrainedBox(
                   constraints: BoxConstraints(
@@ -596,7 +593,7 @@ class AppHelpers {
                           child: ElevatedButton(
                             style: ButtonStyle(
                                 backgroundColor:
-                                    MaterialStateProperty.all(Colors.grey)),
+                                    WidgetStateProperty.all(Colors.grey)),
                             onPressed: () {
                               Get.back(result: false);
                             },
@@ -611,7 +608,7 @@ class AppHelpers {
                           child: ElevatedButton(
                             style: ButtonStyle(
                                 backgroundColor:
-                                    MaterialStateProperty.all(Colors.red)),
+                                    WidgetStateProperty.all(Colors.red)),
                             onPressed: () {
                               Get.back(result: true);
                             },

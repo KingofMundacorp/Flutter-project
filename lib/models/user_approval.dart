@@ -218,7 +218,7 @@ class Parent {
 class Operation {
   final String op;
   final String path;
-  final dynamic? value;
+  final dynamic value;
 
   Operation({
     required this.op,

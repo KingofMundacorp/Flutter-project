@@ -1,4 +1,3 @@
-import 'parent.dart';
 
 class Parent {
   int? level;

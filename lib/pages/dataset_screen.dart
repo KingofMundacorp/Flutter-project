@@ -1,9 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:user_support_mobile/models/message_conversation.dart';
-import 'package:user_support_mobile/pages/data_approval_screen.dart';
 import 'package:user_support_mobile/providers/provider.dart';
 import 'package:user_support_mobile/widgets/message_card.dart';
 import 'package:user_support_mobile/widgets/show_loading.dart';

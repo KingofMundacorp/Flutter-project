@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:path/path.dart';
 import 'package:provider/provider.dart';
 
@@ -289,9 +288,9 @@ class _MessageConversationPageState extends State<MessageConversationPage> {
                                 child: ElevatedButton(
                                   style: ButtonStyle(
                                     backgroundColor: !isButtonEnabled
-                                        ? MaterialStateProperty.all(
+                                        ? WidgetStateProperty.all(
                                             Color(0xFFE0E0E0))
-                                        : MaterialStateProperty.all(
+                                        : WidgetStateProperty.all(
                                             Color(0xFF235EA0)),
                                   ),
                                   onPressed: () {
@@ -337,9 +336,9 @@ class _MessageConversationPageState extends State<MessageConversationPage> {
                                 child: OutlinedButton(
                                   style: ButtonStyle(
                                     backgroundColor: !isButtonEnabled
-                                        ? MaterialStateProperty.all(
+                                        ? WidgetStateProperty.all(
                                             const Color(0xFFE0E0E0))
-                                        : MaterialStateProperty.all(
+                                        : WidgetStateProperty.all(
                                             Colors.white),
                                   ),
                                   onPressed: () async {

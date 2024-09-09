@@ -1,20 +1,12 @@
 import 'dart:convert';
 import 'dart:developer';
 
-import 'package:d2_touch/d2_touch.dart';
-import 'package:d2_touch/modules/data/data_store/queries/data_store.query.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:d2_touch/shared/utilities/http_client.util.dart';
 import 'package:user_support_mobile/constants/d2-repository.dart';
 
-import '../widgets/Utilities.dart';
-import '/constants/constants.dart';
 import '/models/message_conversation.dart';
 import '/models/user.dart';
 import '../models/approve_model.dart';
-import '../pages/user_approval_detail.dart';
 
 
 class MessageModel with ChangeNotifier {

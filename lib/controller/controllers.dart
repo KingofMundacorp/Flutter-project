@@ -1,4 +1,3 @@
-import 'package:d2_touch/modules/metadata/organisation_unit/entities/organisation_unit.entity.dart';
 import 'package:get/get.dart';
 
 import '../constants/d2-repository.dart';

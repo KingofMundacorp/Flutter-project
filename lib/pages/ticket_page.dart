@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'compose_painter.dart';
 
 import '../models/message_conversation.dart';
-import '../pages/compose_page.dart';
 import '../providers/provider.dart';
 import '../widgets/drawer_nav.dart';
 import '../widgets/message_card.dart';

@@ -1,12 +1,9 @@
 import 'package:d2_touch/modules/auth/models/login-response.model.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 import 'package:user_support_mobile/constants/d2-repository.dart';
 import 'package:user_support_mobile/modules/module-authentication/login/login-page.dart';
-import 'package:user_support_mobile/pages/home_page.dart';
 
-import '../providers/provider.dart';
 
 class LoginPage extends StatefulWidget {
   final bool? isAuth;

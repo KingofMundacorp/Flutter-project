@@ -102,8 +102,9 @@ class _PageContentState extends State<PageContent> {
   final TextEditingController _textEditingController = TextEditingController();
   bool _isDropdownShown = false;
   Color _selectButtonColor = Color(0xFF235EA0);
-  bool _showDuplicatesButton = false; // State variable for the button visibility
-  List<dynamic> _potentialDuplicates = []; // Ensure this is defined at the class level
+  bool _showDuplicatesButton = false;
+  List<dynamic> _potentialDuplicates = [];
+  bool _isLoading = false;
 
 
 
@@ -409,52 +410,66 @@ class _PageContentState extends State<PageContent> {
       },
     );
   }
+
+
   void _showPotentialDuplicatesPopup(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Potential Duplicates'),
-          content: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.6,
-              maxWidth: MediaQuery.of(context).size.width * 0.9,
-            ),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.vertical,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: DataTable(
-                  columns: const [
-                    DataColumn(label: Text('SN')),
-                    DataColumn(label: Text('Names')),
-                    DataColumn(label: Text('PhoneNumber')),
-                    DataColumn(label: Text('DataEntry')),
-                    DataColumn(label: Text('Reports')),
-                    DataColumn(label: Text('Username')),
-                    DataColumn(label: Text('LastLogin')),
-                    DataColumn(label: Text('Password Last Updated')),
-                  ],
-                  rows: List<DataRow>.generate(
-                    _potentialDuplicates.length,
-                        (index) {
+          content: Container(
+            width: MediaQuery.of(context).size.width * 0.9,
+            height: MediaQuery.of(context).size.height * 0.6,
+            child: Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: _potentialDuplicates.length,
+                    itemBuilder: (context, index) {
                       final user = _potentialDuplicates[index];
-                      return DataRow(
-                        cells: [
-                          DataCell(Text((index + 1).toString())),
-                          DataCell(Text('${user['firstName']} ${user['surname']}')),
-                          DataCell(Text(user['phoneNumber'] ?? '')),
-                          DataCell(Text(user['dataEntry'] ?? '')),
-                          DataCell(Text(user['reports'] ?? '')),
-                          DataCell(Text(user['username'] ?? '')),
-                          DataCell(Text(user['lastLogin'] ?? '')),
-                          DataCell(Text(user['passwordLastUpdated'] ?? '')),
+
+                      return ExpansionTile(
+                        title: Text('${user['firstName'] ?? 'Unknown'} ${user['surname'] ?? 'Unknown'}'),
+                        children: <Widget>[
+                          ListTile(
+                            title: Text('SN:'),
+                            subtitle: Text((index + 1).toString()),
+                          ),
+                          ListTile(
+                            title: Text('Phone Number:'),
+                            subtitle: Text(user['phoneNumber'] ?? 'N/A'),
+                          ),
+                          ListTile(
+                            title: Text('Email:'),
+                            subtitle: Text(user['email'] ?? 'N/A'),
+                          ),
+                          ListTile(
+                            title: Text('Data Entry:'),
+                            subtitle: Text(user['dataEntry'] ?? 'N/A'),
+                          ),
+                          ListTile(
+                            title: Text('Reports:'),
+                            subtitle: Text(user['reports'] ?? 'N/A'),
+                          ),
+                          ListTile(
+                            title: Text('Username:'),
+                            subtitle: Text(user['username'] ?? 'N/A'),
+                          ),
+                          ListTile(
+                            title: Text('Last Login:'),
+                            subtitle: Text(user['lastLogin'] ?? 'N/A'),
+                          ),
+                          ListTile(
+                            title: Text('Password Last Updated:'),
+                            subtitle: Text(user['passwordLastUpdated'] ?? 'N/A'),
+                          ),
                         ],
                       );
                     },
                   ),
                 ),
-              ),
+              ],
             ),
           ),
           actions: <Widget>[
@@ -470,8 +485,6 @@ class _PageContentState extends State<PageContent> {
     );
   }
 
-
-
   void _showDropdown(BuildContext context, String firstName, String lastName, UserModel userApproval) async {
     final usernameController = TextEditingController();
     String proposedUsername = _generateProposedUsername(firstName, lastName);
@@ -480,7 +493,10 @@ class _PageContentState extends State<PageContent> {
           (payloadu) => '${payloadu.firstName} ${payloadu.surname}' == '$firstName $lastName',);
 
     Future <void> _checkExistingUsername(String username) async {
-
+      EasyLoading.show(
+        status: 'Checking for Existing Username...🔄',
+        maskType: EasyLoadingMaskType.black,
+      );
       final response = await d2repository.httpClient.get(
         'users?filter=userCredentials.username:eq:$username&fields=id',
       );
@@ -500,11 +516,14 @@ class _PageContentState extends State<PageContent> {
       }
     }
 
-    Future<bool> _checkDuplicate(UserModel userApproval) async {
+    Future<bool> _checkDuplicate(UserModel userApproval, Userpayload SelectedPayload) async {
+      EasyLoading.show(
+        status: 'Performing Check...🔄 ',
+        maskType: EasyLoadingMaskType.black,
+      );
       if (userApproval.userPayload != null && userApproval.userPayload!.isNotEmpty) {
-        var payload = userApproval.userPayload!.first;
-        String? email = payload.email;
-        String? phoneNumber = payload.phoneNumber;
+        String? email = SelectedPayload.email;
+        String? phoneNumber = SelectedPayload.phoneNumber;
         String? userApprovalId = userApproval.id;
 
         if (email == null || phoneNumber == null || userApprovalId == null) {
@@ -566,11 +585,11 @@ class _PageContentState extends State<PageContent> {
             if (isDuplicateEmail || isDuplicatePhone) {
               _potentialDuplicates = [...emailUsers, ...phoneUsers];
 
-              EasyLoading.showSuccess('Succeeded check!'); // Success loading
+              EasyLoading.showSuccess('Succeeded check!, duplicates were found'); // Success loading
               return true;
             }
 
-            EasyLoading.showSuccess('No duplicates found!'); // No duplicates
+            EasyLoading.showSuccess('Succeeded check!, No duplicates found!'); // No duplicates
             return false;
           } else {
             print('Failed to fetch user data for email or phone number');
@@ -610,7 +629,7 @@ class _PageContentState extends State<PageContent> {
                   SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () async {
-                      bool hasDuplicates = await _checkDuplicate(userApproval);
+                      bool hasDuplicates = await _checkDuplicate(userApproval, SelectedPayload);
                       setState(() {
                         _showDuplicatesButton = hasDuplicates;
                       });
@@ -772,12 +791,12 @@ class _PageContentState extends State<PageContent> {
             TextButton(
               child: Text(isRejectAll ? 'Reject ALL' : 'Reject'),
               onPressed: () {
-                if(isRejectAll = true){
+                if(isRejectAll == true){
                   userApproval.actionType = "REJECTED";
                   userApproval.status ="REJECTED";
                   userApproval.replyMessage = _textEditingController.text.trim();
                 }
-                else{
+                else if(isRejectAll == false){
                   SelectedPayload.status = "REJECTED";
                   SelectedPayload.reason = _textEditingController.text.trim();
                   SelectedPayload.password = null;

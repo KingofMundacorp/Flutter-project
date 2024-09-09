@@ -71,7 +71,7 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                               isUserApproval: true,
                               lastMessage: DateTime.now().toString(),
                               subject: _parseHtmlString(
-                                  messageData.message?.message ?? 'No Subject'),
+                                  messageData.action ?? 'No Subject'),
                               displayName: _parseHtmlString(
                                   messageData.message?.subject
                                       ?.split("-")

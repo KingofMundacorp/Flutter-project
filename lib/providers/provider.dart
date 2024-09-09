@@ -5,6 +5,7 @@ import 'package:d2_touch/d2_touch.dart';
 import 'package:d2_touch/modules/data/data_store/queries/data_store.query.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:http/http.dart' as http;
 import 'package:d2_touch/shared/utilities/http_client.util.dart';
 import 'package:user_support_mobile/constants/d2-repository.dart';
@@ -161,6 +162,10 @@ class MessageModel with ChangeNotifier {
   }
 
   Future<void> get fetchUserApproval async {
+    EasyLoading.show(
+      status: 'loading...',
+      maskType: EasyLoadingMaskType.black,
+    );
     log('this is initially called');
 
     List<UserModel> userApprovalList = []; // This will only hold items where actionType is null.
@@ -207,6 +212,7 @@ class MessageModel with ChangeNotifier {
     // Set the final list only with items where actionType is null
     _userApproval = userApprovalList;
     notifyListeners();
+    EasyLoading.dismiss();
   }
 
 

@@ -74,7 +74,7 @@ class _UserApprovalScreenState extends State<UserApprovalScreen> {
                                           userApproval: messageData,
                                           isUserApproval: true,
                                           lastMessage: DateTime.now().toString(),
-                                          subject: _parseHtmlString(messageData.message?.message ?? 'No Subject'),
+                                          subject: _parseHtmlString(messageData.action ?? 'No Subject'),
                                           displayName: _parseHtmlString(messageData.message?.subject?.split("-").last ?? 'No Display'),
                                           messageId: messageData.id ?? 'No ID',
                                           read: false,

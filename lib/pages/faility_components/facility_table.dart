@@ -61,7 +61,7 @@ class FacilityTable extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 16.0),
         child: Align(
-          alignment: isHeader ? Alignment.centerLeft : Alignment.centerRight,
+          alignment:  Alignment.centerLeft,
           child: Text(
             content,
             style: TextStyle(

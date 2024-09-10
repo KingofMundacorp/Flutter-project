@@ -21,7 +21,7 @@ class Utils {
         }
       }
     }
-    return Colors.transparent; // Default color if no relevant status is found
+    return Colors.transparent;
   }
 }
 

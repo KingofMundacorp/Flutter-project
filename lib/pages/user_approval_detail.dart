@@ -158,7 +158,7 @@ class _PageContentState extends State<PageContent> {
                         height: 20,
                       ),
                       Html(
-                        data: widget.userApproval.message?.message ?? '',
+                        data: widget.userApproval.message?.message?.replaceAll('\n', '<br>') ?? '',
                         style: {
                           'body': Style(
                             color: Colors.black,
@@ -175,7 +175,7 @@ class _PageContentState extends State<PageContent> {
                         child: Row(
                           children: [
                             AbsorbPointer(
-                              absorbing: _isDropdownShown, // Disable button if dropdown is shown
+                              absorbing: _isDropdownShown,
                               child: ElevatedButton(
                                 style: ButtonStyle(
                                   backgroundColor: MaterialStateProperty.all(
@@ -279,137 +279,7 @@ class _PageContentState extends State<PageContent> {
     }
   }
 
-  /*Future <void> _showApprovalTableDialog(List<dynamic> accounts) async{
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('Review User Details'),
-          content: SingleChildScrollView(
-            scrollDirection: Axis.vertical,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.6,
-                maxWidth: MediaQuery.of(context).size.width * 0.9,
-              ),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: DataTable(
-                  columnSpacing: 12,
-                  columns: const [
-                    DataColumn(label: Text('SN')),
-                    DataColumn(label: Text('Names')),
-                    DataColumn(label: Text('Email')),
-                    DataColumn(label: Text('Phone Number')),
-                    DataColumn(label: Text('Entry Access Level')),
-                    DataColumn(label: Text('Report Access Level')),
-                    DataColumn(label: Text('Action')),
-                  ],
-                  rows: accounts.map((account) {
-                    final payloadStatus = account['payloadStatus'];
-                    Color? rowColor;
 
-                    // Set row color based on the payloadStatus
-                    if (payloadStatus == 'CREATED') {
-                      rowColor = Colors.green.withOpacity(0.2); // Light green for created
-                    } else if (payloadStatus == 'REJECTED') {
-                      rowColor = Colors.red.withOpacity(0.2); // Light red for rejected
-                    } else {
-                      rowColor = Colors.transparent; // Normal for null or no status
-                    }
-
-                    return DataRow(
-                      color: MaterialStateProperty.resolveWith<Color?>(
-                            (Set<MaterialState> states) {
-                          return rowColor; // Apply the row color
-                        },
-                      ),
-                      cells: [
-                        DataCell(Text(account['SN'] ?? '')),
-                        DataCell(
-                          Container(
-                            width: 150,
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.vertical,
-                              child: Text(account['Names'] ?? ''),
-                            ),
-                          ),
-                        ),
-                        DataCell(
-                          Container(
-                            width: 150,
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.vertical,
-                              child: Text(account['Email'] ?? ''),
-                            ),
-                          ),
-                        ),
-                        DataCell(
-                          Container(
-                            width: 150,
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.vertical,
-                              child: Text(account['Phone Number'] ?? ''),
-                            ),
-                          ),
-                        ),
-                        DataCell(
-                          Container(
-                            width: 150,
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.vertical,
-                              child: Text(account['Entry Access Level'] ?? ''),
-                            ),
-                          ),
-                        ),
-                        DataCell(
-                          Container(
-                            width: 150,
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.vertical,
-                              child: Text(account['Report Access Level'] ?? ''),
-                            ),
-                          ),
-                        ),
-                        DataCell(
-                          payloadStatus == 'CREATED'
-                              ? Text(
-                            'Created',
-                            style: TextStyle(color: const Color.fromARGB(255, 3, 56, 4)),
-                          )
-                              : payloadStatus == 'REJECTED'
-                              ? Text(
-                            'Rejected',
-                            style: TextStyle(color: const Color.fromARGB(255, 91, 13, 7)),
-                          )
-                              : ElevatedButton(
-                            onPressed: () {
-                              final nameParts = (account['Names'] ?? '').split(' ');
-                              final firstName = nameParts.isNotEmpty ? nameParts[0] : '';
-                              final lastName = nameParts.length > 1 ? nameParts[1] : '';
-                              _showDropdown(context, firstName, lastName, widget.userApproval);
-                            },
-                            child: Text('Select'),
-                          ),
-                        ),
-
-                      ],
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cancel'),
-            ),
-          ],
-        );
-      },
-    );
-  }*/
   Future<void> _showApprovalTableDialog(List<dynamic> accounts) async {
     showDialog(
       context: context,
@@ -417,36 +287,36 @@ class _PageContentState extends State<PageContent> {
         return AlertDialog(
           title: Text('Review User Details'),
           content: Container(
-            width: MediaQuery.of(context).size.width * 0.9, // Prevent table from exceeding screen width
-            height: MediaQuery.of(context).size.height * 0.6, // Set maximum height for the dialog content
+            width: MediaQuery.of(context).size.width * 0.9,
+            constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.6),
             child: SingleChildScrollView(
               child: ListView.builder(
                 shrinkWrap: true,
-                physics: ClampingScrollPhysics(), // Prevent unnecessary scrolling
+                physics: ClampingScrollPhysics(),
                 itemCount: accounts.length,
                 itemBuilder: (context, index) {
                   final account = accounts[index];
                   final payloadStatus = account['payloadStatus'];
                   Color? rowColor;
 
-                  // Set row color based on the payloadStatus
                   if (payloadStatus == 'CREATED') {
-                    rowColor = Colors.green.withOpacity(0.2); // Light green for created
+                    rowColor = Colors.green.withOpacity(0.2);
                   } else if (payloadStatus == 'REJECTED') {
-                    rowColor = Colors.red.withOpacity(0.2); // Light red for rejected
+                    rowColor = Colors.red.withOpacity(0.2);
                   } else {
-                    rowColor = Colors.transparent; // Default for no status
+                    rowColor = Colors.transparent;
                   }
 
                   return Container(
-                    color: rowColor, // Apply row color
+                    color: rowColor,
                     child: ExpansionTile(
                       title: Text(
                         '${account['SN'] ?? ''} : ${account['Names'] ?? ''}',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       children: [
-                        SingleChildScrollView( // Make the expanded content scrollable
+                        SingleChildScrollView(
                           child: Column(
                             children: [
                               ListTile(
@@ -477,14 +347,14 @@ class _PageContentState extends State<PageContent> {
                                   style: TextStyle(color: const Color.fromARGB(255, 91, 13, 7)),
                                 )
                                     : ElevatedButton(
-                                        onPressed: () {
-                                          final nameParts = (account['Names'] ?? '').split(' ');
-                                          final firstName = nameParts.isNotEmpty ? nameParts[0] : '';
-                                          final lastName = nameParts.length > 1 ? nameParts[1] : '';
-                                          _showDropdown(context, firstName, lastName, widget.userApproval);
-                                        },
+                                  onPressed: () {
+                                    final nameParts = (account['Names'] ?? '').split(' ');
+                                    final firstName = nameParts.isNotEmpty ? nameParts[0] : '';
+                                    final lastName = nameParts.length > 1 ? nameParts[1] : '';
+                                    _showDropdown(context, firstName, lastName, widget.userApproval);
+                                  },
 
-                                     child: Text('Select'),
+                                  child: Text('Select'),
                                 ),
                               ),
                             ],
@@ -517,7 +387,8 @@ class _PageContentState extends State<PageContent> {
           title: Text('Potential Duplicates'),
           content: Container(
             width: MediaQuery.of(context).size.width * 0.9,
-            height: MediaQuery.of(context).size.height * 0.6,
+            constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.4),
             child: Column(
               children: [
                 Expanded(
@@ -582,14 +453,15 @@ class _PageContentState extends State<PageContent> {
     );
   }
 
-  void _showDropdown(BuildContext context, String firstName, String lastName, UserModel userApproval) async {
+  Future <void> _showDropdown(BuildContext context, String firstName, String lastName, UserModel userApproval) async {
     final usernameController = TextEditingController();
     String proposedUsername = _generateProposedUsername(firstName, lastName);
     usernameController.text = proposedUsername;
+    _showDuplicatesButton = false;
     var SelectedPayload = userApproval.userPayload!.firstWhere(
           (payloadu) => '${payloadu.firstName} ${payloadu.surname}' == '$firstName $lastName',);
 
-    Future <void> _checkExistingUsername(String username) async {
+    Future <bool> _checkExistingUsername(String username) async {
       EasyLoading.show(
         status: 'Checking for Existing Username...🔄',
         maskType: EasyLoadingMaskType.black,
@@ -602,14 +474,17 @@ class _PageContentState extends State<PageContent> {
         List<dynamic> data = response.body['users']??[0]??['id'].toList();
         if (data.isEmpty) {
           EasyLoading.showSuccess('No Existing Username found');
+          return false;
         } else {
+          EasyLoading.showSuccess('Existing Username found... Please Change the Username');
           proposedUsername = _suggestAlternativeUsername(proposedUsername, firstName, username);
           usernameController.text = proposedUsername;
-          _checkExistingUsername(proposedUsername);
+          return true;
         }
       } else {
 
         _showMessage(context, "Error checking existing username.");
+        return true;
       }
     }
 
@@ -682,11 +557,11 @@ class _PageContentState extends State<PageContent> {
             if (isDuplicateEmail || isDuplicatePhone) {
               _potentialDuplicates = [...emailUsers, ...phoneUsers];
 
-              EasyLoading.showSuccess('Succeeded check!, duplicates were found'); // Success loading
+              EasyLoading.showSuccess('Succeeded check!, duplicates were found');
               return true;
             }
 
-            EasyLoading.showSuccess('Succeeded check!, No duplicates found!'); // No duplicates
+            EasyLoading.showSuccess('Succeeded check!, No duplicates found!');
             return false;
           } else {
             print('Failed to fetch user data for email or phone number');
@@ -699,7 +574,7 @@ class _PageContentState extends State<PageContent> {
           EasyLoading.showError('Error during duplicate check');
           return false;
         } finally {
-          EasyLoading.dismiss(); // Always dismiss the loader
+          EasyLoading.dismiss();
         }
       } else {
         print("No payload data available.");
@@ -753,8 +628,10 @@ class _PageContentState extends State<PageContent> {
                       ),
                       ElevatedButton(
                         onPressed: () async {
-                          await _checkExistingUsername(usernameController.text);
-                          _confirmUsername(context, usernameController.text, SelectedPayload);
+                          bool usernameExists = await _checkExistingUsername(usernameController.text);
+                          if (!usernameExists){
+                            _confirmUsername(context, usernameController.text, SelectedPayload);
+                          }
                         },
                         child: Text('Confirm'),
                       ),
@@ -792,7 +669,7 @@ class _PageContentState extends State<PageContent> {
     return suggestion;
   }
 
-  void _confirmUsername(BuildContext context, String username, Userpayload SelectedPayload) async {
+  Future<void> _confirmUsername(BuildContext context, String username, Userpayload SelectedPayload) async {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -803,13 +680,13 @@ class _PageContentState extends State<PageContent> {
             TextButton(
               onPressed: () {
                 _createUser(username, SelectedPayload);
-                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop();
               },
               child: Text('Yes'),
             ),
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop();
               },
               child: Text('No'),
             ),

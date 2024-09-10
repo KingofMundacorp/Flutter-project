@@ -1,20 +1,14 @@
 import 'dart:convert';
 import 'dart:developer';
 
-import 'package:d2_touch/d2_touch.dart';
-import 'package:d2_touch/modules/data/data_store/queries/data_store.query.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:http/http.dart' as http;
-import 'package:d2_touch/shared/utilities/http_client.util.dart';
 import 'package:user_support_mobile/constants/d2-repository.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 
-import '/constants/constants.dart';
 import '/models/message_conversation.dart';
 import '/models/user.dart';
 import '../models/approve_model.dart';
-import '../pages/user_approval_detail.dart';
 
 
 class MessageModel with ChangeNotifier {
@@ -168,7 +162,7 @@ class MessageModel with ChangeNotifier {
     );
     log('this is initially called');
 
-    List<UserModel> userApprovalList = []; // This will only hold items where actionType is null.
+    List<UserModel> userApprovalList = [];
     var res2;
 
     final res = await d2repository.httpClient.get('dataStore/dhis2-user-support');
@@ -188,7 +182,7 @@ class MessageModel with ChangeNotifier {
               if (userModel.message?.message != null &&
                   userModel.message?.message != 'No Subject' &&
                   userModel.message?.subject?.split("-").last != 'No Display' &&
-                  userModel.actionType == null) { // Only add if actionType is null
+                  userModel.actionType == null) {
                 userApprovalList.add(userModel);
               }
             } else {
@@ -208,8 +202,6 @@ class MessageModel with ChangeNotifier {
         }
       }
     }
-
-    // Set the final list only with items where actionType is null
     _userApproval = userApprovalList;
     notifyListeners();
     EasyLoading.dismiss();
@@ -219,8 +211,6 @@ class MessageModel with ChangeNotifier {
   Future<void> approvalUserRequest(UserModel userApproval, String? Name, {String? message}) async {
     await d2repository.httpClient.get('dataStore/dhis2-user-support/${userApproval.id}');
     _isLoading = true;
-
-    // Check if userPayload is not null and has at least one element
     String? name = Name;
     if (userApproval.userPayload != null && userApproval.userPayload!.isNotEmpty) {
       var SelectedPayload = userApproval.userPayload!.firstWhere(
@@ -240,9 +230,6 @@ class MessageModel with ChangeNotifier {
 
       print(id);
       print(username);
-      final url = Uri.parse('http://41.59.227.69/tland-upgrade/api/dataStore/dhis2-user-support/${userApproval.id}');
-      String basicAuth = 'Basic ' + base64Encode(utf8.encode('pt2024:Hmis@2024'));
-
       try {
         final res = await d2repository.httpClient.get('messageConversations?messageType=TICKET&filter=subject:ilike:${id}');
 
@@ -293,16 +280,7 @@ class MessageModel with ChangeNotifier {
               "url": userApproval.url,
               "user": userString,
             });
-
-            await http.put(
-              url,
-              headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Authorization': basicAuth,
-              },
-              body: body,
-            );
+            await d2repository.httpClient.put('dataStore/dhis2-user-support/${userApproval.id}', body);
             await d2repository.httpClient.post('messageConversations/${convId}', 'ACCOUNT CREATED FOR ${SelectedPayload.firstName} ${SelectedPayload.surname} \n \n The following are the accounts created \n \n 1. user details  - ${phoneNumber}  is: username=  ${username} and password = Hmis@2024');
             await d2repository.httpClient.post('messageConversations/${convId}/status?messageConversationStatus=SOLVED', '');
             await d2repository.httpClient.post(('messageConversations'), ({"subject":"HMIS DHIS2 ACCOUNT","users":[{"id":"${userid}","username":"${username}","type":"user"}],"userGroups":[],"text":"Your credentials are: \n Username: ${username} \n\n                    Password: Hmis@2024 \n\n\n                    MoH requires you to change password after login.\n                    The account will be disabled if it is not used for 3 months consecutively"}));
@@ -338,15 +316,7 @@ class MessageModel with ChangeNotifier {
               "user": userString,
             });
 
-            await http.put(
-              url,
-              headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Authorization': basicAuth,
-              },
-              body: body,
-            );
+            await d2repository.httpClient.put('dataStore/dhis2-user-support/${userApproval.id}', body);
             await d2repository.httpClient.post('messageConversations/$convId', 'ACCOUNT REJECTED FOR ${SelectedPayload.firstName} ${SelectedPayload.surname} due to \n \n $message');
             await d2repository.httpClient.post('messageConversations/$convId/status?messageConversationStatus=SOLVED', '');
             bool allCreatedOrRejected = userApproval.userPayload!.every((payload) =>
@@ -356,12 +326,10 @@ class MessageModel with ChangeNotifier {
               await d2repository.httpClient.delete('dataStore/dhis2-user-support', userApproval.id.toString());
             }
           } catch (e) {
-            // Handle any errors that occur during the requests
             print("An error occurred: $e");
           }
         }
       } catch (e, stackTrace) {
-        // Handle any other errors, including network issues or JSON parsing errors
         print("An error occurred: $e");
         print("Stack trace: $stackTrace");
       }
@@ -519,7 +487,7 @@ class MessageModel with ChangeNotifier {
         throw Exception("Failed to Load Data");
       }
     } catch (e) {
-      print('What error error is $e');
+      print('What error is $e');
     }
 
     notifyListeners();

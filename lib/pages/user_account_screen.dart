@@ -1,6 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:user_support_mobile/models/message_conversation.dart';
+import 'package:user_support_mobile/pages/user_approval_screen.dart';
 import 'package:user_support_mobile/providers/provider.dart';
 import 'package:user_support_mobile/widgets/message_card.dart';
 import 'package:user_support_mobile/widgets/show_loading.dart';
@@ -57,44 +60,27 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                       children: <Widget>[
                         ListView.builder(
                           shrinkWrap: true,
-                          physics: const ClampingScrollPhysics(),
+                          physics: const ScrollPhysics(),
                           itemCount: _searchResult.isEmpty
                               ? value.userApproval.length
                               : _searchResult.length,
                           itemBuilder: (context, index) {
                             final messageData = value.userApproval[index];
-
-                            return Row(
-                              children: [
-                                Flexible(
-                                  fit: FlexFit.tight,
-                                  child: ClipRect(
-                                    child: Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: Container(
-                                        constraints: BoxConstraints(
-                                          maxWidth: MediaQuery.of(context).size.width * 0.9,
-                                        ),
-                                        child: MessageBox(
-                                          userApproval: messageData,
-                                          isUserApproval: true,
-                                          lastMessage: DateTime.now().toString(),
-                                          subject: _parseHtmlString(messageData.action ?? 'No Subject'),
-                                          displayName: _parseHtmlString(messageData.message?.subject?.split("-").last ?? 'No Display'),
-                                          messageId: messageData.id ?? 'No ID',
-                                          read: false,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
+                            return MessageBox(
+                              userApproval: messageData,
+                              isUserApproval: true,
+                              lastMessage: DateTime.now().toString(),
+                              subject: _parseHtmlString(
+                                  messageData.action ?? 'No Subject'),
+                              displayName: _parseHtmlString(
+                                  messageData.message?.subject
+                                      ?.split("-")
+                                      .last ?? 'No Display'),
+                              messageId: messageData.id ?? 'No ID',
+                              read: false,
                             );
-
-
-
                           },
-                        ),
+                       ),
                       ],
                     ),
                   );

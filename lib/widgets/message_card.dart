@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import '../constants/constants.dart';
+import '../pages/data_approval_detail.dart';
 
+import '../pages/testing_page.dart';
 import '../providers/provider.dart';
 
 import '../models/approve_model.dart';
@@ -73,27 +76,27 @@ class MessageBox extends StatelessWidget {
                               read ? FontWeight.w400 : FontWeight.bold,
                               color: Colors.black87,
                               fontSize: 17.0,
-                              overflow: TextOverflow.ellipsis,
+                              overflow: TextOverflow.ellipsis, // Ellipsis for overflow
                             ),
-                            maxLines: 1,
-                            softWrap: false,
+                            maxLines: 1, // Ensure text stays on one line
+                            softWrap: false, // Prevent wrapping
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 4.0),
+                    const SizedBox(height: 4.0), // Space between displayName and subject
                     Text(
                       subject,
                       overflow: TextOverflow.ellipsis,
-                      maxLines: 2,
-                      softWrap: true,
+                      maxLines: 2, // Allow two lines for subject
+                      softWrap: true, // Allow wrapping if it fits within two lines
                       style: TextStyle(
                         fontWeight: read ? FontWeight.w400 : FontWeight.bold,
                         color: Colors.black87,
                         fontSize: 15.5,
                       ),
                     ),
-                    const SizedBox(height: 4.0),
+                    const SizedBox(height: 4.0), // Space between subject and lastMessage
 
                   ],
                 ),

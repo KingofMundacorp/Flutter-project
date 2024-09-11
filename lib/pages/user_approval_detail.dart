@@ -398,12 +398,8 @@ class _PageContentState extends State<PageContent> {
                       final user = _potentialDuplicates[index];
 
                       return ExpansionTile(
-                        title: Text('${user['firstName'] ?? 'Unknown'} ${user['surname'] ?? 'Unknown'}'),
+                        title: Text('${(index + 1).toString()} : ${user['firstName'] ?? 'Unknown'} ${user['surname'] ?? 'Unknown'}'),
                         children: <Widget>[
-                          ListTile(
-                            title: Text('SN:'),
-                            subtitle: Text((index + 1).toString()),
-                          ),
                           ListTile(
                             title: Text('Phone Number:'),
                             subtitle: Text(user['phoneNumber'] ?? 'N/A'),

@@ -417,7 +417,7 @@ class _ShowDropdownPageState extends State<ShowDropdownPage> {
                     padding: const EdgeInsets.all(8.0),
                     child: Text(
                       isRejectAll
-                          ? 'Are you sure you want to reject the of ALL request?'
+                          ? 'Are you sure you want to reject ALL request?'
                           : 'Are you sure you want to reject the request?',
                       style: TextStyle(fontSize: 16),
                     ),

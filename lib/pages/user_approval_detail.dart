@@ -1,5 +1,3 @@
-// ignore_for_file: must_be_immutable
-
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -8,11 +6,11 @@ import 'package:provider/provider.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:html/parser.dart' as html_parser;
-import 'package:user_support_mobile/pages/ShowDropdownPage.dart';
+import 'package:user_support_mobile/pages/user_approval_select.dart';
 
 import '../models/approve_model.dart';
 import '../providers/provider.dart';
-
+import 'package:user_support_mobile/constants/d2-repository.dart';
 
 class UserApprovalDetailPage extends StatefulWidget {
   const UserApprovalDetailPage({Key? key, required this.userApproval, required this.userPayload})
@@ -184,10 +182,22 @@ class _PageContentState extends State<PageContent> {
                                   ),
                                 ),
                                 onPressed: () {
-                                  if(widget.userApproval.type == null){
+                                  /*if(widget.userApproval.type == null){
                                     final accounts = widget.parseMessages?.call() ?? [];
-                                    _showApprovalTableDialog(accounts);}
-                                  else if (widget.userApproval.type == "deactivate" || widget.userApproval.type == "activate"){
+                                    _showApprovalTableDialog(accounts);*/
+                                    if (widget.userApproval.type == null) {
+                                        final accounts = widget.parseMessages?.call() ?? [];
+                                        // Navigate to the new dialog page and pass the accounts list
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => ApprovalTableDialogPage(
+                                                accounts: accounts,
+                                                userApproval: widget.userApproval, userPayload: [],
+                                              ),
+                                            ),
+                                          );
+                                  } else if (widget.userApproval.type == "deactivate" || widget.userApproval.type == "activate"){
                                     context.read<MessageModel>().approvalActRequest(widget.userApproval);
                                   }
                                 },
@@ -278,114 +288,6 @@ class _PageContentState extends State<PageContent> {
     } finally {
       EasyLoading.dismiss();
     }
-  }
-
-  Future<void> _showApprovalTableDialog(List<dynamic> accounts) async {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('Review User Details'),
-          content: Container(
-            width: MediaQuery.of(context).size.width * 0.9,
-            constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.6),
-            child: SingleChildScrollView(
-              child: ListView.builder(
-                shrinkWrap: true,
-                physics: ClampingScrollPhysics(), 
-                itemCount: accounts.length,
-                itemBuilder: (context, index) {
-                  final account = accounts[index];
-                  final payloadStatus = account['payloadStatus'];
-                  Color? rowColor;
-
-                  if (payloadStatus == 'CREATED') {
-                    rowColor = Colors.green.withOpacity(0.2);
-                  } else if (payloadStatus == 'REJECTED') {
-                    rowColor = Colors.red.withOpacity(0.2);
-                  } else {
-                    rowColor = Colors.transparent;
-                  }
-
-                  return Container(
-                    color: rowColor,
-                    child: ExpansionTile(
-                      title: Text(
-                        '${account['SN'] ?? ''} : ${account['Names'] ?? ''}',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      children: [
-                        SingleChildScrollView(
-                          child: Column(
-                            children: [
-                              ListTile(
-                                title: Text('Email: ${account['Email'] ?? 'N/A'}'),
-                              ),
-                              ListTile(
-                                title: Text('Phone Number: ${account['Phone Number'] ?? 'N/A'}'),
-                              ),
-                              ListTile(
-                                title: Text('Entry Access Level: ${account['Entry Access Level'] ?? 'N/A'}'),
-                              ),
-                              ListTile(
-                                title: Text('Report Access Level: ${account['Report Access Level'] ?? 'N/A'}'),
-                              ),
-                              ListTile(
-                                title: Text(
-                                  'Action:',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                subtitle: payloadStatus == 'CREATED'
-                                    ? Text(
-                                  'Created',
-                                  style: TextStyle(color: const Color.fromARGB(255, 3, 56, 4)),
-                                )
-                                    : payloadStatus == 'REJECTED'
-                                    ? Text(
-                                  'Rejected',
-                                  style: TextStyle(color: const Color.fromARGB(255, 91, 13, 7)),
-                                )
-                                    : ElevatedButton(
-                                        onPressed: () {
-                                          final nameParts = (account['Names'] ?? '').split(' ');
-                                          final firstName = nameParts.isNotEmpty ? nameParts[0] : '';
-                                          final lastName = nameParts.length > 1 ? nameParts[1] : '';
-                                           Navigator.push(
-                                                         context,
-                                                    MaterialPageRoute(
-                                                    builder: (context) => ShowDropdownPage(
-                                                            firstName: firstName,
-                                                            lastName: lastName,
-                                                            userApproval: widget.userApproval,
-                                                            userPayload: widget.userPayload,
-                                               ),
-                                             ),
-                                              );
-                                        },
-
-                                     child: Text('Select'),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cancel'),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   Future  <void> showDataAlert(BuildContext context, Userpayload SelectedPayload, bool isRejectAll, {bool isAccept = false}) async {

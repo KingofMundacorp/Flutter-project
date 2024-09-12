@@ -63,7 +63,6 @@ class _ShowDropdownPageState extends State<ShowDropdownPage> {
   Widget build(BuildContext context) {
     final usernameController = TextEditingController();
     String proposedUsername = _generateProposedUsername(firstName, lastName);
-    usernameController.text = proposedUsername;
     _showDuplicatesButton = false;
     var SelectedPayload = userApproval.userPayload!.firstWhere(
           (payloadu) => '${payloadu.firstName} ${payloadu.surname}' == '$firstName $lastName',);
@@ -83,9 +82,8 @@ class _ShowDropdownPageState extends State<ShowDropdownPage> {
           EasyLoading.showSuccess('No Existing Username found');
           return false;
         } else {
-          EasyLoading.showSuccess('Existing Username found... Please Change the Username');
-          proposedUsername = _suggestAlternativeUsername(proposedUsername, firstName, username);
-          usernameController.text = proposedUsername;
+          EasyLoading.showSuccess('Existing Username found... Please Change the Username', dismissOnTap: true );
+          usernameController.text = "";
           return true;
         }
       } else {
@@ -199,6 +197,15 @@ class _ShowDropdownPageState extends State<ShowDropdownPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
+                  Text(
+                  'Proposed Username for User Account is    $proposedUsername',
+                   style: TextStyle(
+                   fontSize: 16,
+                   fontWeight: FontWeight.bold,
+                   color: Colors.grey[700],
+                   ),
+                   ),
+                 SizedBox(height: 10), 
                   TextField(
                     controller: usernameController,
                     decoration: InputDecoration(labelText: 'Username (Ensure five or more Characters)'),
@@ -250,25 +257,6 @@ class _ShowDropdownPageState extends State<ShowDropdownPage> {
 
   String _generateProposedUsername(String firstName, String lastName) {
     return firstName[0].toLowerCase() + lastName.toLowerCase();
-  }
-
-  String _suggestAlternativeUsername(String baseUsername, String firstName, String existingUsernames){
-    String suggestion = baseUsername;
-
-    for (int i = 1; i <= firstName.length; i++) {
-      suggestion = baseUsername + firstName.substring(0, i).toLowerCase();
-      if (!existingUsernames.contains(suggestion)) {
-        return suggestion;
-      }
-    }
-
-    int number = 1;
-    while (existingUsernames.contains(suggestion)) {
-      suggestion = baseUsername + number.toString();
-      number++;
-    }
-
-    return suggestion;
   }
 
   Future<void> _confirmUsername(BuildContext context, String username, Userpayload SelectedPayload) async {

@@ -91,8 +91,6 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                               ],
                             );
 
-
-
                           },
                        ),
                       ],

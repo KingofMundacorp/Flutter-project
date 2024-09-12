@@ -6,11 +6,10 @@ import 'package:provider/provider.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:html/parser.dart' as html_parser;
+import 'package:user_support_mobile/pages/user_approval_select.dart';
 
 import '../models/approve_model.dart';
 import '../providers/provider.dart';
-import '../widgets/Utilities.dart';
-import 'user_approval_screen.dart';
 import 'package:user_support_mobile/constants/d2-repository.dart';
 
 class UserApprovalDetailPage extends StatefulWidget {
@@ -183,10 +182,23 @@ class _PageContentState extends State<PageContent> {
                                   ),
                                 ),
                                 onPressed: () {
-                                  if(widget.userApproval.type == null){
+                                  /*if(widget.userApproval.type == null){
                                     final accounts = widget.parseMessages?.call() ?? [];
-                                    _showApprovalTableDialog(accounts);}
-                                  else if (widget.userApproval.type == "deactivate" || widget.userApproval.type == "activate"){
+                                    _showApprovalTableDialog(accounts);*/
+                                    if (widget.userApproval.type == null) {
+                                        final accounts = widget.parseMessages?.call() ?? [];
+                                        // Navigate to the new dialog page and pass the accounts list
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => ApprovalTableDialogPage(
+                                                accounts: accounts,// Pass the list of accounts
+                                                showDropdown: _showDropdown, // Pass the _showDropdown function
+                                                userApproval: widget.userApproval, userPayload: [],
+                                              ),
+                                            ),
+                                          );
+                                  } else if (widget.userApproval.type == "deactivate" || widget.userApproval.type == "activate"){
                                     context.read<MessageModel>().approvalActRequest(widget.userApproval);
                                   }
                                 },

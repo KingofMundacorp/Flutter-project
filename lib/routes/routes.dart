@@ -17,8 +17,10 @@ import '../pages/inbox_page.dart';
 import '../pages/login_page.dart';
 import '../pages/system_page.dart';
 import '../pages/ticket_page.dart';
+import '../pages/user_approval_select.dart';
 import '../pages/validation_page.dart';
 import '../pages/data_approval_screen.dart';
+import '../widgets/Utilities.dart';
 
 final GoRouter router = GoRouter(
   routes: <RouteBase>[
@@ -123,6 +125,22 @@ final GoRouter router = GoRouter(
                   userPayload: userModel.userPayload,
                 );
               }),
+          //GoRoute(
+            //path: 'user_approval_select',
+           // builder: (context, state) {
+             // final UserModel? userModel = state.extra as UserModel?;
+             // List<dynamic> accounts = UserUtils.addAccountData(userModel);
+              //final dropdownhandler = _PageContentState();
+             // return ApprovalTableDialogPage(
+                //userApproval: userModel!,
+               // userPayload: userModel.userPayload,
+               // accounts: accounts,
+                //showDropdown: (BuildContext context, String firstName, String lastName, UserModel userApproval) {
+                 // dropdownhandler._showDropdown(context, firstName, lastName, userApproval);
+                //},
+              //);
+            //},
+         // ),
         ]),
   ],
 );

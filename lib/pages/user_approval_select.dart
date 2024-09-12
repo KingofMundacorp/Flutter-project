@@ -1,22 +1,37 @@
 
 import 'package:flutter/material.dart';
+import 'package:user_support_mobile/pages/ShowDropdownPage.dart';
 import '../models/approve_model.dart';
 import '../pages/user_approval_detail.dart';
 
 
-class ApprovalTableDialogPage extends StatelessWidget {
+class ApprovalTableDialogPage extends StatefulWidget {
   final List<dynamic> accounts;
   final UserModel userApproval;
   final List<Userpayload>? userPayload;
-  final Function(BuildContext, String, String, UserModel) showDropdown;
 
   const ApprovalTableDialogPage({
     Key? key,
     required this.accounts,
     required this.userApproval,
     required this.userPayload,
-    required this.showDropdown,
   }) : super(key: key);
+
+  @override
+  State<ApprovalTableDialogPage> createState() => _ApprovalTableDialogPageState();
+}
+
+class _ApprovalTableDialogPageState extends State<ApprovalTableDialogPage> {
+  late UserModel userApproval;
+  List<Userpayload>? userPayload;
+
+  @override
+  void initState() {
+    super.initState();
+    userApproval = widget.userApproval;
+    userPayload = widget.userPayload;
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -31,9 +46,9 @@ class ApprovalTableDialogPage extends StatelessWidget {
       body: Container(
         padding: EdgeInsets.all(16.0),
         child: ListView.builder(
-          itemCount: accounts.length,
+          itemCount: widget.accounts?.length,
           itemBuilder: (context, index) {
-            final account = accounts[index];
+            final account = widget.accounts?[index];
             final payloadStatus = account['payloadStatus'];
             Color? rowColor;
 
@@ -84,12 +99,22 @@ class ApprovalTableDialogPage extends StatelessWidget {
                             style: TextStyle(color: const Color.fromARGB(255, 91, 13, 7)),
                           )
                               : ElevatedButton(
-                                onPressed: () {
-                                  final nameParts = (account['Names'] ?? '').split(' ');
-                                  final firstName = nameParts.isNotEmpty ? nameParts[0] : '';
-                                  final lastName = nameParts.length > 1 ? nameParts[1] : '';
-                                  _showDropdown(context, firstName, lastName, widget.userApproval);
-                                },
+                            onPressed: () {
+                              final nameParts = (account['Names'] ?? '').split(' ');
+                              final firstName = nameParts.isNotEmpty ? nameParts[0] : '';
+                              final lastName = nameParts.length > 1 ? nameParts[1] : '';
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ShowDropdownPage(
+                                    firstName: firstName,
+                                    lastName: lastName,
+                                    userApproval: widget.userApproval,
+                                    userPayload: widget.userPayload,
+                                  ),
+                                ),
+                              );
+                            },
 
                                child: Text('Select'),
                           ),

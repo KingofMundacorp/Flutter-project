@@ -198,9 +198,18 @@ class _ShowDropdownPageState extends State<ShowDropdownPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
                   Text(
-                  'Proposed Username for User Account is    $proposedUsername',
+                  'Proposed Username for User Account:',
                    style: TextStyle(
                    fontSize: 16,
+                   fontWeight: FontWeight.normal,
+                   color: Colors.grey[700],
+                   ),
+                   ),
+                 SizedBox(height: 10), 
+                 Text(
+                  '$proposedUsername',
+                   style: TextStyle(
+                   fontSize: 18,
                    fontWeight: FontWeight.bold,
                    color: Colors.grey[700],
                    ),
@@ -208,7 +217,7 @@ class _ShowDropdownPageState extends State<ShowDropdownPage> {
                  SizedBox(height: 10), 
                   TextField(
                     controller: usernameController,
-                    decoration: InputDecoration(labelText: 'Username (Ensure five or more Characters)'),
+                    decoration: InputDecoration(labelText: 'Enter Username (Ensure five or more Characters)'),
                   ),
                   SizedBox(height: 20),
                   ElevatedButton(

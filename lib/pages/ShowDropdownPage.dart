@@ -40,9 +40,7 @@ class _ShowDropdownPageState extends State<ShowDropdownPage> {
   late Userpayload _selectedPayload;
   List<dynamic> _potentialDuplicates = [];
   String? selectedUser;
-  bool isVisible = true;
-  bool isButtonEnabled = false;
-  bool _showDuplicatesButton= false;
+  bool _showDuplicatesButton = false;
 
 
   @override
@@ -63,7 +61,6 @@ class _ShowDropdownPageState extends State<ShowDropdownPage> {
   Widget build(BuildContext context) {
     final usernameController = TextEditingController();
     String proposedUsername = _generateProposedUsername(firstName, lastName);
-    _showDuplicatesButton = false;
     var SelectedPayload = userApproval.userPayload!.firstWhere(
           (payloadu) => '${payloadu.firstName} ${payloadu.surname}' == '$firstName $lastName',);
 
@@ -163,6 +160,9 @@ class _ShowDropdownPageState extends State<ShowDropdownPage> {
               _potentialDuplicates = [...emailUsers, ...phoneUsers];
 
               EasyLoading.showSuccess('Succeeded check!, duplicates were found');
+              setState(() {
+                        _showDuplicatesButton = true;
+                      });
               return true;
             }
 
@@ -229,11 +229,12 @@ class _ShowDropdownPageState extends State<ShowDropdownPage> {
                     },
                     child: Text('Check Duplicate'),
                   ),
-                  if (_showDuplicatesButton)
+                  if (_showDuplicatesButton)... [
+                    SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: () => _showPotentialDuplicatesPopup(context),
                       child: Text('View Potential Duplicates'),
-                    ),
+                    ),],
                   SizedBox(height: 30),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,

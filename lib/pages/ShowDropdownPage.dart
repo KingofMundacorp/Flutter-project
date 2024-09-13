@@ -65,12 +65,13 @@ class _ShowDropdownPageState extends State<ShowDropdownPage> {
           (payloadu) => '${payloadu.firstName} ${payloadu.surname}' == '$firstName $lastName',);
 
     Future <bool> _checkExistingUsername(String username) async {
+      String usernames = username.toLowerCase();
       EasyLoading.show(
         status: 'Checking for Existing Username...🔄',
         maskType: EasyLoadingMaskType.black,
       );
       final response = await d2repository.httpClient.get(
-        'users?filter=userCredentials.username:eq:$username&fields=id',
+        'users?filter=userCredentials.username:eq:$usernames&fields=id',
       );
 
       if (response.statusCode == 200) {

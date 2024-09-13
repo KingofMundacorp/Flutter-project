@@ -6,7 +6,6 @@ import 'package:user_support_mobile/widgets/message_card.dart';
 import 'package:user_support_mobile/widgets/show_loading.dart';
 import 'package:html/parser.dart' as html_parser;
 
-
 class UserAccountScreen extends StatefulWidget {
   const UserAccountScreen({Key? key}) : super(key: key);
 
@@ -16,6 +15,7 @@ class UserAccountScreen extends StatefulWidget {
 
 class _UserAccountScreenState extends State<UserAccountScreen> {
   List<MessageConversation> _searchResult = [];
+  final ScrollController _scrollController = ScrollController();
 
   @override
   Widget build(BuildContext context) {
@@ -30,32 +30,37 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
     final size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
-          elevation: 0,
-          title: const Text('User Account'),
-          actions: <Widget>[
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: () async {
-                await context.read<MessageModel>().fetchUserApproval;
-              },
-            ),
-          ]),
+        elevation: 0,
+        title: const Text('User Account'),
+        actions: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () async {
+              await context.read<MessageModel>().fetchUserApproval;
+            },
+          ),
+        ],
+      ),
       body: RefreshIndicator(
         onRefresh: () async {
           await context.read<MessageModel>().fetchUserApproval;
         },
         child: SafeArea(
-          child: Center(
-            child: Consumer<MessageModel>(
-              builder: (context, value, child) {
-                if (value.map.isEmpty && value.userApproval.isEmpty) {
-                  return LoadingListPage();
-                } else {
-                  return SizedBox(
-                    width: size.width * 0.99,
-                    child: ListView(
-                      children: <Widget>[
-                        ListView.builder(
+          child: Scrollbar(
+            thumbVisibility: false,
+            thickness: 8,
+            controller: _scrollController,
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                children: <Widget>[
+                  Consumer<MessageModel>(
+                    builder: (context, value, child) {
+                      if (value.map.isEmpty && value.userApproval.isEmpty) {
+                        return LoadingListPage();
+                      } else {
+                        return ListView.builder(
                           shrinkWrap: true,
                           physics: const ClampingScrollPhysics(),
                           itemCount: _searchResult.isEmpty
@@ -70,7 +75,7 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                                   fit: FlexFit.tight,
                                   child: ClipRect(
                                     child: Align(
-                                      alignment: Alignment.centerLeft,
+                                      alignment: Alignment.center,
                                       child: Container(
                                         constraints: BoxConstraints(
                                           maxWidth: MediaQuery.of(context).size.width * 0.9,
@@ -78,9 +83,15 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                                         child: MessageBox(
                                           userApproval: messageData,
                                           isUserApproval: true,
-                                          lastMessage: calculateDateDifference(DateTime.fromMillisecondsSinceEpoch(int.parse(messageData.id!.split("_")[0].replaceAll("UA", "")))),
+                                          lastMessage: calculateDateDifference(
+                                            DateTime.fromMillisecondsSinceEpoch(
+                                              int.parse(messageData.id!.split("_")[0].replaceAll("UA", "")),
+                                            ),
+                                          ),
                                           subject: _parseHtmlString(messageData.action ?? 'No Subject'),
-                                          displayName: _parseHtmlString(messageData.message?.subject?.split("-").last ?? 'No Display'),
+                                          displayName: _parseHtmlString(
+                                            messageData.message?.subject?.split("-").last ?? 'No Display',
+                                          ),
                                           messageId: messageData.id ?? 'No ID',
                                           read: false,
                                         ),
@@ -90,16 +101,13 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                                 ),
                               ],
                             );
-
                           },
-                       ),
-                      ],
-                    ),
-                  );
-
-
-                }
-              },
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ),

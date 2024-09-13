@@ -72,7 +72,7 @@ class _ApprovalTableDialogPageState extends State<ApprovalTableDialogPage> {
                   }
 
                    return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
                     child: Card(
                       color: rowColor,
                       shape: RoundedRectangleBorder(
@@ -94,6 +94,7 @@ class _ApprovalTableDialogPageState extends State<ApprovalTableDialogPage> {
                           _buildDetailRow('Report Access Level', account['Report Access Level']),
                           SizedBox(height: 12.0),
                           _buildActionButton(account, payloadStatus),
+                          SizedBox(height: 9),
                         ],
                       ),
                     ),
@@ -109,7 +110,7 @@ class _ApprovalTableDialogPageState extends State<ApprovalTableDialogPage> {
 
     Widget _buildDetailRow(String label, String? value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

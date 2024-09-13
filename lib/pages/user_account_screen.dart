@@ -6,7 +6,6 @@ import 'package:user_support_mobile/widgets/message_card.dart';
 import 'package:user_support_mobile/widgets/show_loading.dart';
 import 'package:html/parser.dart' as html_parser;
 
-
 class UserAccountScreen extends StatefulWidget {
   const UserAccountScreen({Key? key}) : super(key: key);
 
@@ -30,16 +29,17 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
     final size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
-          elevation: 0,
-          title: const Text('User Account'),
-          actions: <Widget>[
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: () async {
-                await context.read<MessageModel>().fetchUserApproval;
-              },
-            ),
-          ]),
+        elevation: 0,
+        title: const Text('User Account'),
+        actions: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () async {
+              await context.read<MessageModel>().fetchUserApproval;
+            },
+          ),
+        ],
+      ),
       body: RefreshIndicator(
         onRefresh: () async {
           await context.read<MessageModel>().fetchUserApproval;
@@ -53,51 +53,53 @@ class _UserAccountScreenState extends State<UserAccountScreen> {
                 } else {
                   return SizedBox(
                     width: size.width * 0.99,
-                    child: ListView(
-                      children: <Widget>[
-                        ListView.builder(
-                          shrinkWrap: true,
-                          physics: const ClampingScrollPhysics(),
-                          itemCount: _searchResult.isEmpty
-                              ? value.userApproval.length
-                              : _searchResult.length,
-                          itemBuilder: (context, index) {
-                            final messageData = value.userApproval[index];
+                    child: Scrollbar(
+                      thumbVisibility: false,
+                      thickness: 10.0, // Thickness of the scrollbar
+                      radius: const Radius.circular(8.0), // Rounded edges for the scrollbar thumb
+                      child: ListView(
+                        children: <Widget>[
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: const ClampingScrollPhysics(),
+                            itemCount: _searchResult.isEmpty
+                                ? value.userApproval.length
+                                : _searchResult.length,
+                            itemBuilder: (context, index) {
+                              final messageData = value.userApproval[index];
 
-                            return Row(
-                              children: [
-                                Flexible(
-                                  fit: FlexFit.tight,
-                                  child: ClipRect(
-                                    child: Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: Container(
-                                        constraints: BoxConstraints(
-                                          maxWidth: MediaQuery.of(context).size.width * 0.9,
-                                        ),
-                                        child: MessageBox(
-                                          userApproval: messageData,
-                                          isUserApproval: true,
-                                          lastMessage: calculateDateDifference(DateTime.fromMillisecondsSinceEpoch(int.parse(messageData.id!.split("_")[0].replaceAll("UA", "")))),
-                                          subject: _parseHtmlString(messageData.action ?? 'No Subject'),
-                                          displayName: _parseHtmlString(messageData.message?.subject?.split("-").last ?? 'No Display'),
-                                          messageId: messageData.id ?? 'No ID',
-                                          read: false,
+                              return Row(
+                                children: [
+                                  Flexible(
+                                    fit: FlexFit.tight,
+                                    child: ClipRect(
+                                      child: Align(
+                                        alignment: Alignment.center,
+                                        child: Container(
+                                          constraints: BoxConstraints(
+                                            maxWidth: MediaQuery.of(context).size.width * 0.99,
+                                          ),
+                                          child: MessageBox(
+                                            userApproval: messageData,
+                                            isUserApproval: true,
+                                            lastMessage: calculateDateDifference(DateTime.fromMillisecondsSinceEpoch(int.parse(messageData.id!.split("_")[0].replaceAll("UA", "")))),
+                                            subject: _parseHtmlString(messageData.action ?? 'No Subject'),
+                                            displayName: _parseHtmlString(messageData.message?.subject?.split("-").last ?? 'No Display'),
+                                            messageId: messageData.id ?? 'No ID',
+                                            read: false,
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              ],
-                            );
-
-                          },
-                        ),
-                      ],
+                                ],
+                              );
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   );
-
-
                 }
               },
             ),

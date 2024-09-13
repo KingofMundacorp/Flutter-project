@@ -254,9 +254,8 @@ class _PageContentState extends State<PageContent> {
   }
 
   Future<void> _rejectAllPayloads(BuildContext context, List<Userpayload> payloads) async{
-    for (var payload in payloads) {
+      var payload = payloads[0];
       showDataAlert(context, payload, true);
-    }
   }
 
   Future<void> _loading(bool isAccept, Userpayload selectedPayload) async {

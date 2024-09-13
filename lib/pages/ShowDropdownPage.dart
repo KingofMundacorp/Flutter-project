@@ -40,9 +40,7 @@ class _ShowDropdownPageState extends State<ShowDropdownPage> {
   late Userpayload _selectedPayload;
   List<dynamic> _potentialDuplicates = [];
   String? selectedUser;
-  bool isVisible = true;
-  bool isButtonEnabled = false;
-  bool _showDuplicatesButton= false;
+  bool _showDuplicatesButton = false;
 
 
   @override
@@ -63,7 +61,6 @@ class _ShowDropdownPageState extends State<ShowDropdownPage> {
   Widget build(BuildContext context) {
     final usernameController = TextEditingController();
     String proposedUsername = _generateProposedUsername(firstName, lastName);
-    _showDuplicatesButton = false;
     var SelectedPayload = userApproval.userPayload!.firstWhere(
           (payloadu) => '${payloadu.firstName} ${payloadu.surname}' == '$firstName $lastName',);
 
@@ -163,6 +160,9 @@ class _ShowDropdownPageState extends State<ShowDropdownPage> {
               _potentialDuplicates = [...emailUsers, ...phoneUsers];
 
               EasyLoading.showSuccess('Succeeded check!, duplicates were found');
+              setState(() {
+                _showDuplicatesButton = true;
+              });
               return true;
             }
 
@@ -198,9 +198,18 @@ class _ShowDropdownPageState extends State<ShowDropdownPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text(
-              'Proposed Username for User Account is    $proposedUsername',
+              'Proposed Username for User Account:',
               style: TextStyle(
                 fontSize: 16,
+                fontWeight: FontWeight.normal,
+                color: Colors.grey[700],
+              ),
+            ),
+            SizedBox(height: 10),
+            Text(
+              '$proposedUsername',
+              style: TextStyle(
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Colors.grey[700],
               ),
@@ -208,7 +217,7 @@ class _ShowDropdownPageState extends State<ShowDropdownPage> {
             SizedBox(height: 10),
             TextField(
               controller: usernameController,
-              decoration: InputDecoration(labelText: 'Username (Ensure five or more Characters)'),
+              decoration: InputDecoration(labelText: 'Enter Username (Ensure five or more Characters)'),
             ),
             SizedBox(height: 20),
             ElevatedButton(
@@ -220,11 +229,12 @@ class _ShowDropdownPageState extends State<ShowDropdownPage> {
               },
               child: Text('Check Duplicate'),
             ),
-            if (_showDuplicatesButton)
+            if (_showDuplicatesButton)... [
+              SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () => _showPotentialDuplicatesPopup(context),
                 child: Text('View Potential Duplicates'),
-              ),
+              ),],
             SizedBox(height: 30),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -407,7 +417,7 @@ class _ShowDropdownPageState extends State<ShowDropdownPage> {
                     padding: const EdgeInsets.all(8.0),
                     child: Text(
                       isRejectAll
-                          ? 'Are you sure you want to reject the of ALL request?'
+                          ? 'Are you sure you want to reject ALL request?'
                           : 'Are you sure you want to reject the request?',
                       style: TextStyle(fontSize: 16),
                     ),

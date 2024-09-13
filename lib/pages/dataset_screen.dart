@@ -1,9 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:user_support_mobile/models/message_conversation.dart';
-import 'package:user_support_mobile/pages/data_approval_screen.dart';
 import 'package:user_support_mobile/providers/provider.dart';
 import 'package:user_support_mobile/widgets/message_card.dart';
 import 'package:user_support_mobile/widgets/show_loading.dart';
@@ -60,7 +57,7 @@ class _DatasetScreenState extends State<DatasetScreen> {
                             return MessageBox(
                                 dataApproval: messageData,
                                 isDataApproval: true,
-                                lastMessage: DateTime.now().toString(),
+                                lastMessage: calculateDateDifference(DateTime.fromMillisecondsSinceEpoch(int.parse(messageData.id!.split("_")[0].replaceAll("DS", "")))),
                                 subject: messageData.message!.message!,
                                 displayName: messageData.message!.subject!
                                     .split("-")
@@ -79,5 +76,29 @@ class _DatasetScreenState extends State<DatasetScreen> {
         ),
       ),
     );
+  }
+}
+
+String calculateDateDifference(DateTime created) {
+  DateTime now = DateTime.now();
+  Duration diff = now.difference(created);
+
+  if (diff.inDays > 365) {
+    int years = (diff.inDays / 365).floor();
+    return '$years year${years > 1 ? 's' : ''} ago';
+  } else if (diff.inDays > 30) {
+    int months = (diff.inDays / 30).floor();
+    return '$months month${months > 1 ? 's' : ''} ago';
+  } else if (diff.inDays > 7) {
+    int weeks = (diff.inDays / 7).floor();
+    return '$weeks week${weeks > 1 ? 's' : ''} ago';
+  } else if (diff.inDays > 0) {
+    return '${diff.inDays} day${diff.inDays > 1 ? 's' : ''} ago';
+  } else if (diff.inHours > 0) {
+    return '${diff.inHours} hour${diff.inHours > 1 ? 's' : ''} ago';
+  } else if (diff.inMinutes > 0) {
+    return '${diff.inMinutes} minute${diff.inMinutes > 1 ? 's' : ''} ago';
+  } else {
+    return 'a Few Seconds Ago';
   }
 }

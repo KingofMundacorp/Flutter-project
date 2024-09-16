@@ -30,7 +30,7 @@ class NavigationDrawer extends StatelessWidget {
                   shape: BoxShape.rectangle,
                   border: Border(
                       bottom:
-                          BorderSide(color: Colors.grey.shade500, width: .2))),
+                      BorderSide(color: Colors.grey.shade500, width: .2))),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: const [
@@ -64,7 +64,7 @@ class NavigationDrawer extends StatelessWidget {
                 .length,
             Icons.inbox,
             Colors.green.shade200,
-            () => const InboxPage(),
+                () => const InboxPage(),
           ),
           _listTileWidget(
               context,
@@ -74,7 +74,7 @@ class NavigationDrawer extends StatelessWidget {
                   .length,
               Icons.verified_sharp,
               Colors.blue.shade200,
-              () => const ValidationPage()),
+                  () => const ValidationPage()),
           _listTileWidget(
               context,
               'Ticket',
@@ -83,7 +83,7 @@ class NavigationDrawer extends StatelessWidget {
                   .length,
               Icons.scanner,
               Colors.red.shade200,
-              () => const TicketPage()),
+                  () => const TicketPage()),
           _listTileWidget(
               context,
               'System',
@@ -92,7 +92,7 @@ class NavigationDrawer extends StatelessWidget {
                   .length,
               Icons.system_update,
               Colors.pinkAccent,
-              () => const SystemPage()),
+                  () => const SystemPage()),
           _listTileWidget(
               context,
               'Data Approval',
@@ -101,7 +101,7 @@ class NavigationDrawer extends StatelessWidget {
                   .length,
               Icons.done,
               Colors.pinkAccent,
-              () => const DataApprovalScreen(),
+                  () => const DataApprovalScreen(),
               isDataApproval: true),
           _listTileWidget(
               context,

@@ -187,6 +187,7 @@ class MyWrapView extends StatelessWidget {
             } else
             if (items[index]['name'] == 'User account') {
               context.go("/home/${items[index]['route']}");
+
             }
           },
           child: Column(

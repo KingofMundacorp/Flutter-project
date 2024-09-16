@@ -26,6 +26,7 @@ class MessageBox extends StatelessWidget {
   final ApproveModel? dataApproval;
   final bool? isUserApproval;
   final UserModel? userApproval;
+
   final String subject;
   final String displayName;
   final String lastMessage;
@@ -35,10 +36,13 @@ class MessageBox extends StatelessWidget {
     final fetchedData = Provider.of<MessageModel>(context);
     final Size size = MediaQuery.of(context).size;
 
+
+
     return GestureDetector(
       onTap: () {
         fetchedData.initialValue();
         fetchedData.fetchMessageThreadsById(messageId);
+
 
         // Navigate based on approval type
         if (isDataApproval == true && dataApproval != null) {
@@ -127,6 +131,7 @@ class MessageBox extends StatelessWidget {
                 ],
               ),
             ),
+
           ],
         ),
       ),

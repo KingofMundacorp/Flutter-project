@@ -4,12 +4,14 @@ import 'package:go_router/go_router.dart';
 import 'package:user_support_mobile/models/approve_model.dart';
 import 'package:user_support_mobile/modules/module-authentication/metadatasync/initial-metadata-sync.dart';
 import 'package:user_support_mobile/pages/data_approval_detail.dart';
+
 import 'package:user_support_mobile/pages/user_approval_detail.dart';
 import 'package:user_support_mobile/pages/dataset_screen.dart';
 import 'package:user_support_mobile/pages/home_page.dart';
 import 'package:user_support_mobile/pages/splash_page.dart';
 import 'package:user_support_mobile/pages/user_account_screen.dart';
 import 'package:user_support_mobile/pages/user_approval_screen.dart';
+
 
 import '../pages/compose_page.dart';
 import '../pages/compose_painter.dart';
@@ -35,6 +37,7 @@ final GoRouter router = GoRouter(
       return HomeMetadataSync(
         loggedInUser: state.extra as User,
       );
+
     }),
     GoRoute(
         path: '/home',
@@ -144,3 +147,4 @@ final GoRouter router = GoRouter(
         ]),
   ],
 );
+

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:user_support_mobile/pages/facility_screen/local_hospital_screen.dart';
-
 import '../faility_components/facilityDetails.dart';
-
 
 class FacilityDaterangePicker extends StatefulWidget {
   @override
@@ -63,14 +61,14 @@ class _FacilityDaterangePickerState extends State<FacilityDaterangePicker> {
     final endDate = DateTime.tryParse(_endDateController.text);
 
     if (startDate != null && endDate != null) {
-      // Show all facilities if the end date is set
+      // Show only the first 3 facilities if both start and end dates are set
       setState(() {
-        _filteredFacilities = _facilityList;
+        _filteredFacilities = _facilityList.take(3).toList();
       });
     } else if (startDate != null) {
-      // Show a limited list (e.g., first 5) if only the start date is set
+      // Show all facilities if only the start date is set
       setState(() {
-        _filteredFacilities = _facilityList.take(5).toList();
+        _filteredFacilities = _facilityList;
       });
     } else {
       // Show no facilities if no date is set
@@ -133,6 +131,7 @@ class _FacilityDaterangePickerState extends State<FacilityDaterangePicker> {
                     child: ListTile(
                       title: Text("Facility: ${_filteredFacilities[index]['name']}"),
                       subtitle: Text("Region: ${_filteredFacilities[index]['region']}"),
+                      trailing: Text("Code: ${_filteredFacilities[index]['code']}"),
                       onTap: () {
                         // When a facility is tapped, navigate to the FacilityDetailsScreen
                         Navigator.push(
@@ -172,6 +171,3 @@ class _FacilityDaterangePickerState extends State<FacilityDaterangePicker> {
     );
   }
 }
-
-
-

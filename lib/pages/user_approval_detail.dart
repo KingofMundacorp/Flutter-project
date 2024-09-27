@@ -101,9 +101,6 @@ class _PageContentState extends State<PageContent> {
   final TextEditingController _textEditingController = TextEditingController();
   bool _isDropdownShown = false;
   Color _selectButtonColor = Color(0xFF235EA0);
-  bool _showDuplicatesButton = false;
-  List<dynamic> _potentialDuplicates = [];
-  bool _isLoading = false;
 
 
 

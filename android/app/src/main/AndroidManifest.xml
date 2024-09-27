@@ -3,7 +3,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
    <application
         android:label="user_support_mobile"
-        android:icon="@mipmap/launcher_icon">
+        android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
             android:exported="true"

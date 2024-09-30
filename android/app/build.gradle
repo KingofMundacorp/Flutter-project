@@ -39,6 +39,7 @@ android {
         targetSdkVersion 34
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+        vectorDrawables.useSupportLibrary = true
     }
     namespace 'com.example.user_support_mobile'
 

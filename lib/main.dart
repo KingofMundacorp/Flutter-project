@@ -10,6 +10,7 @@ import 'package:user_support_mobile/routes/routes.dart';
 
 import '../helpers/text_theme.dart';
 import 'main.reflectable.dart';
+import 'package:dcdg/dcdg.dart';
 
 void main() async {
   initializeReflectable();
